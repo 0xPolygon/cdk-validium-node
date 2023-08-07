@@ -732,38 +732,3 @@ func (p *PostgresPoolStorage) GetAllAddressesBlocked(ctx context.Context) ([]com
 
 	return addrs, nil
 }
-
-// CheckPolicy returns the rule for the policy if the address is not associated with the rule (default), or the opposite
-// of the rule if it is. This allows the rule to act as an allow or deny list.
-func (p *PostgresPoolStorage) CheckPolicy(ctx context.Context, policy pool.PolicyName, address common.Address) (bool, error) {
-	sql := `SELECT 
-				CASE WHEN a.address is null THEN 
-					p.allow 
-				ELSE 
-					NOT p.allow 
-				END 
-			FROM pool.policy p 
-				LEFT JOIN pool.acl a 
-					ON p.name = a.policy 
-					AND a.address = $1 
-			WHERE p.name = $2`
-
-	args := []interface{}{address.Hex(), policy}
-	rows, err := p.db.Query(ctx, sql, args...)
-
-	if errors.Is(err, pgx.ErrNoRows) {
-		return false, pool.ErrNotFound
-	} else if err != nil {
-		return false, err
-	}
-	if !rows.Next() { // should always be a row if the policy exists
-		return false, nil
-	}
-
-	var allow bool
-	err = rows.Scan(&allow)
-	if err != nil {
-		return false, err
-	}
-	return allow, nil
-}

@@ -4,7 +4,7 @@ ARCH := $(shell arch)
 
 ifeq ($(ARCH),x86_64)
 	ARCH = amd64
-else 
+else
 	ifeq ($(ARCH),aarch64)
 		ARCH = arm64
 	endif
@@ -93,7 +93,7 @@ config-doc-custom_network: $(GENERATE_SCHEMA_DOC) ## Generate config file's json
 							--config example_format=JSON \
 							$(GENERATE_DOC_PATH)custom_network-config-schema.json \
 							$(GENERATE_DOC_PATH)custom_network-config-doc.md
-	
+
 
 .PHONY: update-external-dependencies
 update-external-dependencies: ## Updates external dependencies like images, test vectors or proto files
