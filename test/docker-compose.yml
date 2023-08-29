@@ -338,7 +338,7 @@ services:
 
   cdk-validium-prover:
     container_name: cdk-validium-prover
-    image: hermeznetwork/zkevm-prover:v2.2.0-RC4
+    image: hermeznetwork/zkevm-prover:v2.2.0
     ports:
       # - 50051:50051 # Prover
       - 50052:50052 # Mock prover
