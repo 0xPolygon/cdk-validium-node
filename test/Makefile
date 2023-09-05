@@ -1,4 +1,4 @@
-DOCKERCOMPOSE := docker-compose -f docker-compose.yml
+DOCKERCOMPOSE := docker compose -f docker-compose.yml
 DOCKERCOMPOSEAPPSEQ := cdk-validium-sequencer
 DOCKERCOMPOSEAPPSEQSENDER := cdk-validium-sequence-sender
 DOCKERCOMPOSEAPPL2GASP := cdk-validium-l2gaspricer
@@ -80,8 +80,8 @@ STOPPERMISSIONLESSNODE := $(DOCKERCOMPOSE) stop $(DOCKERCOMPOSEPERMISSIONLESSNOD
 STOPPERMISSIONLESSNODEDAC := $(DOCKERCOMPOSE) stop $(DOCKERCOMPOSEPERMISSIONLESSNODEDAC) && $(DOCKERCOMPOSE) rm -f $(DOCKERCOMPOSEPERMISSIONLESSNODEDAC)
 STOPPERMISSIONLESSZKPROVER := $(DOCKERCOMPOSE) stop $(DOCKERCOMPOSEPERMISSIONLESSZKPROVER) && $(DOCKERCOMPOSE) rm -f $(DOCKERCOMPOSEPERMISSIONLESSZKPROVER)
 
-RUNDACDB := docker-compose up -d cdk-validium-data-node-db
-STOPDACDB := docker-compose stop cdk-validium-data-node-db && docker-compose rm -f cdk-validium-data-node-db
+RUNDACDB := docker compose up -d cdk-validium-data-node-db
+STOPDACDB := docker compose stop cdk-validium-data-node-db && docker compose rm -f cdk-validium-data-node-db
 
 STOPAPPROVE := $(DOCKERCOMPOSE) stop $(DOCKERCOMPOSENODEAPPROVE) && $(DOCKERCOMPOSE) rm -f $(DOCKERCOMPOSENODEAPPROVE)
 
