@@ -1,4 +1,4 @@
-package zkevm
+package cdkvalidiumnode
 
 import (
 	"fmt"

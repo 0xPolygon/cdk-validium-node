@@ -6,12 +6,12 @@ import (
 	"os/exec"
 	"time"
 
-	"github.com/0xPolygonHermez/zkevm-node/log"
-	metricsLib "github.com/0xPolygonHermez/zkevm-node/metrics"
-	"github.com/0xPolygonHermez/zkevm-node/sequencer/metrics"
-	metricsState "github.com/0xPolygonHermez/zkevm-node/state/metrics"
-	"github.com/0xPolygonHermez/zkevm-node/test/benchmarks/sequencer/common/params"
-	"github.com/0xPolygonHermez/zkevm-node/test/testutils"
+	"github.com/0xPolygon/cdk-validium-node/log"
+	metricsLib "github.com/0xPolygon/cdk-validium-node/metrics"
+	"github.com/0xPolygon/cdk-validium-node/sequencer/metrics"
+	metricsState "github.com/0xPolygon/cdk-validium-node/state/metrics"
+	"github.com/0xPolygon/cdk-validium-node/test/benchmarks/sequencer/common/params"
+	"github.com/0xPolygon/cdk-validium-node/test/testutils"
 )
 
 const (

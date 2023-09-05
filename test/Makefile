@@ -1,26 +1,27 @@
 DOCKERCOMPOSE := docker-compose -f docker-compose.yml
-DOCKERCOMPOSEAPPSEQ := zkevm-sequencer
-DOCKERCOMPOSEAPPSEQSENDER := zkevm-sequence-sender
-DOCKERCOMPOSEAPPL2GASP := zkevm-l2gaspricer
-DOCKERCOMPOSEAPPAGG := zkevm-aggregator
-DOCKERCOMPOSEAPPRPC := zkevm-json-rpc
-DOCKERCOMPOSEAPPSYNC := zkevm-sync
-DOCKERCOMPOSEAPPETHTXMANAGER := zkevm-eth-tx-manager
-DOCKERCOMPOSESTATEDB := zkevm-state-db
-DOCKERCOMPOSEPOOLDB := zkevm-pool-db
-DOCKERCOMPOSEEVENTDB := zkevm-event-db
-DOCKERCOMPOSENETWORK := zkevm-mock-l1-network
-DOCKERCOMPOSEEXPLORERL1 := zkevm-explorer-l1
-DOCKERCOMPOSEEXPLORERL1DB := zkevm-explorer-l1-db
-DOCKERCOMPOSEEXPLORERL2 := zkevm-explorer-l2
-DOCKERCOMPOSEEXPLORERL2DB := zkevm-explorer-l2-db
-DOCKERCOMPOSEEXPLORERRPC := zkevm-explorer-json-rpc
-DOCKERCOMPOSEZKPROVER := zkevm-prover
-DOCKERCOMPOSEPERMISSIONLESSDB := zkevm-permissionless-db
-DOCKERCOMPOSEPERMISSIONLESSNODE := zkevm-permissionless-node
-DOCKERCOMPOSEPERMISSIONLESSZKPROVER := zkevm-permissionless-prover
-DOCKERCOMPOSENODEAPPROVE := zkevm-approve
-DOCKERCOMPOSEMETRICS := zkevm-metrics
+DOCKERCOMPOSEAPPSEQ := cdk-validium-sequencer
+DOCKERCOMPOSEAPPSEQSENDER := cdk-validium-sequence-sender
+DOCKERCOMPOSEAPPL2GASP := cdk-validium-l2gaspricer
+DOCKERCOMPOSEAPPAGG := cdk-validium-aggregator
+DOCKERCOMPOSEAPPRPC := cdk-validium-json-rpc
+DOCKERCOMPOSEAPPSYNC := cdk-validium-sync
+DOCKERCOMPOSEAPPETHTXMANAGER := cdk-validium-eth-tx-manager
+DOCKERCOMPOSESTATEDB := cdk-validium-state-db
+DOCKERCOMPOSEPOOLDB := cdk-validium-pool-db
+DOCKERCOMPOSEEVENTDB := cdk-validium-event-db
+DOCKERCOMPOSENETWORK := cdk-validium-mock-l1-network
+DOCKERCOMPOSEEXPLORERL1 := cdk-validium-explorer-l1
+DOCKERCOMPOSEEXPLORERL1DB := cdk-validium-explorer-l1-db
+DOCKERCOMPOSEEXPLORERL2 := cdk-validium-explorer-l2
+DOCKERCOMPOSEEXPLORERL2DB := cdk-validium-explorer-l2-db
+DOCKERCOMPOSEEXPLORERRPC := cdk-validium-explorer-json-rpc
+DOCKERCOMPOSEZKPROVER := cdk-validium-prover
+DOCKERCOMPOSEPERMISSIONLESSDB := cdk-validium-permissionless-db
+DOCKERCOMPOSEPERMISSIONLESSNODE := cdk-validium-permissionless-node
+DOCKERCOMPOSEPERMISSIONLESSNODEDAC := cdk-validium-permissionless-node-forced-DAC
+DOCKERCOMPOSEPERMISSIONLESSZKPROVER := cdk-validium-permissionless-prover
+DOCKERCOMPOSENODEAPPROVE := cdk-validium-approve
+DOCKERCOMPOSEMETRICS := cdk-validium-metrics
 DOCKERCOMPOSEGRAFANA := grafana
 
 RUNSTATEDB := $(DOCKERCOMPOSE) up -d $(DOCKERCOMPOSESTATEDB)
@@ -45,6 +46,7 @@ RUNZKPROVER := $(DOCKERCOMPOSE) up -d $(DOCKERCOMPOSEZKPROVER)
 
 RUNPERMISSIONLESSDB := $(DOCKERCOMPOSE) up -d $(DOCKERCOMPOSEPERMISSIONLESSDB)
 RUNPERMISSIONLESSNODE := $(DOCKERCOMPOSE) up -d $(DOCKERCOMPOSEPERMISSIONLESSNODE)
+RUNPERMISSIONLESSNODEDAC := $(DOCKERCOMPOSE) up -d $(DOCKERCOMPOSEPERMISSIONLESSNODEDAC)
 RUNPERMISSIONLESSZKPROVER := $(DOCKERCOMPOSE) up -d $(DOCKERCOMPOSEPERMISSIONLESSZKPROVER)
 
 RUNAPPROVE := $(DOCKERCOMPOSE) up -d $(DOCKERCOMPOSENODEAPPROVE)
@@ -75,7 +77,11 @@ STOPZKPROVER := $(DOCKERCOMPOSE) stop $(DOCKERCOMPOSEZKPROVER) && $(DOCKERCOMPOS
 
 STOPPERMISSIONLESSDB := $(DOCKERCOMPOSE) stop $(DOCKERCOMPOSEPERMISSIONLESSDB) && $(DOCKERCOMPOSE) rm -f $(DOCKERCOMPOSEPERMISSIONLESSDB)
 STOPPERMISSIONLESSNODE := $(DOCKERCOMPOSE) stop $(DOCKERCOMPOSEPERMISSIONLESSNODE) && $(DOCKERCOMPOSE) rm -f $(DOCKERCOMPOSEPERMISSIONLESSNODE)
+STOPPERMISSIONLESSNODEDAC := $(DOCKERCOMPOSE) stop $(DOCKERCOMPOSEPERMISSIONLESSNODEDAC) && $(DOCKERCOMPOSE) rm -f $(DOCKERCOMPOSEPERMISSIONLESSNODEDAC)
 STOPPERMISSIONLESSZKPROVER := $(DOCKERCOMPOSE) stop $(DOCKERCOMPOSEPERMISSIONLESSZKPROVER) && $(DOCKERCOMPOSE) rm -f $(DOCKERCOMPOSEPERMISSIONLESSZKPROVER)
+
+RUNDACDB := docker-compose up -d cdk-validium-data-node-db
+STOPDACDB := docker-compose stop cdk-validium-data-node-db && docker-compose rm -f cdk-validium-data-node-db
 
 STOPAPPROVE := $(DOCKERCOMPOSE) stop $(DOCKERCOMPOSENODEAPPROVE) && $(DOCKERCOMPOSE) rm -f $(DOCKERCOMPOSENODEAPPROVE)
 
@@ -219,6 +225,18 @@ test-e2e-group-11: stop ## Runs group 11 e2e tests checking race conditions
 	docker ps -a
 	docker logs $(DOCKERCOMPOSEZKPROVER)
 	trap '$(STOP)' EXIT; MallocNanoZone=0 go test -count=1 -race -v -p 1 -timeout 2000s ../ci/e2e-group11/...
+
+
+.PHONY: test-e2e-group-cdk-validium-1
+test-e2e-group-cdk-validium-1: stop ## Runs cdk-validium-1 e2e tests checking race conditions
+	$(RUNSTATEDB)
+	$(RUNPOOLDB)
+	$(RUNEVENTDB)
+	sleep 5
+	$(RUNZKPROVER)
+	docker ps -a
+	docker logs $(DOCKERCOMPOSEZKPROVER)
+	trap '$(STOP)' EXIT; MallocNanoZone=0 go test -count=1 -race -v -p 1 -timeout 2000s ../ci/e2e-group-cdk-validium-1/...
 
 .PHONY: benchmark-sequencer-eth-transfers
 benchmark-sequencer-eth-transfers: stop
@@ -419,8 +437,21 @@ run-permissionless: run-node ## Runs the trusted and permissionless node
 	$(RUNPERMISSIONLESSNODE)
 
 .PHONY: stop-permissionless
-stop-permissionless: stop-node## Stops the permissionless node
+stop-permissionless: stop-node## Stops the trusted and permissionless node
 	$(STOPPERMISSIONLESSNODE)
+	$(STOPPERMISSIONLESSZKPROVER)
+	$(STOPPERMISSIONLESSDB)
+
+.PHONY: run-permissionless-dac
+run-permissionless-dac: ## Runs a permissionless node that is forced to sync through DAC
+	$(RUNPERMISSIONLESSDB)
+	sleep 1
+	$(RUNPERMISSIONLESSZKPROVER)
+	$(RUNPERMISSIONLESSNODEDAC)
+
+.PHONY: stop-permissionless-dac
+stop-permissionless-dac: ## Stops the permissionless node that is forced to sync through DAC
+	$(STOPPERMISSIONLESSNODEDAC)
 	$(STOPPERMISSIONLESSZKPROVER)
 	$(STOPPERMISSIONLESSDB)
 
@@ -473,6 +504,15 @@ run-metrics: ## Runs the metrics container
 stop-metrics: ## Stops the metrics container
 	$(STOPMETRICS)
 
+.PHONY: run-dac-db
+run-dac-db: ## Suns the DAC DB
+	$(RUNDACDB)
+
+.PHONY: stop-dac-db
+stop-dac-db: ## Stops the DAC DB
+	$(STOPDACDB)
+
+
 .PHONY: init-network
 init-network: ## Initializes the network
 	go run ./scripts/init_network/main.go .
@@ -502,6 +542,7 @@ generate-mocks: ## Generates mocks for the tests, using mockery tool
 	export "GOROOT=$$(go env GOROOT)" && $$(go env GOPATH)/bin/mockery --name=storageInterface --dir=../jsonrpc --output=../jsonrpc --outpkg=jsonrpc --inpackage --structname=storageMock --filename=mock_storage.go
 	export "GOROOT=$$(go env GOROOT)" && $$(go env GOPATH)/bin/mockery --name=PoolInterface --dir=../jsonrpc/types --output=../jsonrpc/mocks --outpkg=mocks --structname=PoolMock --filename=mock_pool.go
 	export "GOROOT=$$(go env GOROOT)" && $$(go env GOPATH)/bin/mockery --name=StateInterface --dir=../jsonrpc/types --output=../jsonrpc/mocks --outpkg=mocks --structname=StateMock --filename=mock_state.go
+	export "GOROOT=$$(go env GOROOT)" && $$(go env GOPATH)/bin/mockery --name=EthermanInterface --dir=../jsonrpc/types --output=../jsonrpc/mocks --outpkg=mocks --structname=EthermanMock --filename=mock_etherman.go
 	export "GOROOT=$$(go env GOROOT)" && $$(go env GOPATH)/bin/mockery --name=Tx --srcpkg=github.com/jackc/pgx/v4 --output=../jsonrpc/mocks --outpkg=mocks --structname=DBTxMock --filename=mock_dbtx.go
 
 	export "GOROOT=$$(go env GOROOT)" && $$(go env GOPATH)/bin/mockery --name=workerInterface --dir=../sequencer --output=../sequencer --outpkg=sequencer --inpackage --structname=WorkerMock --filename=mock_worker.go
@@ -517,6 +558,8 @@ generate-mocks: ## Generates mocks for the tests, using mockery tool
 	export "GOROOT=$$(go env GOROOT)" && $$(go env GOPATH)/bin/mockery --name=poolInterface --dir=../synchronizer --output=../synchronizer --outpkg=synchronizer --structname=poolMock --filename=mock_pool.go
 	export "GOROOT=$$(go env GOROOT)" && $$(go env GOPATH)/bin/mockery --name=zkEVMClientInterface --dir=../synchronizer --output=../synchronizer --outpkg=synchronizer --structname=zkEVMClientMock --filename=mock_zkevmclient.go
 	export "GOROOT=$$(go env GOROOT)" && $$(go env GOPATH)/bin/mockery --name=Tx --srcpkg=github.com/jackc/pgx/v4 --output=../synchronizer --outpkg=synchronizer --structname=dbTxMock --filename=mock_dbtx.go
+	export "GOROOT=$$(go env GOROOT)" && $$(go env GOPATH)/bin/mockery --name=ClientFactoryInterface --srcpkg=github.com/0xPolygon/cdk-data-availability/client --output=../synchronizer --outpkg=synchronizer --structname=dataCommitteeClientFactoryMock --filename=mock_datacommitteeclientfactory.go
+	export "GOROOT=$$(go env GOROOT)" && $$(go env GOPATH)/bin/mockery --name=ClientInterface --srcpkg=github.com/0xPolygon/cdk-data-availability/client --output=../synchronizer --outpkg=synchronizer --structname=dataCommitteeClientMock --filename=mock_datacommitteeclient.go
 
 	export "GOROOT=$$(go env GOROOT)" && $$(go env GOPATH)/bin/mockery --name=GasPricer --srcpkg=github.com/ethereum/go-ethereum --output=../etherman --outpkg=etherman --structname=etherscanMock --filename=mock_etherscan.go
 	export "GOROOT=$$(go env GOROOT)" && $$(go env GOPATH)/bin/mockery --name=GasPricer --srcpkg=github.com/ethereum/go-ethereum --output=../etherman --outpkg=etherman --structname=ethGasStationMock --filename=mock_ethgasstation.go

@@ -9,7 +9,7 @@ Outputs = ["stderr"]
 User = "state_user"
 Password = "state_password"
 Name = "state_db"
-Host = "zkevm-state-db"
+Host = "cdk-validium-state-db"
 Port = "5432"
 EnableLog = false
 MaxConns = 200
@@ -27,17 +27,14 @@ PollMinAllowedGasPriceInterval = "15s"
 	User = "pool_user"
 	Password = "pool_password"
 	Name = "pool_db"
-	Host = "zkevm-pool-db"
+	Host = "cdk-validium-pool-db"
 	Port = "5432"
 	EnableLog = false
 	MaxConns = 200
-	[Pool.EffectiveGasPrice]
-	L1GasPriceFactor = 0.25
-	ByteGasCost = 16
-	MarginFactor = 1
 
 [Etherman]
-URL = "http://zkevm-mock-l1-network:8545"
+URL = "http://cdk-validium-mock-l1-network:8545"
+ForkIDChunkSize = 20000
 MultiGasProvider = false
 	[Etherscan]
 		ApiKey = ""
@@ -74,15 +71,6 @@ MaxMemAligns = 236585
 MaxArithmetics = 236585
 MaxBinaries = 473170
 MaxSteps = 7570538
-WeightBatchBytesSize = 1
-WeightCumulativeGasUsed = 1
-WeightKeccakHashes = 1
-WeightPoseidonHashes = 1
-WeightPoseidonPaddings = 1
-WeightMemAligns = 1
-WeightArithmetics = 1
-WeightBinaries = 1
-WeightSteps = 1
 TxLifetimeCheckTimeout = "10m"
 MaxTxLifetime = "3h"
 	[Sequencer.Finalizer]
@@ -96,21 +84,23 @@ MaxTxLifetime = "3h"
 		ClosingSignalsManagerWaitForCheckingForcedBatches = "10s"
 		ForcedBatchesFinalityNumberOfBlocks = 0
 		TimestampResolution = "10s"
+		StopSequencerOnBatchNum = 0
 	[Sequencer.DBManager]
 		PoolRetrievalInterval = "500ms"
 		L2ReorgRetrievalInterval = "5s"
-	[Sequencer.Worker]
-		ResourceCostMultiplier = 1000
 	[Sequencer.EffectiveGasPrice]
 		MaxBreakEvenGasPriceDeviationPercentage = 10
+		L1GasPriceFactor = 0.25
+		ByteGasCost = 16
+		MarginFactor = 1
 		Enabled = false
 
 [SequenceSender]
 WaitPeriodSendSequence = "15s"
 LastBatchVirtualizationTimeMaxWaitPeriod = "10s"
 MaxTxSizeForL1 = 131072
-SenderAddress = "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266"
-PrivateKeys = [{Path = "/pk/sequencer.keystore", Password = "testonly"}]
+L2Coinbase = "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266"
+PrivateKey = {Path = "/pk/sequencer.keystore", Password = "testonly"}
 
 [Aggregator]
 Host = "0.0.0.0"
@@ -136,12 +126,13 @@ Type = "default"
 UpdatePeriod = "10s"
 Factor = 0.5
 DefaultGasPriceWei = 1000000000
+MaxGasPriceWei = 0
 
 [MTClient]
-URI  = "zkevm-prover:50061"
+URI  = "cdk-validium-prover:50061"
 
 [Executor]
-URI = "zkevm-prover:50071"
+URI = "cdk-validium-prover:50071"
 MaxGRPCMessageSize = 100000000
 
 [Metrics]
@@ -157,7 +148,7 @@ ProfilingEnabled = true
 	User = "event_user"
 	Password = "event_password"
 	Name = "event_db"
-	Host = "zkevm-event-db"
+	Host = "cdk-validium-event-db"
 	Port = "5432"
 	EnableLog = false
 	MaxConns = 200
@@ -166,7 +157,7 @@ ProfilingEnabled = true
 User = "prover_user"
 Password = "prover_pass"
 Name = "prover_db"
-Host = "zkevm-state-db"
+Host = "cdk-validium-state-db"
 Port = "5432"
 EnableLog = false
 MaxConns = 200

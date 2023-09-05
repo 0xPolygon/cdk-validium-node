@@ -3,8 +3,8 @@ package environment
 import (
 	"strconv"
 
-	"github.com/0xPolygonHermez/zkevm-node/test/operations"
-	"github.com/0xPolygonHermez/zkevm-node/test/testutils"
+	"github.com/0xPolygon/cdk-validium-node/test/operations"
+	"github.com/0xPolygon/cdk-validium-node/test/testutils"
 )
 
 var (

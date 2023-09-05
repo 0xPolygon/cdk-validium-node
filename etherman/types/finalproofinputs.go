@@ -1,10 +1,10 @@
 package types
 
-import "github.com/0xPolygonHermez/zkevm-node/aggregator/pb"
+import "github.com/0xPolygon/cdk-validium-node/aggregator/prover"
 
 // FinalProofInputs struct
 type FinalProofInputs struct {
-	FinalProof       *pb.FinalProof
+	FinalProof       *prover.FinalProof
 	NewLocalExitRoot []byte
 	NewStateRoot     []byte
 }

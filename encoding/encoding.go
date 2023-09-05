@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/0xPolygonHermez/zkevm-node/hex"
+	"github.com/0xPolygon/cdk-validium-node/hex"
 	"github.com/ethereum/go-ethereum/common"
 )
 

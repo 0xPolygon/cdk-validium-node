@@ -9,11 +9,11 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/0xPolygonHermez/zkevm-node/config"
-	"github.com/0xPolygonHermez/zkevm-node/etherman"
-	ethmanTypes "github.com/0xPolygonHermez/zkevm-node/etherman/types"
-	"github.com/0xPolygonHermez/zkevm-node/log"
-	"github.com/0xPolygonHermez/zkevm-node/test/operations"
+	"github.com/0xPolygon/cdk-validium-node/config"
+	"github.com/0xPolygon/cdk-validium-node/etherman"
+	ethmanTypes "github.com/0xPolygon/cdk-validium-node/etherman/types"
+	"github.com/0xPolygon/cdk-validium-node/log"
+	"github.com/0xPolygon/cdk-validium-node/test/operations"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
 	ethTypes "github.com/ethereum/go-ethereum/core/types"
@@ -180,7 +180,7 @@ func sendBatches(cliCtx *cli.Context) error {
 		}
 
 		// send to L1
-		to, data, err := ethMan.BuildSequenceBatchesTxData(auth.From, seqs)
+		to, data, err := ethMan.BuildSequenceBatchesTxData(auth.From, seqs, auth.From, nil)
 		if err != nil {
 			return err
 		}
@@ -286,7 +286,7 @@ func sendBatches(cliCtx *cli.Context) error {
 						switch vLog.Topics[0] {
 						case etherman.SequencedBatchesSigHash():
 							if vLog.TxHash == tx.Hash() { // ignore other txs happening on L1
-								sb, err := ethMan.ZkEVM.ParseSequenceBatches(vLog)
+								sb, err := ethMan.CDKValidium.ParseSequenceBatches(vLog)
 								if err != nil {
 									return err
 								}
@@ -299,7 +299,7 @@ func sendBatches(cliCtx *cli.Context) error {
 								}
 							}
 						case etherman.TrustedVerifyBatchesSigHash():
-							vb, err := ethMan.ZkEVM.ParseVerifyBatchesTrustedAggregator(vLog)
+							vb, err := ethMan.CDKValidium.ParseVerifyBatchesTrustedAggregator(vLog)
 							if err != nil {
 								return err
 							}

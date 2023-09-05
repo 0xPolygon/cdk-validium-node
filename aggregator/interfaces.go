@@ -4,10 +4,10 @@ import (
 	"context"
 	"math/big"
 
-	"github.com/0xPolygonHermez/zkevm-node/aggregator/pb"
-	ethmanTypes "github.com/0xPolygonHermez/zkevm-node/etherman/types"
-	"github.com/0xPolygonHermez/zkevm-node/ethtxmanager"
-	"github.com/0xPolygonHermez/zkevm-node/state"
+	"github.com/0xPolygon/cdk-validium-node/aggregator/prover"
+	ethmanTypes "github.com/0xPolygon/cdk-validium-node/etherman/types"
+	"github.com/0xPolygon/cdk-validium-node/ethtxmanager"
+	"github.com/0xPolygon/cdk-validium-node/state"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/jackc/pgx/v4"
 )
@@ -19,11 +19,11 @@ type proverInterface interface {
 	ID() string
 	Addr() string
 	IsIdle() (bool, error)
-	BatchProof(input *pb.InputProver) (*string, error)
+	BatchProof(input *prover.InputProver) (*string, error)
 	AggregatedProof(inputProof1, inputProof2 string) (*string, error)
 	FinalProof(inputProof string, aggregatorAddr string) (*string, error)
 	WaitRecursiveProof(ctx context.Context, proofID string) (string, error)
-	WaitFinalProof(ctx context.Context, proofID string) (*pb.FinalProof, error)
+	WaitFinalProof(ctx context.Context, proofID string) (*prover.FinalProof, error)
 }
 
 // ethTxManager contains the methods required to send txs to

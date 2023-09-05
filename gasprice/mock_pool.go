@@ -7,7 +7,7 @@ import (
 
 	mock "github.com/stretchr/testify/mock"
 
-	pool "github.com/0xPolygonHermez/zkevm-node/pool"
+	pool "github.com/0xPolygon/cdk-validium-node/pool"
 
 	time "time"
 )

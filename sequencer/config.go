@@ -1,7 +1,7 @@
 package sequencer
 
 import (
-	"github.com/0xPolygonHermez/zkevm-node/config/types"
+	"github.com/0xPolygon/cdk-validium-node/config/types"
 )
 
 // Config represents the configuration of a sequencer
@@ -47,37 +47,10 @@ type Config struct {
 	// MaxSteps is max steps batch can handle
 	MaxSteps uint32 `mapstructure:"MaxSteps"`
 
-	// WeightBatchBytesSize is the cost weight for the BatchBytesSize batch resource
-	WeightBatchBytesSize int `mapstructure:"WeightBatchBytesSize"`
-
-	// WeightCumulativeGasUsed is the cost weight for the CumulativeGasUsed batch resource
-	WeightCumulativeGasUsed int `mapstructure:"WeightCumulativeGasUsed"`
-
-	// WeightKeccakHashes is the cost weight for the KeccakHashes batch resource
-	WeightKeccakHashes int `mapstructure:"WeightKeccakHashes"`
-
-	// WeightPoseidonHashes is the cost weight for the PoseidonHashes batch resource
-	WeightPoseidonHashes int `mapstructure:"WeightPoseidonHashes"`
-
-	// WeightPoseidonPaddings is the cost weight for the PoseidonPaddings batch resource
-	WeightPoseidonPaddings int `mapstructure:"WeightPoseidonPaddings"`
-
-	// WeightMemAligns is the cost weight for the MemAligns batch resource
-	WeightMemAligns int `mapstructure:"WeightMemAligns"`
-
-	// WeightArithmetics is the cost weight for the Arithmetics batch resource
-	WeightArithmetics int `mapstructure:"WeightArithmetics"`
-
-	// WeightBinaries is the cost weight for the Binaries batch resource
-	WeightBinaries int `mapstructure:"WeightBinaries"`
-
-	// WeightSteps is the cost weight for the Steps batch resource
-	WeightSteps int `mapstructure:"WeightSteps"`
-
 	// TxLifetimeCheckTimeout is the time the sequencer waits to check txs lifetime
 	TxLifetimeCheckTimeout types.Duration `mapstructure:"TxLifetimeCheckTimeout"`
 
-	// MaxTxLifetime is the time a tx can be in the sequencer memory
+	// MaxTxLifetime is the time a tx can be in the sequencer/worker memory
 	MaxTxLifetime types.Duration `mapstructure:"MaxTxLifetime"`
 
 	// Finalizer's specific config properties
@@ -85,9 +58,6 @@ type Config struct {
 
 	// DBManager's specific config properties
 	DBManager DBManagerCfg `mapstructure:"DBManager"`
-
-	// Worker's specific config properties
-	Worker WorkerCfg `mapstructure:"Worker"`
 
 	// EffectiveGasPrice is the config for the gas price
 	EffectiveGasPrice EffectiveGasPriceCfg `mapstructure:"EffectiveGasPrice"`
@@ -125,21 +95,18 @@ type FinalizerCfg struct {
 	// TimestampResolution is the resolution of the timestamp used to close a batch
 	TimestampResolution types.Duration `mapstructure:"TimestampResolution"`
 
-	// ForkID is the fork id of the chain
-	ForkID uint64 `mapstructure:"ForkID"`
-}
+	// StopSequencerOnBatchNum specifies the batch number where the Sequencer will stop to process more transactions and generate new batches. The Sequencer will halt after it closes the batch equal to this number
+	StopSequencerOnBatchNum uint64 `mapstructure:"StopSequencerOnBatchNum"`
 
-// WorkerCfg contains the Worker's configuration properties
-type WorkerCfg struct {
-	// ResourceCostMultiplier is the multiplier for the resource cost
-	ResourceCostMultiplier float64 `mapstructure:"ResourceCostMultiplier"`
+	// SequentialReprocessFullBatch indicates if the reprocess of a closed batch (sanity check) must be done in a
+	// sequential way (instead than in parallel)
+	SequentialReprocessFullBatch bool `mapstructure:"SequentialReprocessFullBatch"`
 }
 
 // DBManagerCfg contains the DBManager's configuration properties
 type DBManagerCfg struct {
 	PoolRetrievalInterval    types.Duration `mapstructure:"PoolRetrievalInterval"`
 	L2ReorgRetrievalInterval types.Duration `mapstructure:"L2ReorgRetrievalInterval"`
-	ForkID                   uint64         `mapstructure:"ForkID"`
 }
 
 // EffectiveGasPriceCfg contains the configuration properties for the effective gas price
@@ -147,6 +114,19 @@ type EffectiveGasPriceCfg struct {
 	// MaxBreakEvenGasPriceDeviationPercentage is the max allowed deviation percentage BreakEvenGasPrice on re-calculation
 	MaxBreakEvenGasPriceDeviationPercentage uint64 `mapstructure:"MaxBreakEvenGasPriceDeviationPercentage"`
 
+	// L1GasPriceFactor is the percentage of the L1 gas price that will be used as the L2 min gas price
+	L1GasPriceFactor float64 `mapstructure:"L1GasPriceFactor"`
+
+	// ByteGasCost is the gas cost per byte
+	ByteGasCost uint64 `mapstructure:"ByteGasCost"`
+
+	// MarginFactor is the margin factor percentage to be added to the L2 min gas price
+	MarginFactor float64 `mapstructure:"MarginFactor"`
+
 	// Enabled is a flag to enable/disable the effective gas price
 	Enabled bool `mapstructure:"Enabled"`
+
+	// DefaultMinGasPriceAllowed is the default min gas price to suggest
+	// This value is assigned from [Pool].DefaultMinGasPriceAllowed
+	DefaultMinGasPriceAllowed uint64
 }

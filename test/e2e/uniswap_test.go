@@ -5,10 +5,10 @@ import (
 	"flag"
 	"testing"
 
-	"github.com/0xPolygonHermez/zkevm-node/config"
-	"github.com/0xPolygonHermez/zkevm-node/state"
-	"github.com/0xPolygonHermez/zkevm-node/test/contracts/bin/ERC20"
-	"github.com/0xPolygonHermez/zkevm-node/test/operations"
+	"github.com/0xPolygon/cdk-validium-node/config"
+	"github.com/0xPolygon/cdk-validium-node/state"
+	"github.com/0xPolygon/cdk-validium-node/test/contracts/bin/ERC20"
+	"github.com/0xPolygon/cdk-validium-node/test/operations"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/stretchr/testify/assert"
@@ -42,7 +42,7 @@ func TestUniswap(t *testing.T) {
 			SenderAddress:                            "0x617b3a3528F9cDd6630fd3301B9c8911F7Bf063D",
 			LastBatchVirtualizationTimeMaxWaitPeriod: "5s",
 			WaitPeriodSendSequence:                   "5s",
-			MaxTxSizeForL1:                           131072,
+			MaxBatchesForL1:                          1,
 			PrivateKey:                               "0x28b2b0318721be8c8339199172cd7cc8f5e273800a35616ec893083a4b32c02e",
 		},
 	}

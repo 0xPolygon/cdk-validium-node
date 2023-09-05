@@ -5,14 +5,13 @@ import (
 	"os/exec"
 	"time"
 
-	"github.com/0xPolygonHermez/zkevm-node/log"
-	"github.com/0xPolygonHermez/zkevm-node/state/runtime/executor/pb"
+	"github.com/0xPolygon/cdk-validium-node/log"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
 // NewExecutorClient is the executor client constructor.
-func NewExecutorClient(ctx context.Context, c Config) (pb.ExecutorServiceClient, *grpc.ClientConn, context.CancelFunc) {
+func NewExecutorClient(ctx context.Context, c Config) (ExecutorServiceClient, *grpc.ClientConn, context.CancelFunc) {
 	opts := []grpc.DialOption{
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(c.MaxGRPCMessageSize)),
@@ -34,7 +33,7 @@ func NewExecutorClient(ctx context.Context, c Config) (pb.ExecutorServiceClient,
 			log.Infof("Retrying connection to executor #%d", connectionRetries)
 			time.Sleep(time.Duration(delay) * time.Second)
 			connectionRetries = connectionRetries + 1
-			out, err := exec.Command("docker", []string{"logs", "zkevm-prover"}...).Output()
+			out, err := exec.Command("docker", []string{"logs", "cdk-validium-prover"}...).Output()
 			if err == nil {
 				log.Infof("Prover logs:\n%s\n", out)
 			}
@@ -47,6 +46,6 @@ func NewExecutorClient(ctx context.Context, c Config) (pb.ExecutorServiceClient,
 	if connectionRetries == maxRetries {
 		log.Fatalf("fail to dial: %v", err)
 	}
-	executorClient := pb.NewExecutorServiceClient(executorConn)
+	executorClient := NewExecutorServiceClient(executorConn)
 	return executorClient, executorConn, cancel
 }

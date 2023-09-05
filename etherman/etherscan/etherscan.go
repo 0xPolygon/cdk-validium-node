@@ -8,7 +8,7 @@ import (
 	"math/big"
 	"net/http"
 
-	"github.com/0xPolygonHermez/zkevm-node/encoding"
+	"github.com/0xPolygon/cdk-validium-node/encoding"
 )
 
 type etherscanResponse struct {
@@ -27,8 +27,10 @@ type gasPriceEtherscan struct {
 
 // Config structure
 type Config struct {
+	// Need API key to use etherscan, if it's empty etherscan is not used
 	ApiKey string `mapstructure:"ApiKey"`
-	Url    string
+	// URL of the etherscan API. Overwritten with a hardcoded URL: "https://api.etherscan.io/api?module=gastracker&action=gasoracle&apikey="
+	Url string
 }
 
 // Client for etherscan

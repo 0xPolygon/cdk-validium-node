@@ -6,19 +6,24 @@ import (
 	"testing"
 	"time"
 
-	cfgTypes "github.com/0xPolygonHermez/zkevm-node/config/types"
-	"github.com/0xPolygonHermez/zkevm-node/etherman"
-	"github.com/0xPolygonHermez/zkevm-node/etherman/smartcontracts/polygonzkevm"
-	"github.com/0xPolygonHermez/zkevm-node/jsonrpc/types"
-	"github.com/0xPolygonHermez/zkevm-node/state"
-	"github.com/0xPolygonHermez/zkevm-node/state/metrics"
-	"github.com/0xPolygonHermez/zkevm-node/state/runtime/executor/pb"
+	cfgTypes "github.com/0xPolygon/cdk-validium-node/config/types"
+	"github.com/0xPolygon/cdk-validium-node/etherman"
+	"github.com/0xPolygon/cdk-validium-node/etherman/smartcontracts/cdkvalidium"
+	"github.com/0xPolygon/cdk-validium-node/jsonrpc/types"
+	"github.com/0xPolygon/cdk-validium-node/state"
+	"github.com/0xPolygon/cdk-validium-node/state/metrics"
+	"github.com/0xPolygon/cdk-validium-node/state/runtime/executor"
 	"github.com/ethereum/go-ethereum/common"
 	ethTypes "github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/jackc/pgx/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+)
+
+const (
+	cProverIDExecution = "PROVER_ID-EXE001"
 )
 
 type mocks struct {
@@ -28,14 +33,22 @@ type mocks struct {
 	EthTxManager *ethTxManagerMock
 	DbTx         *dbTxMock
 	ZKEVMClient  *zkEVMClientMock
+	//EventLog     *eventLogMock
+	DataCommitteeClientFactory *dataCommitteeClientFactoryMock
 }
+
+//func Test_Given_StartingSynchronizer_When_CallFirstTimeExecutor_Then_StoreProverID(t *testing.T) {
+//}
 
 // Feature #2220 and  #2239: Optimize Trusted state synchronization
 //
 //	this Check partially point 2: Use previous batch stored in memory to avoid getting from database
 func Test_Given_PermissionlessNode_When_SyncronizeAgainSameBatch_Then_UseTheOneInMemoryInstaeadOfGettingFromDb(t *testing.T) {
 	genesis, cfg, m := setupGenericTest(t)
-	sync_interface, err := NewSynchronizer(false, m.Etherman, m.State, m.Pool, m.EthTxManager, m.ZKEVMClient, *genesis, *cfg)
+	m.Etherman.
+		On("GetCurrentDataCommittee").
+		Return(&etherman.DataCommittee{}, nil)
+	sync_interface, err := NewSynchronizer(false, m.Etherman, m.State, m.Pool, m.EthTxManager, m.ZKEVMClient, nil, *genesis, *cfg, nil)
 	require.NoError(t, err)
 	sync, ok := sync_interface.(*ClientSynchronizer)
 	require.EqualValues(t, true, ok, "Can't convert to underlaying struct the interface of syncronizer")
@@ -58,7 +71,10 @@ func Test_Given_PermissionlessNode_When_SyncronizeAgainSameBatch_Then_UseTheOneI
 //	this Check partially point 2: Store last batch in memory (CurrentTrustedBatch)
 func Test_Given_PermissionlessNode_When_SyncronizeFirstTimeABatch_Then_StoreItInALocalVar(t *testing.T) {
 	genesis, cfg, m := setupGenericTest(t)
-	sync_interface, err := NewSynchronizer(false, m.Etherman, m.State, m.Pool, m.EthTxManager, m.ZKEVMClient, *genesis, *cfg)
+	m.Etherman.
+		On("GetCurrentDataCommittee").
+		Return(&etherman.DataCommittee{}, nil)
+	sync_interface, err := NewSynchronizer(false, m.Etherman, m.State, m.Pool, m.EthTxManager, m.ZKEVMClient, nil, *genesis, *cfg, nil)
 	require.NoError(t, err)
 	sync, ok := sync_interface.(*ClientSynchronizer)
 	require.EqualValues(t, true, ok, "Can't convert to underlaying struct the interface of syncronizer")
@@ -90,8 +106,11 @@ func TestForcedBatch(t *testing.T) {
 		DbTx:        newDbTxMock(t),
 		ZKEVMClient: newZkEVMClientMock(t),
 	}
+	m.Etherman.
+		On("GetCurrentDataCommittee").
+		Return(nil, nil)
 
-	sync, err := NewSynchronizer(false, m.Etherman, m.State, m.Pool, m.EthTxManager, m.ZKEVMClient, genesis, cfg)
+	sync, err := NewSynchronizer(false, m.Etherman, m.State, m.Pool, m.EthTxManager, m.ZKEVMClient, nil, genesis, cfg, m.DataCommitteeClientFactory)
 	require.NoError(t, err)
 
 	// state preparation
@@ -158,13 +177,14 @@ func TestForcedBatch(t *testing.T) {
 				Once()
 
 			t := time.Now()
+			txs := []byte{}
 			sequencedBatch := etherman.SequencedBatch{
 				BatchNumber:   uint64(2),
 				Coinbase:      common.HexToAddress("0x222"),
 				SequencerAddr: common.HexToAddress("0x00"),
 				TxHash:        common.HexToHash("0x333"),
-				PolygonZkEVMBatchData: polygonzkevm.PolygonZkEVMBatchData{
-					Transactions:       []byte{},
+				CDKValidiumBatchData: cdkvalidium.CDKValidiumBatchData{
+					TransactionsHash:   crypto.Keccak256Hash(txs),
 					GlobalExitRoot:     [32]byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32},
 					Timestamp:          uint64(t.Unix()),
 					MinForcedTimestamp: 1000, //ForcedBatch
@@ -176,7 +196,7 @@ func TestForcedBatch(t *testing.T) {
 				ForcedBatchNumber: 1,
 				Sequencer:         sequencedBatch.Coinbase,
 				GlobalExitRoot:    sequencedBatch.GlobalExitRoot,
-				RawTxsData:        sequencedBatch.Transactions,
+				RawTxsData:        txs,
 				ForcedAt:          time.Unix(int64(sequencedBatch.MinForcedTimestamp), 0),
 			}}
 
@@ -229,12 +249,17 @@ func TestForcedBatch(t *testing.T) {
 				Return(nil).
 				Once()
 
+			m.State.
+				On("GetBatchL2DataByNumber", ctx, uint64(2), nil).
+				Return(txs, nil).
+				Once()
+
 			fb := []state.ForcedBatch{{
 				BlockNumber:       lastBlock.BlockNumber,
 				ForcedBatchNumber: 1,
 				Sequencer:         sequencedBatch.Coinbase,
 				GlobalExitRoot:    sequencedBatch.GlobalExitRoot,
-				RawTxsData:        sequencedBatch.Transactions,
+				RawTxsData:        []byte{},
 				ForcedAt:          time.Unix(int64(sequencedBatch.MinForcedTimestamp), 0),
 			}}
 
@@ -249,7 +274,7 @@ func TestForcedBatch(t *testing.T) {
 				Once()
 
 			trustedBatch := &state.Batch{
-				BatchL2Data:    sequencedBatch.Transactions,
+				BatchL2Data:    txs,
 				GlobalExitRoot: sequencedBatch.GlobalExitRoot,
 				Timestamp:      time.Unix(int64(sequencedBatch.Timestamp), 0),
 				Coinbase:       sequencedBatch.Coinbase,
@@ -270,10 +295,9 @@ func TestForcedBatch(t *testing.T) {
 				GlobalExitRoot: [32]byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32},
 				ForcedBatchNum: &forced,
 			}
-			m.State. //ExecuteBatch(s.ctx, batch.BatchNumber, batch.BatchL2Data, dbTx
-					On("ExecuteBatch", ctx, sbatch, false, m.DbTx).
-					Return(&pb.ProcessBatchResponse{NewStateRoot: trustedBatch.StateRoot.Bytes()}, nil).
-					Once()
+			m.State.On("ExecuteBatch", ctx, sbatch, false, m.DbTx).
+				Return(&executor.ProcessBatchResponse{NewStateRoot: trustedBatch.StateRoot.Bytes()}, nil).
+				Once()
 
 			virtualBatch := &state.VirtualBatch{
 				BatchNumber: sequencedBatch.BatchNumber,
@@ -299,6 +323,11 @@ func TestForcedBatch(t *testing.T) {
 			m.State.
 				On("AddAccumulatedInputHash", ctx, sequencedBatch.BatchNumber, common.Hash{}, m.DbTx).
 				Return(nil).
+				Once()
+
+			m.State.
+				On("GetStoredFlushID", ctx).
+				Return(uint64(1), cProverIDExecution, nil).
 				Once()
 
 			m.DbTx.
@@ -330,8 +359,11 @@ func TestSequenceForcedBatch(t *testing.T) {
 		DbTx:        newDbTxMock(t),
 		ZKEVMClient: newZkEVMClientMock(t),
 	}
+	m.Etherman.
+		On("GetCurrentDataCommittee").
+		Return(nil, nil)
 
-	sync, err := NewSynchronizer(true, m.Etherman, m.State, m.Pool, m.EthTxManager, m.ZKEVMClient, genesis, cfg)
+	sync, err := NewSynchronizer(true, m.Etherman, m.State, m.Pool, m.EthTxManager, m.ZKEVMClient, nil, genesis, cfg, m.DataCommitteeClientFactory)
 	require.NoError(t, err)
 
 	// state preparation
@@ -401,7 +433,7 @@ func TestSequenceForcedBatch(t *testing.T) {
 				BatchNumber: uint64(2),
 				Coinbase:    common.HexToAddress("0x222"),
 				TxHash:      common.HexToHash("0x333"),
-				PolygonZkEVMForcedBatchData: polygonzkevm.PolygonZkEVMForcedBatchData{
+				CDKValidiumForcedBatchData: cdkvalidium.CDKValidiumForcedBatchData{
 					Transactions:       []byte{},
 					GlobalExitRoot:     [32]byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32},
 					MinForcedTimestamp: 1000, //ForcedBatch
@@ -501,7 +533,7 @@ func TestSequenceForcedBatch(t *testing.T) {
 
 			m.State.
 				On("ProcessAndStoreClosedBatch", ctx, processingContext, sequencedForceBatch.Transactions, m.DbTx, metrics.SynchronizerCallerLabel).
-				Return(common.Hash{}, nil).
+				Return(common.Hash{}, uint64(1), cProverIDExecution, nil).
 				Once()
 
 			virtualBatch := &state.VirtualBatch{
@@ -524,6 +556,11 @@ func TestSequenceForcedBatch(t *testing.T) {
 			m.State.
 				On("AddSequence", ctx, seq, m.DbTx).
 				Return(nil).
+				Once()
+
+			m.State.
+				On("GetStoredFlushID", ctx).
+				Return(uint64(1), cProverIDExecution, nil).
 				Once()
 
 			m.DbTx.
@@ -554,6 +591,7 @@ func setupGenericTest(t *testing.T) (*state.Genesis, *Config, *mocks) {
 		Pool:        newPoolMock(t),
 		DbTx:        newDbTxMock(t),
 		ZKEVMClient: newZkEVMClientMock(t),
+		//EventLog:    newEventLogMock(t),
 	}
 	return &genesis, &cfg, &m
 }
@@ -651,7 +689,8 @@ func expectedCallsForsyncTrustedState(t *testing.T, m *mocks, sync *ClientSynchr
 		Return(batchInTrustedNode, nil).
 		Once()
 
-	m.State.On("BeginStateTransaction", sync.ctx).
+	m.State.
+		On("BeginStateTransaction", sync.ctx).
 		Return(m.DbTx, nil).
 		Once()
 
@@ -667,6 +706,24 @@ func expectedCallsForsyncTrustedState(t *testing.T, m *mocks, sync *ClientSynchr
 			Return(&stateBatchInPermissionLess, nil).
 			Once()
 	}
+
+	m.State.
+		On("ResetTrustedState", sync.ctx, batchNumber-1, m.DbTx).
+		Return(nil).
+		Once()
+
+	processCtx := state.ProcessingContext{
+		BatchNumber:    uint64(batchInTrustedNode.Number),
+		Coinbase:       common.HexToAddress(batchInTrustedNode.Coinbase.String()),
+		Timestamp:      time.Unix(int64(batchInTrustedNode.Timestamp), 0),
+		GlobalExitRoot: batchInTrustedNode.GlobalExitRoot,
+		BatchL2Data:    (*[]byte)(&batchInTrustedNode.BatchL2Data),
+	}
+	m.State.
+		On("OpenBatch", sync.ctx, processCtx, m.DbTx).
+		Return(nil).
+		Once()
+
 	m.State.
 		On("UpdateBatchL2Data", sync.ctx, batchNumber, stateBatchInTrustedNode.BatchL2Data, mock.Anything).
 		Return(nil).
@@ -674,6 +731,8 @@ func expectedCallsForsyncTrustedState(t *testing.T, m *mocks, sync *ClientSynchr
 
 	tx1 := state.ProcessTransactionResponse{}
 	processedBatch := state.ProcessBatchResponse{
+		FlushID:   1,
+		ProverID:  cProverIDExecution,
 		Responses: []*state.ProcessTransactionResponse{&tx1},
 	}
 	m.State.
@@ -686,5 +745,13 @@ func expectedCallsForsyncTrustedState(t *testing.T, m *mocks, sync *ClientSynchr
 		Return(nil).
 		Once()
 
-	m.DbTx.On("Commit", sync.ctx).Return(nil).Once()
+	m.State.
+		On("GetStoredFlushID", sync.ctx).
+		Return(uint64(1), cProverIDExecution, nil).
+		Once()
+
+	m.DbTx.
+		On("Commit", sync.ctx).
+		Return(nil).
+		Once()
 }

@@ -3,7 +3,7 @@ package etherman
 import (
 	"time"
 
-	"github.com/0xPolygonHermez/zkevm-node/etherman/smartcontracts/polygonzkevm"
+	"github.com/0xPolygon/cdk-validium-node/etherman/smartcontracts/cdkvalidium"
 	"github.com/ethereum/go-ethereum/common"
 )
 
@@ -36,7 +36,7 @@ type SequencedBatch struct {
 	TxHash        common.Hash
 	Nonce         uint64
 	Coinbase      common.Address
-	polygonzkevm.PolygonZkEVMBatchData
+	cdkvalidium.CDKValidiumBatchData
 }
 
 // ForcedBatch represents a ForcedBatch
@@ -65,7 +65,7 @@ type SequencedForceBatch struct {
 	TxHash      common.Hash
 	Timestamp   time.Time
 	Nonce       uint64
-	polygonzkevm.PolygonZkEVMForcedBatchData
+	cdkvalidium.CDKValidiumForcedBatchData
 }
 
 // ForkID is a sturct to track the ForkID event.

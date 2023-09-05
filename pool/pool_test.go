@@ -12,22 +12,22 @@ import (
 	"testing"
 	"time"
 
-	cfgTypes "github.com/0xPolygonHermez/zkevm-node/config/types"
-	"github.com/0xPolygonHermez/zkevm-node/db"
-	"github.com/0xPolygonHermez/zkevm-node/encoding"
-	"github.com/0xPolygonHermez/zkevm-node/event"
-	"github.com/0xPolygonHermez/zkevm-node/event/nileventstorage"
-	"github.com/0xPolygonHermez/zkevm-node/hex"
-	"github.com/0xPolygonHermez/zkevm-node/log"
-	"github.com/0xPolygonHermez/zkevm-node/merkletree"
-	"github.com/0xPolygonHermez/zkevm-node/pool"
-	"github.com/0xPolygonHermez/zkevm-node/pool/pgpoolstorage"
-	"github.com/0xPolygonHermez/zkevm-node/state"
-	"github.com/0xPolygonHermez/zkevm-node/state/runtime/executor"
-	"github.com/0xPolygonHermez/zkevm-node/test/contracts/bin/Revert"
-	"github.com/0xPolygonHermez/zkevm-node/test/dbutils"
-	"github.com/0xPolygonHermez/zkevm-node/test/operations"
-	"github.com/0xPolygonHermez/zkevm-node/test/testutils"
+	cfgTypes "github.com/0xPolygon/cdk-validium-node/config/types"
+	"github.com/0xPolygon/cdk-validium-node/db"
+	"github.com/0xPolygon/cdk-validium-node/encoding"
+	"github.com/0xPolygon/cdk-validium-node/event"
+	"github.com/0xPolygon/cdk-validium-node/event/nileventstorage"
+	"github.com/0xPolygon/cdk-validium-node/hex"
+	"github.com/0xPolygon/cdk-validium-node/log"
+	"github.com/0xPolygon/cdk-validium-node/merkletree"
+	"github.com/0xPolygon/cdk-validium-node/pool"
+	"github.com/0xPolygon/cdk-validium-node/pool/pgpoolstorage"
+	"github.com/0xPolygon/cdk-validium-node/state"
+	"github.com/0xPolygon/cdk-validium-node/state/runtime/executor"
+	"github.com/0xPolygon/cdk-validium-node/test/contracts/bin/Revert"
+	"github.com/0xPolygon/cdk-validium-node/test/dbutils"
+	"github.com/0xPolygon/cdk-validium-node/test/operations"
+	"github.com/0xPolygon/cdk-validium-node/test/testutils"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	ethTypes "github.com/ethereum/go-ethereum/core/types"
@@ -63,13 +63,8 @@ var (
 		DefaultMinGasPriceAllowed:         1000000000,
 		IntervalToRefreshBlockedAddresses: cfgTypes.NewDuration(5 * time.Minute),
 		IntervalToRefreshGasPrices:        cfgTypes.NewDuration(5 * time.Second),
-		EffectiveGasPrice: pool.EffectiveGasPrice{
-			L1GasPriceFactor: 10,
-			ByteGasCost:      16,
-			MarginFactor:     10,
-		},
-		AccountQueue: 15,
-		GlobalQueue:  20,
+		AccountQueue:                      15,
+		GlobalQueue:                       20,
 	}
 	gasPrice   = big.NewInt(1000000000)
 	l1GasPrice = big.NewInt(1000000000000)
@@ -658,7 +653,10 @@ func Test_SetAndGetGasPrice(t *testing.T) {
 
 	nBig, err := rand.Int(rand.Reader, big.NewInt(0).SetUint64(math.MaxUint64))
 	require.NoError(t, err)
-	expectedGasPrice := pool.GasPrices{nBig.Uint64(), nBig.Uint64()}
+	expectedGasPrice := pool.GasPrices{
+		L2GasPrice: nBig.Uint64(),
+		L1GasPrice: nBig.Uint64(),
+	}
 	ctx := context.Background()
 	err = p.SetGasPrices(ctx, expectedGasPrice.L2GasPrice, expectedGasPrice.L1GasPrice)
 	require.NoError(t, err)
@@ -1383,13 +1381,8 @@ func Test_BlockedAddress(t *testing.T) {
 		DefaultMinGasPriceAllowed:         1000000000,
 		IntervalToRefreshBlockedAddresses: cfgTypes.NewDuration(5 * time.Second),
 		IntervalToRefreshGasPrices:        cfgTypes.NewDuration(5 * time.Second),
-		EffectiveGasPrice: pool.EffectiveGasPrice{
-			L1GasPriceFactor: 10,
-			ByteGasCost:      16,
-			MarginFactor:     10,
-		},
-		AccountQueue: 64,
-		GlobalQueue:  1024,
+		AccountQueue:                      64,
+		GlobalQueue:                       1024,
 	}
 
 	p := setupPool(t, cfg, s, st, chainID.Uint64(), ctx, eventLog)
@@ -1795,6 +1788,72 @@ func Test_AddTx_NonceTooHigh(t *testing.T) {
 
 	err = p.AddTx(ctx, *signedTx, "")
 	require.Error(t, err, pool.ErrNonceTooHigh)
+}
+
+func Test_PolicyAcl(t *testing.T) {
+	initOrResetDB(t)
+
+	poolSqlDB, err := db.NewSQLDB(poolDBCfg)
+	require.NoError(t, err)
+	defer poolSqlDB.Close() //nolint:gosec,errcheck
+
+	ctx := context.Background()
+	s, err := pgpoolstorage.NewPostgresPoolStorage(poolDBCfg)
+	require.NoError(t, err)
+
+	p := pool.NewPool(cfg, s, nil, uint64(1), nil)
+
+	randAddr := func() common.Address {
+		buf := make([]byte, 20)
+		_, err = rand.Read(buf)
+		require.NoError(t, err)
+		return common.BytesToAddress(buf)
+	}
+
+	// Policies start out as deny lists, since there are no addresses on the
+	// lists, random addresses will always be allowed
+	for _, policy := range []pool.PolicyName{pool.SendTx, pool.Deploy} {
+		allow, err := p.CheckPolicy(ctx, policy, randAddr())
+		require.NoError(t, err)
+		require.True(t, allow)
+	}
+
+	addr := randAddr()
+
+	// put addr on lists
+	for _, policy := range []pool.PolicyName{pool.SendTx, pool.Deploy} {
+		ctag, err := poolSqlDB.Exec(ctx, "INSERT INTO pool.acl (policy, address) VALUES ($1,$2)", policy, addr.Hex())
+		require.NoError(t, err)
+		require.Equal(t, int64(1), ctag.RowsAffected())
+	}
+
+	// addr should not be denied by policy
+	for _, policy := range []pool.PolicyName{pool.SendTx, pool.Deploy} {
+		allow, err := p.CheckPolicy(ctx, policy, addr)
+		require.NoError(t, err)
+		require.False(t, allow)
+	}
+
+	// change policies to allow by acl
+	ctag, err := poolSqlDB.Exec(ctx, "UPDATE pool.policy SET allow = true")
+	require.NoError(t, err)
+	require.Equal(t, int64(2), ctag.RowsAffected())
+
+	// addr is now allowed
+	for _, policy := range []pool.PolicyName{pool.SendTx, pool.Deploy} {
+		allow, err := p.CheckPolicy(ctx, policy, addr)
+		require.NoError(t, err)
+		require.True(t, allow)
+	}
+
+	// random addrs are now denied
+	for _, policy := range []pool.PolicyName{pool.SendTx, pool.Deploy} {
+		for _, a := range []common.Address{randAddr(), randAddr()} {
+			allow, err := s.CheckPolicy(ctx, policy, a)
+			require.NoError(t, err)
+			require.False(t, allow)
+		}
+	}
 }
 
 func setupPool(t *testing.T, cfg pool.Config, s *pgpoolstorage.PostgresPoolStorage, st *state.State, chainID uint64, ctx context.Context, eventLog *event.EventLog) *pool.Pool {

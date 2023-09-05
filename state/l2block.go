@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/0xPolygonHermez/zkevm-node/log"
+	"github.com/0xPolygon/cdk-validium-node/log"
 	"github.com/ethereum/go-ethereum/core/types"
 )
 
@@ -23,7 +23,7 @@ type NewL2BlockEvent struct {
 
 // PrepareWebSocket allows the RPC to prepare ws
 func (s *State) PrepareWebSocket() {
-	lastL2Block, err := s.PostgresStorage.GetLastL2Block(context.Background(), nil)
+	lastL2Block, err := s.GetLastL2Block(context.Background(), nil)
 	if errors.Is(err, ErrStateNotSynchronized) {
 		lastL2Block = types.NewBlockWithHeader(&types.Header{Number: big.NewInt(0)})
 	} else if err != nil {

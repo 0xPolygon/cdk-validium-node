@@ -3,8 +3,8 @@ package results
 import (
 	"time"
 
-	"github.com/0xPolygonHermez/zkevm-node/log"
-	"github.com/0xPolygonHermez/zkevm-node/test/benchmarks/sequencer/common/params"
+	"github.com/0xPolygon/cdk-validium-node/log"
+	"github.com/0xPolygon/cdk-validium-node/test/benchmarks/sequencer/common/params"
 )
 
 // Print prints the results of the benchmark

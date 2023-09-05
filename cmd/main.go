@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/0xPolygonHermez/zkevm-node"
-	"github.com/0xPolygonHermez/zkevm-node/config"
-	"github.com/0xPolygonHermez/zkevm-node/jsonrpc"
-	"github.com/0xPolygonHermez/zkevm-node/log"
+	node "github.com/0xPolygon/cdk-validium-node"
+	"github.com/0xPolygon/cdk-validium-node/config"
+	"github.com/0xPolygon/cdk-validium-node/jsonrpc"
+	"github.com/0xPolygon/cdk-validium-node/log"
 	"github.com/urfave/cli/v2"
 )
 
-const appName = "zkevm-node"
+const appName = "cdk-validium-node"
 
 const (
 	// AGGREGATOR is the aggregator component identifier
@@ -28,6 +28,13 @@ const (
 	L2GASPRICER = "l2gaspricer"
 	// SEQUENCE_SENDER is the sequence sender component identifier
 	SEQUENCE_SENDER = "sequence-sender"
+)
+
+const (
+	// NODE_CONFIGFILE name to identify the node config-file
+	NODE_CONFIGFILE = "node"
+	// NETWORK_CONFIGFILE name to identify the netowk_custom (genesis) config-file
+	NETWORK_CONFIGFILE = "custom_network"
 )
 
 var (
@@ -75,12 +82,22 @@ var (
 		Usage:    "Blocks the migrations in stateDB to not run them",
 		Required: false,
 	}
+	outputFileFlag = cli.StringFlag{
+		Name:     config.FlagOutputFile,
+		Usage:    "Indicate the output file",
+		Required: true,
+	}
+	documentationFileTypeFlag = cli.StringFlag{
+		Name:     config.FlagDocumentationFileType,
+		Usage:    fmt.Sprintf("Indicate the type of file to generate json-schema: %v,%v ", NODE_CONFIGFILE, NETWORK_CONFIGFILE),
+		Required: true,
+	}
 )
 
 func main() {
 	app := cli.NewApp()
 	app.Name = appName
-	app.Version = zkevm.Version
+	app.Version = node.Version
 	flags := []cli.Flag{
 		&configFileFlag,
 		&yesFlag,
@@ -97,7 +114,7 @@ func main() {
 		{
 			Name:    "run",
 			Aliases: []string{},
-			Usage:   "Run the zkevm-node",
+			Usage:   "Run the cdk-validium-node",
 			Action:  start,
 			Flags:   append(flags, &networkFlag, &customNetworkFlag, &migrationsFlag),
 		},
@@ -150,6 +167,12 @@ func main() {
 			Flags:   dumpStateFlags,
 		},
 		{
+			Name:   "generate-json-schema",
+			Usage:  "Generate the json-schema for the configuration file, and store it on docs/schema.json",
+			Action: genJSONSchema,
+			Flags:  []cli.Flag{&outputFileFlag, &documentationFileTypeFlag},
+		},
+		{
 			Name:    "snapshot",
 			Aliases: []string{"snap"},
 			Usage:   "Snapshot the state db",
@@ -163,6 +186,7 @@ func main() {
 			Action:  restore,
 			Flags:   restoreFlags,
 		},
+		&policyCommands,
 	}
 
 	err := app.Run(os.Args)

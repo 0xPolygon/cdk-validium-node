@@ -22,9 +22,9 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/0xPolygonHermez/zkevm-node/state/runtime/fakevm"
-	jsassets "github.com/0xPolygonHermez/zkevm-node/state/runtime/instrumentation/js/internal/tracers"
-	"github.com/0xPolygonHermez/zkevm-node/state/runtime/instrumentation/tracers"
+	"github.com/0xPolygon/cdk-validium-node/state/runtime/fakevm"
+	jsassets "github.com/0xPolygon/cdk-validium-node/state/runtime/instrumentation/js/internal/tracers"
+	"github.com/0xPolygon/cdk-validium-node/state/runtime/instrumentation/tracers"
 	"github.com/dop251/goja"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"

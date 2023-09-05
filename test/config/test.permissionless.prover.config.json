@@ -27,7 +27,7 @@
     "runBlakeTest": false,
 
     "executeInParallel": true,
-    "useMainExecGenerated": false,
+    "useMainExecGenerated": true,
     "saveRequestToFile": false,
     "saveInputToFile": false,
     "saveDbReadsToFile": false,
@@ -56,7 +56,7 @@
 
     "aggregatorServerPort": 50081,
     "aggregatorClientPort": 50081,
-    "aggregatorClientHost": "zkevm-aggregator",
+    "aggregatorClientHost": "cdk-validium-aggregator",
 
     "mapConstPolsFile": false,
     "mapConstantsTreeFile": false,
@@ -69,17 +69,20 @@
 
     "outputPath": "output",
 
-    "databaseURL": "postgresql://prover_user:prover_pass@zkevm-permissionless-db:5432/prover_db",
+    "databaseURL": "postgresql://prover_user:prover_pass@cdk-validium-permissionless-db:5432/prover_db",
     "dbNodesTableName": "state.nodes",
     "dbProgramTableName": "state.program",
     "dbMultiWrite": true,
     "dbFlushInParallel": false,
-    "dbMTCacheSize": 2048,
-    "dbProgramCacheSize": 1024,
+    "dbMTCacheSize": 1024,
+    "dbProgramCacheSize": 512,
     "cleanerPollingPeriod": 600,
     "requestsPersistence": 3600,
     "maxExecutorThreads": 20,
     "maxProverThreads": 8,
-    "maxHashDBThreads": 8
+    "maxHashDBThreads": 8,
+    "ECRecoverPrecalc": false,
+    "ECRecoverPrecalcNThreads": 4,
+    "stateManager": true,
+    "useAssociativeCache" : false
 }
-

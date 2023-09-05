@@ -1,6 +1,6 @@
 package event
 
-import "github.com/0xPolygonHermez/zkevm-node/db"
+import "github.com/0xPolygon/cdk-validium-node/db"
 
 // Config for event
 type Config struct {

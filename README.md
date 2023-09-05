@@ -1,123 +1,213 @@
-# zkEVM Node
+# Polygon CDK Validium Node
 
-zkEVM Node is a Go implementation of a node that operates the Polygon zkEVM Network.
+For a full overview of the CDK-Validium please reference the [CDK documentation](https://wiki.polygon.technology/docs/cdk/).
 
-## About the Polygon zkEVM network
+The CDK-Validium solution is made up of several components, start with the [CDK Validium Node](https://github.com/0xPolygon/cdk-validium-node). However, for quick reference, the complete list of components are outlined below:
 
-Since this is an implementation of a protocol it's fundamental to understand it, [here](https://zkevm.polygon.technology/docs/zknode/zknode-overview) you can find the specification of the protocol.
+| Component                                                                     | Description                                                          |
+| ----------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| [CDK Validium Node](https://github.com/0xPolygon/cdk-validium-node)           | Node implementation for the CDK networks in Validium mode            |
+| [CDK Validium Contracts](https://github.com/0xPolygon/cdk-validium-contracts) | Smart contract implementation for the CDK networks in Validium mode |
+| [CDK Data Availability](https://github.com/0xPolygon/cdk-data-availability)   | Data availability implementation for the CDK networks          |
+| [Prover / Executor](https://github.com/0xPolygonHermez/zkevm-prover)          | zkEVM engine and prover implementation                               |
+| [Bridge Service](https://github.com/0xPolygonHermez/zkevm-bridge-service)     | Bridge service implementation for CDK networks                       |
+| [Bridge UI](https://github.com/0xPolygonHermez/zkevm-bridge-ui)               | UI for the CDK networks bridge                                       |
 
-Glossary:
+Understanding the underlying protocol is crucial when working with an implementation. This project is based on the Polygon zkEVM network, which is designed to bring scalability to Ethereum-compatible blockchains.
 
-- L1: Base blockchain where the rollup smart contracts are deployed. It's Ethereum or a testnet of Ethereum, but it could be any EVM compatible blockchain.
-- L2: the rollup network aka the Polygon zkEVM network.
-- Batch: a group of transactions that are executed/proved, using the [zkEVM prover](https://github.com/0xPolygonHermez/zkevm-prover) and sent to / synchronized from L1
-- Sequencer: the actor that is responsible for selecting transactions, putting them in a specific order, and sending them in batches to L1
-- Trusted sequencer: sequencer that has special privileges, there can only be one trusted sequencer. The privileges granted to the trusted sequencer allow it to forecast the batches that will be applied to L1. This way it can commit to a specific sequence before interacting with L1. This is done to achieve fast finality and reduce costs associated with using the network (lower gas fees)
-- Permissionless sequencer: sequencer role that can be performed by anyone. It has competitive disadvantages compared to the trusted sequencer (slow finality, MEV attacks). Its main purpose is to provide censorship resistance and unstoppability features to the network.
-- Sequence: Group of batches and other metadata that the trusted sequencer sends to L1 to update the state
-- Forced batch: batch that is sent by permissionless sequencers to L1 to update the state
-- L2 Block: Same as an L1 block, but for L2. This is mostly used by the JSON RPC interface. Currently, all the L2 Blocks are set to only include one transaction, this is done to achieve instant finality: it's not necessary to close a batch to allow the JSON RPC to expose results of already processed transactions
-- Trusted state: state reached through processing transactions that have been shared by the trusted sequencer. This state is considered trusted as the trusted sequencer could commit to a certain sequence, and then send a different one to L1
-- Virtual state: state reached through processing transactions that have already been submitted to L1. These transactions are sent in batches by either trusted or permissionless sequencers. Those batches are also called virtual batches. Note that this state is trustless as it relies on L1 security assumptions
-- Consolidated state: state that is proven on-chain by submitting a ZKP (Zero Knowledge Proof) that proves the execution of a sequence of the last virtual batch.
-- Invalid transaction: a transaction that can't be processed and doesn't affect the state. Note that such a transaction could be included in a virtual batch. The reason for a transaction to be invalid could be related to the Ethereum protocol (invalid nonce, not enough balance, ...) or due to limitations introduced by the zkEVM (each batch can make use of a limited amount of resources such as the total amount of keccak hashes that can be computed)
-- Reverted transaction: a transaction that is executed, but is reverted (because of smart contract logic). The main difference with *invalid transaction* is that this transaction modifies the state, at least to increment nonce of the sender.
-- Proof of Efficiency (PoE): name of the protocol used by the network, it's enforced by the [smart contracts](https://github.com/0xPolygonHermez/zkevm-contracts)
+For an in-depth understanding of the protocol’s specifications, please refer to the [zkEVM Protocol Overview](https://wiki.polygon.technology/docs/zkevm/)
 
-## Architecture
+## Run a CDK Validium
 
-<p align="center">
-  <img src="./docs/architecture.drawio.png"/>
-</p>
+### Development
 
-The diagram represents the main components of the software and how they interact between them. Note that this reflects a single entity running a node, in particular a node that acts as the trusted sequencer. But there are many entities running nodes in the network, and each of these entities can perform different roles. More on this later.
+> ARM devices (such as Apple M1 and M2) are not supported
 
-- (JSON) RPC: an interface that allows users (metamask, etherscan, ...) to interact with the node. Fully compatible with Ethereum RPC + some extra endpoints specifics of the network. It interacts with the `state` to get data and process transactions and with the `pool` to store transactions
-- Pool: DB that stores transactions by the `RPC` to be selected/discarded by the `sequencer` later on
-- Trusted Sequencer: get transactions from the `pool`, check if they are valid by processing them using the `state`, and create sequences. Once transactions are added into the state, they are immediately available through the `rpc`. Sequences are sent to L1 using the `etherman`
-- Permissionless Sequencer: *coming soon*
-- Etherman: abstraction that implements the needed methods to interact with the Ethereum network and the relevant smart contracts.
-- Synchronizer: Updates the `state` by fetching data from Ethereum through the `etherman`. If the node is not a `trusted sequencer` it also updates the state with the data fetched from the `rpc` of the `trusted sequencer`. It also detects and handles reorgs that can happen if the `trusted sequencer` sends different data in the rpc vs the sequences sent to L1 (trusted vs virtual state)
-- State: Responsible for managing the state data (batches, blocks, transactions, ...) that is stored on the `state SB`. It also handles the integration with the `executor` and the `Merkletree` service
-- State DB: persistence layer for the state data (except the Merkletree that is handled by the `Merkletree` service)
-- Aggregator: consolidates batches by generating ZKPs (Zero Knowledge proofs). To do so it gathers the necessary data that the `prover` needs as input through the `state` and sends a request to it. Once the proof is generated it's sent to Ethereum through the `etherman`
-- Prover/Executor: service that generates ZK proofs. Note that this component is not implemented in this repository, and it's treated as a "black box" from the perspective of the node. The prover/executor has two implementations: [JS reference implementation](https://github.com/0xPolygonHermez/zkevm-proverjs) and [C production-ready implementation](https://github.com/0xPolygonHermez/zkevm-prover). Although it's the same software/service, it has two very different purposes:
-  - Provide an EVM implementation that allows processing transactions and getting all needed results metadata (state root, receipts, logs, ...)
-  - Generate ZKPs
-- Merkletree: service that stores the Merkletree, containing all the account information (balances, nonces, smart contract code, and smart contract storage). This component is also not implemented in this repo and is consumed as an external service by the node. The implementation can be found [here](https://github.com/0xPolygonHermez/zkevm-prover)
+For a streamlined development experience, it’s highly recommended to utilize the make utility for tasks such as building and testing the code. To view a comprehensive list of available commands, simply execute `make help` in your terminal.
 
-## Roles of the network
+This step by step guide will result in a local environment that has everything needed to test and develop on a CDK Validium, but note that:
 
-The node software is designed to support the execution of multiple roles. Each role requires different services to work. Most of the services can run in different instances, and the JSON RPC can run in many instances (all the other services must have a single instance)
+- everything will be run on a ephemeral and local L1 network, once the environment is shutdown, all progress will be lost
+- ZK Proofs are mocked
+- Bridge service and UI is not included as part of this setup, instead there is a pre-funded account
 
-### RPC
+#### Steps
 
-This role can be performed by anyone.
+1. Clone this GitHub repository to your local machine:
 
-Required services and components:
+```
+git clone https://github.com/0xPolygon/cdk-validium-node.git
+```
 
-- JSON RPC: can run in a separated instance, and can have multiple instances
-- Synchronizer: single instance that can run on a separate instance
-- Executor & Merkletree: service that can run on a separate instance
-- State DB: Postgres SQL that can be run in a separate instance
+2. Navigate to the cloned directory:
 
-There must be only one synchronizer, and it's recommended that it has exclusive access to an executor instance, although it's not necessary. This role can perfectly be run in a single instance, however, the JSON RPC and executor services can benefit from running in multiple instances, if the performance decreases due to the number of requests received
+```
+cd cdk-validium-node
+```
 
-- [`zkEVM RPC endpoints`](./docs/json-rpc-endpoints.md)
-- [`zkEVM RPC Custom endpoints documentation`](./docs/zkEVM-custom-endpoints.md)
+3. Build the Docker image using the provided Dockerfile:
 
-### Trusted sequencer
+```
+make build-docker
+```
 
-This role can only be performed by a single entity. This is enforced in the smart contract, as the related methods of the trusted sequencer can only be performed by the owner of a particular private key.
+4. Navigate to the test directory:
 
-Required services and components:
+```
+cd test
+```
 
-- JSON RPC: can run in a separated instance, and can have multiple instances
-- Sequencer & Synchronizer: single instance that needs to run together
-- Executor & Merkletree: service that can run on a separate instance
-- Pool DB: Postgres SQL that can be run in a separate instance
-- State DB: Postgres SQL that can be run in a separate instance
+5. Run all needed components:
 
-Note that the JSON RPC is required to receive transactions. It's recommended that the JSON RPC runs on separated instances, and potentially more than one (depending on the load of the network). It's also recommended that the JSON RPC and the Sequencer don't share the same executor instance, to make sure that the sequencer has exclusive access to an executor
+```
+make run
+```
 
-### Permissionless sequencer
+#### Usage
 
-TBD
+- L2 RPC endpoint: `http://localhost:8123`
+- L2 Chain ID: 1001
+- L1 RPC endpoint: `http:localhost:8545`
+- L1 Chain ID: 1337
+- Pre funded account private key: `0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80`
+
+#### Troubleshooting
+
+Everything is run using docker, so if anything is not working, first thing is to identify what containers are running or not:
+
+```
+docker compose ps
+```
+
+Then check the logs:
+
+```
+docker logs <problematic container, example: cdk-validium-sync>
+```
+
+Aditionaly, it can be worth checking the DBs:
+
+- StateDB: `psql -h localhost -p 5432 -U state_user state_db`, password: `state_password`
+- PoolDB: `psql -h localhost -p 5433 -U pool_user pool_db`, password: `pool_password`
+
+#### Advanced config
+
+In order to go beyond the default configuration, you can edit the config files:
+
+- `./test/config/test.node.config.toml`: configuration of the node, documented [here](./docs/config-file/node-config-doc.md)
+- `./test/config/test.genesis.config.toml`: configuration of the network, documented [here](./docs/config-file/custom_network-config-doc.md)
+- `./test/config/test.prover.config.json`: configuration of the prover/executor
+
+## Key Components
 
 ### Aggregator
 
-This role can be performed by anyone.
+The Aggregator is responsible for submitting validity proofs of the L2 state to L1. To do so, it fetches the batches sequencced by the sequencer, and interacts with the provers to generate the ZeroKnowledge Proofs (ZKPs).
 
-Required services and components:
+To do so in a efficient way, the Aggregator will:
 
-- Synchronizer: single instance that can run on a separated instance
-- Executor & Merkletree: service that can run on a separate instance
-- State DB: Postgres SQL that can be run in a separate instance
-- Aggregator: single instance that can run on a separated instance
-- Prover: single instance that can run on a separated instance
-- Executor: single instance that can run on a separated instance
+- Orchestrate communication with one or multiple provers
+- Aggregate proofs from many batches, a single proof can verify multiple batches
+- Send the aggregated proof to L1 using the EthTxManager
 
-It's recommended that the prover is run on a separate instance, as it has important hardware requirements. On the other hand, all the other components can run on a single instance,
+### Prover
 
-## Development
+The Prover is tasked with generating proofs for the batched transactions. These proofs are essential for the subsequent validation of the transactions on the Ethereum mainnet. In general:
 
-It's recommended to use `make` for building, and testing the code, ... Run `make help` to get a list of the available commands.
+- ZKP Generation: Creates cryptographic proofs for each batch of transactions or for a combination of batches (proof aggregation).
+- Optimization: Utilizes parallel computing to speed up the proof generation process.
+- Ethereum Mainnet Preparation: Formats the proofs for validation on the Ethereum mainnet.
 
-## Running the node
+Note that this software is not implemented in this repo, but in [this one](https://github.com/0xPolygonHermez/zkevm-prover)
 
-- [Running locally](docs/running_local.md)
-- [Running on production](docs/production-setup.md)
+### Sequencer
 
-### Requirements
+The Sequencer is responsible for ordering transactions, in other words, making the state move forward:
 
-- Go 1.19
-- Docker
-- Docker Compose
-- Make
-- GCC
+- Transaction Ordering: Get transactions from the pool and adds them into the state.
+- State Transition: Collaborates with the Executor to process transactions and update the state.
+- Trusted finality: Once the sequencer has added a transaction into the state, it shares this information with other nodes, making the transaction final. Other nodes will need to trust that this transaction is added into the state until they get data availability (DA) and validity (ZKPs) confirmations
+
+### SequenceSender
+
+The SequenceSender’s role is to send the ordered list of transactions, known as a sequence, to the Ethereum mainnet. It also collaborates with the Data Availability layer, ensuring that all transaction data is accessible off-chain. It plays a pivotal role in finalizing the rollup:
+
+- Sequence Transmission: Sends a fingerprint of the ordered transaction batches to the Ethereum mainnet.
+- Data Availability: Works in tandem with the Data Availability layer to ensure off-chain data is accessible.
+- L1 Interaction: Utilizes the EthTxManager to handle L1 transaction nuances like nonce management and gas price adjustments.
+
+### Synchronizer
+
+The Synchronizer keeps the node’s local state in sync with the Ethereum mainnet. It listens for events emitted by the smart contract on the mainnet and updates the local state to match. The Synchronizer acts as the bridge between the Ethereum mainnet and the node:
+
+- Event Listening: Monitors events emitted by the smart contract on the Ethereum mainnet.
+- Data Availability: downloads data from the Data Availability layer based on L1 events
+- State Updating: Aligns the local state with the mainnet, ensuring consistency.
+- Reorg Handling: Detects and manages blockchain reorganizations to maintain data integrity.
+
+### Data Availability Configuration
+
+The Data Availability (DA) layer is a crucial component that ensures all transaction data is available when needed. This off-chain storage solution is configurable, allowing operators to set parameters that best suit their needs. The DA layer is essential for the Validium system, where data availability is maintained off-chain but can be made available for verification when required. In general:
+
+- Off-Chain Storage: Stores all transaction data off-chain but ensures it’s readily available for verification.
+- Configurability: Allows chain operators to customize data storage parameters.
+- Data Verification: Provides mechanisms for data integrity checks, crucial for the Validium model.
+
+### Executor
+
+The Executor is the state transition implementation, in this case a EVM implementation:
+
+- Batch execution: receives requests to execute batch of transactions.
+- EVM Implementation: Provides an EVM-compatible implementation for transaction processing.
+- Metadata Retrieval: Retrieves necessary metadata like state root, transaction receipts, and logs from the execution.
+
+Note that this software is not implemented in this repo, but in [this one](https://github.com/0xPolygonHermez/zkevm-prover)
+
+### EthTxManager
+
+The EthTxManager is crucial for interacting with the Ethereum mainnet:
+
+- L1 Transaction Handling: Manages requests from the SequenceSender and Aggregator to send transactions to L1.
+- Nonce Management: Takes care of the nonce for each account involved in a transaction.
+- Gas Price Adjustment: Dynamically adjusts the gas price to ensure that transactions are mined in a timely manner.
+
+### State
+
+The State component is the backbone of the node’s data management:
+
+- State Management: Handles all state-related data, including batches, blocks, and transactions.
+- Executor Integration: Communicates with the Executor to process transactions and update the state.
+- StateDB: used for persistance
+
+### Pool
+
+The Pool serves as a temporary storage for transactions:
+
+- Transaction Storage: Holds transactions submitted via the RPC.
+- Sequencer Interaction: Provides transactions to the Sequencer for ordering and batch creation.
+
+### JSON RPC
+
+The JSON RPC serves as the HTTP interface for user interaction:
+
+- User Interface: Allows users and dApps to interact with the node, following the Ethereum standard:
+    - [Endpoint compatibility](./docs/json-rpc-endpoints.md)
+    - [Custom endpoints](./docs/zkEVM-custom-endpoints.md)
+- State Interaction: Retrieves data from the state and processes transactions.
+- Pool Interaction: Stores transactions in the pool.
+
+### L2GasPricer
+
+The L2GasPricer is responsible for calculating the gas price on L2 based on the L1 gas price:
+
+- L1 Gas Price Fetching: Retrieves the current L1 gas price.
+- Gas Price Calculation: Applies a formula to calculate the suggested L2 gas price.
+- Pool Storage: Stores the calculated L2 gas price in the pool for consumption by the rpc.
 
 ## Contribute
 
-Before opening a pull request, please read this [guide](CONTRIBUTING.md)
+Before opening a pull request, please read [this guide](./CONTRIBUTING.md).
 
+## License
 
+The cdk-validium-node project is licensed under the GNU Affero General Public License free software license.

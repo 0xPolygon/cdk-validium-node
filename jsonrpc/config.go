@@ -1,6 +1,6 @@
 package jsonrpc
 
-import "github.com/0xPolygonHermez/zkevm-node/config/types"
+import "github.com/0xPolygon/cdk-validium-node/config/types"
 
 // Config represents the configuration of the json rpc
 type Config struct {

@@ -12,9 +12,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/0xPolygonHermez/zkevm-node/jsonrpc/metrics"
-	"github.com/0xPolygonHermez/zkevm-node/jsonrpc/types"
-	"github.com/0xPolygonHermez/zkevm-node/log"
+	"github.com/0xPolygon/cdk-validium-node/jsonrpc/metrics"
+	"github.com/0xPolygon/cdk-validium-node/jsonrpc/types"
+	"github.com/0xPolygon/cdk-validium-node/log"
 	"github.com/didip/tollbooth/v6"
 	"github.com/gorilla/websocket"
 )
@@ -366,7 +366,7 @@ func (s *Server) handleWs(w http.ResponseWriter, req *http.Request) {
 			go func() {
 				mu.Lock()
 				defer mu.Unlock()
-				resp, err := s.handler.HandleWs(message, wsConn)
+				resp, err := s.handler.HandleWs(message, wsConn, req)
 				if err != nil {
 					log.Error(fmt.Sprintf("Unable to handle WS request, %s", err.Error()))
 					_ = wsConn.WriteMessage(msgType, []byte(fmt.Sprintf("WS Handle error: %s", err.Error())))
@@ -394,7 +394,7 @@ func RPCErrorResponse(code int, message string, err error) (interface{}, types.E
 // RPCErrorResponseWithData formats error to be returned through RPC
 func RPCErrorResponseWithData(code int, message string, data *[]byte, err error) (interface{}, types.Error) {
 	if err != nil {
-		log.Errorf("%v:%v", message, err.Error())
+		log.Errorf("%v: %v", message, err.Error())
 	} else {
 		log.Error(message)
 	}

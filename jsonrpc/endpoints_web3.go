@@ -3,8 +3,8 @@ package jsonrpc
 import (
 	"math/big"
 
-	"github.com/0xPolygonHermez/zkevm-node"
-	"github.com/0xPolygonHermez/zkevm-node/jsonrpc/types"
+	zkevm "github.com/0xPolygon/cdk-validium-node"
+	"github.com/0xPolygon/cdk-validium-node/jsonrpc/types"
 	"golang.org/x/crypto/sha3"
 )
 

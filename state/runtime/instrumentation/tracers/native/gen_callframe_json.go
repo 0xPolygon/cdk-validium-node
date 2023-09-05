@@ -8,7 +8,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/0xPolygonHermez/zkevm-node/state/runtime/fakevm"
+	"github.com/0xPolygon/cdk-validium-node/state/runtime/fakevm"
 )
 
 var _ = (*callFrameMarshaling)(nil)

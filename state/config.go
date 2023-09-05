@@ -1,6 +1,6 @@
 package state
 
-import "github.com/0xPolygonHermez/zkevm-node/config/types"
+import "github.com/0xPolygon/cdk-validium-node/config/types"
 
 // Config is state config
 type Config struct {

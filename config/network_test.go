@@ -5,9 +5,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/0xPolygonHermez/zkevm-node/etherman"
-	"github.com/0xPolygonHermez/zkevm-node/merkletree"
-	"github.com/0xPolygonHermez/zkevm-node/state"
+	"github.com/0xPolygon/cdk-validium-node/etherman"
+	"github.com/0xPolygon/cdk-validium-node/merkletree"
+	"github.com/0xPolygon/cdk-validium-node/state"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
 	"github.com/urfave/cli/v2"
@@ -27,9 +27,10 @@ func TestLoadCustomNetworkConfig(t *testing.T) {
 				"genesisBlockNumber": 69,
 				"l1Config" : {
 					"chainId": 420,
-					"polygonZkEVMAddress": "0xc949254d682d8c9ad5682521675b8f43b102aec4",
+					"cdkValidiumAddress": "0xc949254d682d8c9ad5682521675b8f43b102aec4",
 					"maticTokenAddress": "0xc949254d682d8c9ad5682521675b8f43b102aec4",
-					"polygonZkEVMGlobalExitRootAddress": "0xc949254d682d8c9ad5682521675b8f43b102aec4"
+					"polygonZkEVMGlobalExitRootAddress": "0xc949254d682d8c9ad5682521675b8f43b102aec4",
+					"cdkDataCommitteeContract": "0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6"
 				},
 				"genesis": [
 					{
@@ -74,9 +75,10 @@ func TestLoadCustomNetworkConfig(t *testing.T) {
 				L2BridgeAddr:                common.HexToAddress("0x9d98deabc42dd696deb9e40b4f1cab7ddbf55988"),
 				L1Config: etherman.L1Config{
 					L1ChainID:                 420,
-					ZkEVMAddr:                 common.HexToAddress("0xc949254d682d8c9ad5682521675b8f43b102aec4"),
+					CDKValidiumAddr:           common.HexToAddress("0xc949254d682d8c9ad5682521675b8f43b102aec4"),
 					MaticAddr:                 common.HexToAddress("0xc949254d682d8c9ad5682521675b8f43b102aec4"),
 					GlobalExitRootManagerAddr: common.HexToAddress("0xc949254d682d8c9ad5682521675b8f43b102aec4"),
+					DataCommitteeAddr:         common.HexToAddress("0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6"),
 				},
 				Genesis: state.Genesis{
 					Root:            common.HexToHash("0xBEEF"),

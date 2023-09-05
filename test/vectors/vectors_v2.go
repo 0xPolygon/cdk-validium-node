@@ -1,8 +1,8 @@
 package vectors
 
 import (
-	"github.com/0xPolygonHermez/zkevm-node/merkletree"
-	"github.com/0xPolygonHermez/zkevm-node/state"
+	"github.com/0xPolygon/cdk-validium-node/merkletree"
+	"github.com/0xPolygon/cdk-validium-node/state"
 )
 
 // StateTransitionTestCaseV2 holds the metadata needed to run a state transition test
@@ -71,7 +71,7 @@ func GenerateGenesisActions(genesis []GenesisEntity) []*state.GenesisAction {
 			}
 			genesisActions = append(genesisActions, action)
 		}
-		
+
 		if genesisEntity.IsSmartContract && len(genesisEntity.Storage) > 0 {
 			for storageKey, storageValue := range genesisEntity.Storage {
 				action := &state.GenesisAction{

@@ -3,7 +3,7 @@ package metrics
 import (
 	"time"
 
-	"github.com/0xPolygonHermez/zkevm-node/metrics"
+	"github.com/0xPolygon/cdk-validium-node/metrics"
 	"github.com/prometheus/client_golang/prometheus"
 )
 

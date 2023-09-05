@@ -4,323 +4,471 @@ import (
 	"fmt"
 	"math"
 
-	"github.com/0xPolygonHermez/zkevm-node/state/runtime"
-	"github.com/0xPolygonHermez/zkevm-node/state/runtime/executor/pb"
-)
-
-const (
-	// ROM_ERROR_UNSPECIFIED indicates the execution ended successfully
-	ROM_ERROR_UNSPECIFIED int32 = iota
-	// ROM_ERROR_NO_ERROR indicates the execution ended successfully
-	ROM_ERROR_NO_ERROR
-	// ROM_ERROR_OUT_OF_GAS indicates there is not enough balance to continue the execution
-	ROM_ERROR_OUT_OF_GAS
-	// ROM_ERROR_STACK_OVERFLOW indicates a stack overflow has happened
-	ROM_ERROR_STACK_OVERFLOW
-	// ROM_ERROR_STACK_UNDERFLOW indicates a stack overflow has happened
-	ROM_ERROR_STACK_UNDERFLOW
-	// ROM_ERROR_MAX_CODE_SIZE_EXCEEDED indicates the code size is beyond the maximum
-	ROM_ERROR_MAX_CODE_SIZE_EXCEEDED
-	// ROM_ERROR_CONTRACT_ADDRESS_COLLISION there is a collision regarding contract addresses
-	ROM_ERROR_CONTRACT_ADDRESS_COLLISION
-	// ROM_ERROR_EXECUTION_REVERTED indicates the execution has been reverted
-	ROM_ERROR_EXECUTION_REVERTED
-	// ROM_ERROR_OUT_OF_COUNTERS_STEP indicates there is not enough step counters to continue the execution
-	ROM_ERROR_OUT_OF_COUNTERS_STEP
-	// ROM_ERROR_OUT_OF_COUNTERS_KECCAK indicates there is not enough keccak counters to continue the execution
-	ROM_ERROR_OUT_OF_COUNTERS_KECCAK
-	// ROM_ERROR_OUT_OF_COUNTERS_BINARY indicates there is not enough binary counters to continue the execution
-	ROM_ERROR_OUT_OF_COUNTERS_BINARY
-	// ROM_ERROR_OUT_OF_COUNTERS_MEM indicates there is not enough memory aligncounters to continue the execution
-	ROM_ERROR_OUT_OF_COUNTERS_MEM
-	// ROM_ERROR_OUT_OF_COUNTERS_ARITH indicates there is not enough arith counters to continue the execution
-	ROM_ERROR_OUT_OF_COUNTERS_ARITH
-	// ROM_ERROR_OUT_OF_COUNTERS_PADDING indicates there is not enough padding counters to continue the execution
-	ROM_ERROR_OUT_OF_COUNTERS_PADDING
-	// ROM_ERROR_OUT_OF_COUNTERS_POSEIDON indicates there is not enough poseidon counters to continue the execution
-	ROM_ERROR_OUT_OF_COUNTERS_POSEIDON
-	// ROM_ERROR_INVALID_JUMP indicates there is an invalid jump opcode
-	ROM_ERROR_INVALID_JUMP
-	// ROM_ERROR_INVALID_OPCODE indicates there is an invalid opcode
-	ROM_ERROR_INVALID_OPCODE
-	// ROM_ERROR_INVALID_STATIC indicates there is an invalid static call
-	ROM_ERROR_INVALID_STATIC
-	// ROM_ERROR_INVALID_BYTECODE_STARTS_EF indicates there is a bytecode starting with 0xEF
-	ROM_ERROR_INVALID_BYTECODE_STARTS_EF
-	// ROM_ERROR_INTRINSIC_INVALID_SIGNATURE indicates the transaction is failing at the signature intrinsic check
-	ROM_ERROR_INTRINSIC_INVALID_SIGNATURE
-	// ROM_ERROR_INTRINSIC_INVALID_CHAIN_ID indicates the transaction is failing at the chain id intrinsic check
-	ROM_ERROR_INTRINSIC_INVALID_CHAIN_ID
-	// ROM_ERROR_INTRINSIC_INVALID_NONCE indicates the transaction is failing at the nonce intrinsic check
-	ROM_ERROR_INTRINSIC_INVALID_NONCE
-	// ROM_ERROR_INTRINSIC_INVALID_GAS_LIMIT indicates the transaction is failing at the gas limit intrinsic check
-	ROM_ERROR_INTRINSIC_INVALID_GAS_LIMIT
-	// ROM_ERROR_INTRINSIC_INVALID_BALANCE indicates the transaction is failing at balance intrinsic check
-	ROM_ERROR_INTRINSIC_INVALID_BALANCE
-	// ROM_ERROR_INTRINSIC_INVALID_BATCH_GAS_LIMIT indicates the batch is exceeding the batch gas limit
-	ROM_ERROR_INTRINSIC_INVALID_BATCH_GAS_LIMIT
-	// ROM_ERROR_INTRINSIC_INVALID_SENDER_CODE indicates the batch is exceeding the batch gas limit
-	ROM_ERROR_INTRINSIC_INVALID_SENDER_CODE
-	// ROM_ERROR_INTRINSIC_TX_GAS_OVERFLOW indicates the transaction gasLimit*gasPrice > MAX_UINT_256 - 1
-	ROM_ERROR_INTRINSIC_TX_GAS_OVERFLOW
-	// ROM_ERROR_BATCH_DATA_TOO_BIG indicates the batch_l2_data is too big to be processed
-	ROM_ERROR_BATCH_DATA_TOO_BIG
-	// ROM_ERROR_UNSUPPORTED_FORK_ID indicates that the fork id is not supported
-	ROM_ERROR_UNSUPPORTED_FORK_ID
-	// EXECUTOR_ERROR_UNSPECIFIED indicates the execution ended successfully
-	EXECUTOR_ERROR_UNSPECIFIED = 0
-	// EXECUTOR_ERROR_NO_ERROR indicates there was no error
-	EXECUTOR_ERROR_NO_ERROR = 1
-	// EXECUTOR_ERROR_COUNTERS_OVERFLOW_KECCAK indicates that the keccak counter exceeded the maximum
-	EXECUTOR_ERROR_COUNTERS_OVERFLOW_KECCAK = 2
-	// EXECUTOR_ERROR_COUNTERS_OVERFLOW_BINARY indicates that the binary counter exceeded the maximum
-	EXECUTOR_ERROR_COUNTERS_OVERFLOW_BINARY = 3
-	// EXECUTOR_ERROR_COUNTERS_OVERFLOW_MEM indicates that the memory align counter exceeded the maximum
-	EXECUTOR_ERROR_COUNTERS_OVERFLOW_MEM = 4
-	// EXECUTOR_ERROR_COUNTERS_OVERFLOW_ARITH indicates that the arith counter exceeded the maximum
-	EXECUTOR_ERROR_COUNTERS_OVERFLOW_ARITH = 5
-	// EXECUTOR_ERROR_COUNTERS_OVERFLOW_PADDING indicates that the padding counter exceeded the maximum
-	EXECUTOR_ERROR_COUNTERS_OVERFLOW_PADDING = 6
-	// EXECUTOR_ERROR_COUNTERS_OVERFLOW_POSEIDON indicates that the poseidon counter exceeded the maximum
-	EXECUTOR_ERROR_COUNTERS_OVERFLOW_POSEIDON = 7
-	// EXECUTOR_ERROR_UNSUPPORTED_FORK_ID indicates that the fork id is not supported
-	EXECUTOR_ERROR_UNSUPPORTED_FORK_ID = 8
-	// EXECUTOR_ERROR_BALANCE_MISMATCH indicates that there is a balance mismatch error in the ROM
-	EXECUTOR_ERROR_BALANCE_MISMATCH = 9
-	// EXECUTOR_ERROR_FEA2SCALAR indicates that there is a fea2scalar error in the execution
-	EXECUTOR_ERROR_FEA2SCALAR = 10
-	// EXECUTOR_ERROR_TOS32 indicates that there is a TOS32 error in the execution
-	EXECUTOR_ERROR_TOS32 = 11
+	"github.com/0xPolygon/cdk-validium-node/state/runtime"
 )
 
 var (
-	// ErrUnspecified indicates an unspecified executor error
-	ErrUnspecified = fmt.Errorf("unspecified executor error")
-	// ErrUnknown indicates an unknown executor error
-	ErrUnknown = fmt.Errorf("unknown error")
+	// ErrExecutorUnspecified indicates an unspecified executor error
+	ErrExecutorUnspecified = fmt.Errorf("unspecified executor error")
+	// ErrROMUnspecified indicates an unspecified ROM error
+	ErrROMUnspecified = fmt.Errorf("unspecified ROM error")
+	// ErrExecutorUnknown indicates an unknown executor error
+	ErrExecutorUnknown = fmt.Errorf("unknown executor error")
+	// ErrROMUnknown indicates an unknown ROM error
+	ErrROMUnknown = fmt.Errorf("unknown ROM error")
 )
 
 // RomErr returns an instance of error related to the ExecutorError
-func RomErr(errorCode pb.RomError) error {
-	e := int32(errorCode)
-	switch e {
-	case ROM_ERROR_UNSPECIFIED:
-		return fmt.Errorf("unspecified ROM error")
-	case ROM_ERROR_NO_ERROR:
+func RomErr(errorCode RomError) error {
+	switch errorCode {
+	case RomError_ROM_ERROR_UNSPECIFIED:
+		return ErrROMUnspecified
+	case RomError_ROM_ERROR_NO_ERROR:
 		return nil
-	case ROM_ERROR_OUT_OF_GAS:
+	case RomError_ROM_ERROR_OUT_OF_GAS:
 		return runtime.ErrOutOfGas
-	case ROM_ERROR_STACK_OVERFLOW:
+	case RomError_ROM_ERROR_STACK_OVERFLOW:
 		return runtime.ErrStackOverflow
-	case ROM_ERROR_STACK_UNDERFLOW:
+	case RomError_ROM_ERROR_STACK_UNDERFLOW:
 		return runtime.ErrStackUnderflow
-	case ROM_ERROR_MAX_CODE_SIZE_EXCEEDED:
+	case RomError_ROM_ERROR_MAX_CODE_SIZE_EXCEEDED:
 		return runtime.ErrMaxCodeSizeExceeded
-	case ROM_ERROR_CONTRACT_ADDRESS_COLLISION:
+	case RomError_ROM_ERROR_CONTRACT_ADDRESS_COLLISION:
 		return runtime.ErrContractAddressCollision
-	case ROM_ERROR_EXECUTION_REVERTED:
+	case RomError_ROM_ERROR_EXECUTION_REVERTED:
 		return runtime.ErrExecutionReverted
-	case ROM_ERROR_OUT_OF_COUNTERS_STEP:
+	case RomError_ROM_ERROR_OUT_OF_COUNTERS_STEP:
 		return runtime.ErrOutOfCountersStep
-	case ROM_ERROR_OUT_OF_COUNTERS_KECCAK:
+	case RomError_ROM_ERROR_OUT_OF_COUNTERS_KECCAK:
 		return runtime.ErrOutOfCountersKeccak
-	case ROM_ERROR_OUT_OF_COUNTERS_BINARY:
+	case RomError_ROM_ERROR_OUT_OF_COUNTERS_BINARY:
 		return runtime.ErrOutOfCountersBinary
-	case ROM_ERROR_OUT_OF_COUNTERS_MEM:
+	case RomError_ROM_ERROR_OUT_OF_COUNTERS_MEM:
 		return runtime.ErrOutOfCountersMemory
-	case ROM_ERROR_OUT_OF_COUNTERS_ARITH:
+	case RomError_ROM_ERROR_OUT_OF_COUNTERS_ARITH:
 		return runtime.ErrOutOfCountersArith
-	case ROM_ERROR_OUT_OF_COUNTERS_PADDING:
+	case RomError_ROM_ERROR_OUT_OF_COUNTERS_PADDING:
 		return runtime.ErrOutOfCountersPadding
-	case ROM_ERROR_OUT_OF_COUNTERS_POSEIDON:
+	case RomError_ROM_ERROR_OUT_OF_COUNTERS_POSEIDON:
 		return runtime.ErrOutOfCountersPoseidon
-	case ROM_ERROR_INVALID_JUMP:
+	case RomError_ROM_ERROR_INVALID_JUMP:
 		return runtime.ErrInvalidJump
-	case ROM_ERROR_INVALID_OPCODE:
+	case RomError_ROM_ERROR_INVALID_OPCODE:
 		return runtime.ErrInvalidOpCode
-	case ROM_ERROR_INVALID_STATIC:
+	case RomError_ROM_ERROR_INVALID_STATIC:
 		return runtime.ErrInvalidStatic
-	case ROM_ERROR_INVALID_BYTECODE_STARTS_EF:
+	case RomError_ROM_ERROR_INVALID_BYTECODE_STARTS_EF:
 		return runtime.ErrInvalidByteCodeStartsEF
-	case ROM_ERROR_INTRINSIC_INVALID_SIGNATURE:
+	case RomError_ROM_ERROR_INTRINSIC_INVALID_SIGNATURE:
 		return runtime.ErrIntrinsicInvalidSignature
-	case ROM_ERROR_INTRINSIC_INVALID_CHAIN_ID:
+	case RomError_ROM_ERROR_INTRINSIC_INVALID_CHAIN_ID:
 		return runtime.ErrIntrinsicInvalidChainID
-	case ROM_ERROR_INTRINSIC_INVALID_NONCE:
+	case RomError_ROM_ERROR_INTRINSIC_INVALID_NONCE:
 		return runtime.ErrIntrinsicInvalidNonce
-	case ROM_ERROR_INTRINSIC_INVALID_GAS_LIMIT:
+	case RomError_ROM_ERROR_INTRINSIC_INVALID_GAS_LIMIT:
 		return runtime.ErrIntrinsicInvalidGasLimit
-	case ROM_ERROR_INTRINSIC_INVALID_BALANCE:
+	case RomError_ROM_ERROR_INTRINSIC_INVALID_BALANCE:
 		return runtime.ErrIntrinsicInvalidBalance
-	case ROM_ERROR_INTRINSIC_INVALID_BATCH_GAS_LIMIT:
+	case RomError_ROM_ERROR_INTRINSIC_INVALID_BATCH_GAS_LIMIT:
 		return runtime.ErrIntrinsicInvalidBatchGasLimit
-	case ROM_ERROR_INTRINSIC_INVALID_SENDER_CODE:
+	case RomError_ROM_ERROR_INTRINSIC_INVALID_SENDER_CODE:
 		return runtime.ErrIntrinsicInvalidSenderCode
-	case ROM_ERROR_INTRINSIC_TX_GAS_OVERFLOW:
+	case RomError_ROM_ERROR_INTRINSIC_TX_GAS_OVERFLOW:
 		return runtime.ErrIntrinsicInvalidTxGasOverflow
-	case ROM_ERROR_BATCH_DATA_TOO_BIG:
+	case RomError_ROM_ERROR_BATCH_DATA_TOO_BIG:
 		return runtime.ErrBatchDataTooBig
-	case ROM_ERROR_UNSUPPORTED_FORK_ID:
+	case RomError_ROM_ERROR_UNSUPPORTED_FORK_ID:
 		return runtime.ErrUnsupportedForkId
+	case RomError_ROM_ERROR_INVALID_RLP:
+		return runtime.ErrInvalidRLP
 	}
 	return fmt.Errorf("unknown error")
 }
 
 // RomErrorCode returns the error code for a given error
-func RomErrorCode(err error) pb.RomError {
+func RomErrorCode(err error) RomError {
 	switch err {
 	case nil:
-		return pb.RomError(ROM_ERROR_NO_ERROR)
+		return RomError_ROM_ERROR_NO_ERROR
 	case runtime.ErrOutOfGas:
-		return pb.RomError(ROM_ERROR_OUT_OF_GAS)
+		return RomError_ROM_ERROR_OUT_OF_GAS
 	case runtime.ErrStackOverflow:
-		return pb.RomError(ROM_ERROR_STACK_OVERFLOW)
+		return RomError_ROM_ERROR_STACK_OVERFLOW
 	case runtime.ErrStackUnderflow:
-		return pb.RomError(ROM_ERROR_STACK_UNDERFLOW)
+		return RomError_ROM_ERROR_STACK_UNDERFLOW
 	case runtime.ErrMaxCodeSizeExceeded:
-		return pb.RomError(ROM_ERROR_MAX_CODE_SIZE_EXCEEDED)
+		return RomError_ROM_ERROR_MAX_CODE_SIZE_EXCEEDED
 	case runtime.ErrContractAddressCollision:
-		return pb.RomError(ROM_ERROR_CONTRACT_ADDRESS_COLLISION)
+		return RomError_ROM_ERROR_CONTRACT_ADDRESS_COLLISION
 	case runtime.ErrExecutionReverted:
-		return pb.RomError(ROM_ERROR_EXECUTION_REVERTED)
+		return RomError_ROM_ERROR_EXECUTION_REVERTED
 	case runtime.ErrOutOfCountersStep:
-		return pb.RomError(ROM_ERROR_OUT_OF_COUNTERS_STEP)
+		return RomError_ROM_ERROR_OUT_OF_COUNTERS_STEP
 	case runtime.ErrOutOfCountersKeccak:
-		return pb.RomError(ROM_ERROR_OUT_OF_COUNTERS_KECCAK)
+		return RomError_ROM_ERROR_OUT_OF_COUNTERS_KECCAK
 	case runtime.ErrOutOfCountersBinary:
-		return pb.RomError(ROM_ERROR_OUT_OF_COUNTERS_BINARY)
+		return RomError_ROM_ERROR_OUT_OF_COUNTERS_BINARY
 	case runtime.ErrOutOfCountersMemory:
-		return pb.RomError(ROM_ERROR_OUT_OF_COUNTERS_MEM)
+		return RomError_ROM_ERROR_OUT_OF_COUNTERS_MEM
 	case runtime.ErrOutOfCountersArith:
-		return pb.RomError(ROM_ERROR_OUT_OF_COUNTERS_ARITH)
+		return RomError_ROM_ERROR_OUT_OF_COUNTERS_ARITH
 	case runtime.ErrOutOfCountersPadding:
-		return pb.RomError(ROM_ERROR_OUT_OF_COUNTERS_PADDING)
+		return RomError_ROM_ERROR_OUT_OF_COUNTERS_PADDING
 	case runtime.ErrOutOfCountersPoseidon:
-		return pb.RomError(ROM_ERROR_OUT_OF_COUNTERS_POSEIDON)
+		return RomError_ROM_ERROR_OUT_OF_COUNTERS_POSEIDON
 	case runtime.ErrInvalidJump:
-		return pb.RomError(ROM_ERROR_INVALID_JUMP)
+		return RomError_ROM_ERROR_INVALID_JUMP
 	case runtime.ErrInvalidOpCode:
-		return pb.RomError(ROM_ERROR_INVALID_OPCODE)
+		return RomError_ROM_ERROR_INVALID_OPCODE
 	case runtime.ErrInvalidStatic:
-		return pb.RomError(ROM_ERROR_INVALID_STATIC)
+		return RomError_ROM_ERROR_INVALID_STATIC
 	case runtime.ErrInvalidByteCodeStartsEF:
-		return pb.RomError(ROM_ERROR_INVALID_BYTECODE_STARTS_EF)
+		return RomError_ROM_ERROR_INVALID_BYTECODE_STARTS_EF
 	case runtime.ErrIntrinsicInvalidSignature:
-		return pb.RomError(ROM_ERROR_INTRINSIC_INVALID_SIGNATURE)
+		return RomError_ROM_ERROR_INTRINSIC_INVALID_SIGNATURE
 	case runtime.ErrIntrinsicInvalidChainID:
-		return pb.RomError(ROM_ERROR_INTRINSIC_INVALID_CHAIN_ID)
+		return RomError_ROM_ERROR_INTRINSIC_INVALID_CHAIN_ID
 	case runtime.ErrIntrinsicInvalidNonce:
-		return pb.RomError(ROM_ERROR_INTRINSIC_INVALID_NONCE)
+		return RomError_ROM_ERROR_INTRINSIC_INVALID_NONCE
 	case runtime.ErrIntrinsicInvalidGasLimit:
-		return pb.RomError(ROM_ERROR_INTRINSIC_INVALID_GAS_LIMIT)
+		return RomError_ROM_ERROR_INTRINSIC_INVALID_GAS_LIMIT
 	case runtime.ErrIntrinsicInvalidBalance:
-		return pb.RomError(ROM_ERROR_INTRINSIC_INVALID_BALANCE)
+		return RomError_ROM_ERROR_INTRINSIC_INVALID_BALANCE
 	case runtime.ErrIntrinsicInvalidBatchGasLimit:
-		return pb.RomError(ROM_ERROR_INTRINSIC_INVALID_BATCH_GAS_LIMIT)
+		return RomError_ROM_ERROR_INTRINSIC_INVALID_BATCH_GAS_LIMIT
 	case runtime.ErrIntrinsicInvalidSenderCode:
-		return pb.RomError(ROM_ERROR_INTRINSIC_INVALID_SENDER_CODE)
+		return RomError_ROM_ERROR_INTRINSIC_INVALID_SENDER_CODE
 	case runtime.ErrIntrinsicInvalidTxGasOverflow:
-		return pb.RomError(ROM_ERROR_INTRINSIC_TX_GAS_OVERFLOW)
+		return RomError_ROM_ERROR_INTRINSIC_TX_GAS_OVERFLOW
 	case runtime.ErrBatchDataTooBig:
-		return pb.RomError(ROM_ERROR_BATCH_DATA_TOO_BIG)
+		return RomError_ROM_ERROR_BATCH_DATA_TOO_BIG
 	case runtime.ErrUnsupportedForkId:
-		return pb.RomError(ROM_ERROR_UNSUPPORTED_FORK_ID)
+		return RomError_ROM_ERROR_UNSUPPORTED_FORK_ID
+	case runtime.ErrInvalidRLP:
+		return RomError_ROM_ERROR_INVALID_RLP
 	}
 	return math.MaxInt32
 }
 
 // IsROMOutOfCountersError indicates if the error is an ROM OOC
-func IsROMOutOfCountersError(error pb.RomError) bool {
-	return int32(error) >= ROM_ERROR_OUT_OF_COUNTERS_STEP && int32(error) <= ROM_ERROR_OUT_OF_COUNTERS_POSEIDON
+func IsROMOutOfCountersError(error RomError) bool {
+	return error >= RomError_ROM_ERROR_OUT_OF_COUNTERS_STEP && error <= RomError_ROM_ERROR_OUT_OF_COUNTERS_POSEIDON
 }
 
 // IsROMOutOfGasError indicates if the error is an ROM OOG
-func IsROMOutOfGasError(error pb.RomError) bool {
-	return int32(error) == ROM_ERROR_OUT_OF_GAS
+func IsROMOutOfGasError(error RomError) bool {
+	return error == RomError_ROM_ERROR_OUT_OF_GAS
 }
 
 // IsExecutorOutOfCountersError indicates if the error is an ROM OOC
-func IsExecutorOutOfCountersError(error pb.ExecutorError) bool {
-	return int32(error) >= EXECUTOR_ERROR_COUNTERS_OVERFLOW_KECCAK && int32(error) <= ROM_ERROR_OUT_OF_COUNTERS_POSEIDON
+func IsExecutorOutOfCountersError(error ExecutorError) bool {
+	return error >= ExecutorError_EXECUTOR_ERROR_SM_MAIN_COUNTERS_OVERFLOW_STEPS && error <= ExecutorError_EXECUTOR_ERROR_SM_MAIN_COUNTERS_OVERFLOW_POSEIDON
 }
 
 // IsExecutorUnspecifiedError indicates an unspecified error in the executor
-func IsExecutorUnspecifiedError(error pb.ExecutorError) bool {
-	return int32(error) == EXECUTOR_ERROR_UNSPECIFIED
+func IsExecutorUnspecifiedError(error ExecutorError) bool {
+	return error == ExecutorError_EXECUTOR_ERROR_UNSPECIFIED
 }
 
 // IsIntrinsicError indicates if the error is due to a intrinsic check
-func IsIntrinsicError(error pb.RomError) bool {
-	return int32(error) >= ROM_ERROR_INTRINSIC_INVALID_SIGNATURE && int32(error) <= ROM_ERROR_INTRINSIC_TX_GAS_OVERFLOW
+func IsIntrinsicError(error RomError) bool {
+	return error >= RomError_ROM_ERROR_INTRINSIC_INVALID_SIGNATURE && error <= RomError_ROM_ERROR_INTRINSIC_TX_GAS_OVERFLOW
 }
 
 // IsInvalidNonceError indicates if the error is due to a invalid nonce
-func IsInvalidNonceError(error pb.RomError) bool {
-	return int32(error) == ROM_ERROR_INTRINSIC_INVALID_NONCE
+func IsInvalidNonceError(error RomError) bool {
+	return error == RomError_ROM_ERROR_INTRINSIC_INVALID_NONCE
 }
 
 // IsInvalidBalanceError indicates if the error is due to a invalid balance
-func IsInvalidBalanceError(error pb.RomError) bool {
-	return int32(error) == ROM_ERROR_INTRINSIC_INVALID_BALANCE
+func IsInvalidBalanceError(error RomError) bool {
+	return error == RomError_ROM_ERROR_INTRINSIC_INVALID_BALANCE
 }
 
 // ExecutorErr returns an instance of error related to the ExecutorError
-func ExecutorErr(errorCode pb.ExecutorError) error {
-	e := int32(errorCode)
-	switch e {
-	case EXECUTOR_ERROR_UNSPECIFIED:
-		return ErrUnspecified
-	case EXECUTOR_ERROR_NO_ERROR:
+func ExecutorErr(errorCode ExecutorError) error {
+	switch errorCode {
+	case ExecutorError_EXECUTOR_ERROR_UNSPECIFIED:
+		return ErrExecutorUnspecified
+	case ExecutorError_EXECUTOR_ERROR_NO_ERROR:
 		return nil
-	case EXECUTOR_ERROR_COUNTERS_OVERFLOW_KECCAK:
-		return runtime.ErrOutOfCountersKeccak
-	case EXECUTOR_ERROR_COUNTERS_OVERFLOW_BINARY:
-		return runtime.ErrOutOfCountersBinary
-	case EXECUTOR_ERROR_COUNTERS_OVERFLOW_MEM:
-		return runtime.ErrOutOfCountersMemory
-	case EXECUTOR_ERROR_COUNTERS_OVERFLOW_ARITH:
-		return runtime.ErrOutOfCountersArith
-	case EXECUTOR_ERROR_COUNTERS_OVERFLOW_PADDING:
-		return runtime.ErrOutOfCountersPadding
-	case EXECUTOR_ERROR_COUNTERS_OVERFLOW_POSEIDON:
-		return runtime.ErrOutOfCountersPoseidon
-	case EXECUTOR_ERROR_UNSUPPORTED_FORK_ID:
-		return runtime.ErrUnsupportedForkId
-	case EXECUTOR_ERROR_BALANCE_MISMATCH:
-		return runtime.ErrBalanceMismatch
-	case EXECUTOR_ERROR_FEA2SCALAR:
-		return runtime.ErrFea2Scalar
-	case EXECUTOR_ERROR_TOS32:
-		return runtime.ErrTos32
+	case ExecutorError_EXECUTOR_ERROR_DB_ERROR:
+		return runtime.ErrExecutorDBError
+	case ExecutorError_EXECUTOR_ERROR_SM_MAIN_COUNTERS_OVERFLOW_STEPS:
+		return runtime.ErrExecutorSMMainCountersOverflowSteps
+	case ExecutorError_EXECUTOR_ERROR_SM_MAIN_COUNTERS_OVERFLOW_KECCAK:
+		return runtime.ErrExecutorSMMainCountersOverflowKeccak
+	case ExecutorError_EXECUTOR_ERROR_SM_MAIN_COUNTERS_OVERFLOW_BINARY:
+		return runtime.ErrExecutorSMMainCountersOverflowBinary
+	case ExecutorError_EXECUTOR_ERROR_SM_MAIN_COUNTERS_OVERFLOW_MEM:
+		return runtime.ErrExecutorSMMainCountersOverflowMem
+	case ExecutorError_EXECUTOR_ERROR_SM_MAIN_COUNTERS_OVERFLOW_ARITH:
+		return runtime.ErrExecutorSMMainCountersOverflowArith
+	case ExecutorError_EXECUTOR_ERROR_SM_MAIN_COUNTERS_OVERFLOW_PADDING:
+		return runtime.ErrExecutorSMMainCountersOverflowPadding
+	case ExecutorError_EXECUTOR_ERROR_SM_MAIN_COUNTERS_OVERFLOW_POSEIDON:
+		return runtime.ErrExecutorSMMainCountersOverflowPoseidon
+	case ExecutorError_EXECUTOR_ERROR_UNSUPPORTED_FORK_ID:
+		return runtime.ErrExecutorUnsupportedForkId
+	case ExecutorError_EXECUTOR_ERROR_BALANCE_MISMATCH:
+		return runtime.ErrExecutorBalanceMismatch
+	case ExecutorError_EXECUTOR_ERROR_FEA2SCALAR:
+		return runtime.ErrExecutorFEA2Scalar
+	case ExecutorError_EXECUTOR_ERROR_TOS32:
+		return runtime.ErrExecutorTOS32
+	case ExecutorError_EXECUTOR_ERROR_SM_MAIN_INVALID_UNSIGNED_TX:
+		return runtime.ErrExecutorSMMainInvalidUnsignedTx
+	case ExecutorError_EXECUTOR_ERROR_SM_MAIN_INVALID_NO_COUNTERS:
+		return runtime.ErrExecutorSMMainInvalidNoCounters
+	case ExecutorError_EXECUTOR_ERROR_SM_MAIN_ARITH_ECRECOVER_DIVIDE_BY_ZERO:
+		return runtime.ErrExecutorSMMainArithECRecoverDivideByZero
+	case ExecutorError_EXECUTOR_ERROR_SM_MAIN_ADDRESS_OUT_OF_RANGE:
+		return runtime.ErrExecutorSMMainAddressOutOfRange
+	case ExecutorError_EXECUTOR_ERROR_SM_MAIN_ADDRESS_NEGATIVE:
+		return runtime.ErrExecutorSMMainAddressNegative
+	case ExecutorError_EXECUTOR_ERROR_SM_MAIN_STORAGE_INVALID_KEY:
+		return runtime.ErrExecutorSMMainStorageInvalidKey
+	case ExecutorError_EXECUTOR_ERROR_SM_MAIN_HASHK:
+		return runtime.ErrExecutorSMMainHashK
+	case ExecutorError_EXECUTOR_ERROR_SM_MAIN_HASHK_SIZE_OUT_OF_RANGE:
+		return runtime.ErrExecutorSMMainHashKSizeOutOfRange
+	case ExecutorError_EXECUTOR_ERROR_SM_MAIN_HASHK_POSITION_NEGATIVE:
+		return runtime.ErrExecutorSMMainHashKPositionNegative
+	case ExecutorError_EXECUTOR_ERROR_SM_MAIN_HASHK_POSITION_PLUS_SIZE_OUT_OF_RANGE:
+		return runtime.ErrExecutorSMMainHashKPositionPlusSizeOutOfRange
+	case ExecutorError_EXECUTOR_ERROR_SM_MAIN_HASHKDIGEST_ADDRESS_NOT_FOUND:
+		return runtime.ErrExecutorSMMainHashKDigestAddressNotFound
+	case ExecutorError_EXECUTOR_ERROR_SM_MAIN_HASHKDIGEST_NOT_COMPLETED:
+		return runtime.ErrExecutorSMMainHashKDigestNotCompleted
+	case ExecutorError_EXECUTOR_ERROR_SM_MAIN_HASHP:
+		return runtime.ErrExecutorSMMainHashP
+	case ExecutorError_EXECUTOR_ERROR_SM_MAIN_HASHP_SIZE_OUT_OF_RANGE:
+		return runtime.ErrExecutorSMMainHashPSizeOutOfRange
+	case ExecutorError_EXECUTOR_ERROR_SM_MAIN_HASHP_POSITION_NEGATIVE:
+		return runtime.ErrExecutorSMMainHashPPositionNegative
+	case ExecutorError_EXECUTOR_ERROR_SM_MAIN_HASHP_POSITION_PLUS_SIZE_OUT_OF_RANGE:
+		return runtime.ErrExecutorSMMainHashPPositionPlusSizeOutOfRange
+	case ExecutorError_EXECUTOR_ERROR_SM_MAIN_HASHPDIGEST_ADDRESS_NOT_FOUND:
+		return runtime.ErrExecutorSMMainHashPDigestAddressNotFound
+	case ExecutorError_EXECUTOR_ERROR_SM_MAIN_HASHPDIGEST_NOT_COMPLETED:
+		return runtime.ErrExecutorSMMainHashPDigestNotCompleted
+	case ExecutorError_EXECUTOR_ERROR_SM_MAIN_MEMALIGN_OFFSET_OUT_OF_RANGE:
+		return runtime.ErrExecutorSMMainMemAlignOffsetOutOfRange
+	case ExecutorError_EXECUTOR_ERROR_SM_MAIN_MULTIPLE_FREEIN:
+		return runtime.ErrExecutorSMMainMultipleFreeIn
+	case ExecutorError_EXECUTOR_ERROR_SM_MAIN_ASSERT:
+		return runtime.ErrExecutorSMMainAssert
+	case ExecutorError_EXECUTOR_ERROR_SM_MAIN_MEMORY:
+		return runtime.ErrExecutorSMMainMemory
+	case ExecutorError_EXECUTOR_ERROR_SM_MAIN_STORAGE_READ_MISMATCH:
+		return runtime.ErrExecutorSMMainStorageReadMismatch
+	case ExecutorError_EXECUTOR_ERROR_SM_MAIN_STORAGE_WRITE_MISMATCH:
+		return runtime.ErrExecutorSMMainStorageWriteMismatch
+	case ExecutorError_EXECUTOR_ERROR_SM_MAIN_HASHK_VALUE_MISMATCH:
+		return runtime.ErrExecutorSMMainHashKValueMismatch
+	case ExecutorError_EXECUTOR_ERROR_SM_MAIN_HASHK_PADDING_MISMATCH:
+		return runtime.ErrExecutorSMMainHashKPaddingMismatch
+	case ExecutorError_EXECUTOR_ERROR_SM_MAIN_HASHK_SIZE_MISMATCH:
+		return runtime.ErrExecutorSMMainHashKSizeMismatch
+	case ExecutorError_EXECUTOR_ERROR_SM_MAIN_HASHKLEN_LENGTH_MISMATCH:
+		return runtime.ErrExecutorSMMainHashKLenLengthMismatch
+	case ExecutorError_EXECUTOR_ERROR_SM_MAIN_HASHKLEN_CALLED_TWICE:
+		return runtime.ErrExecutorSMMainHashKLenCalledTwice
+	case ExecutorError_EXECUTOR_ERROR_SM_MAIN_HASHKDIGEST_NOT_FOUND:
+		return runtime.ErrExecutorSMMainHashKDigestNotFound
+	case ExecutorError_EXECUTOR_ERROR_SM_MAIN_HASHKDIGEST_DIGEST_MISMATCH:
+		return runtime.ErrExecutorSMMainHashKDigestDigestMismatch
+	case ExecutorError_EXECUTOR_ERROR_SM_MAIN_HASHKDIGEST_CALLED_TWICE:
+		return runtime.ErrExecutorSMMainHashKDigestCalledTwice
+	case ExecutorError_EXECUTOR_ERROR_SM_MAIN_HASHP_VALUE_MISMATCH:
+		return runtime.ErrExecutorSMMainHashPValueMismatch
+	case ExecutorError_EXECUTOR_ERROR_SM_MAIN_HASHP_PADDING_MISMATCH:
+		return runtime.ErrExecutorSMMainHashPPaddingMismatch
+	case ExecutorError_EXECUTOR_ERROR_SM_MAIN_HASHP_SIZE_MISMATCH:
+		return runtime.ErrExecutorSMMainHashPSizeMismatch
+	case ExecutorError_EXECUTOR_ERROR_SM_MAIN_HASHPLEN_LENGTH_MISMATCH:
+		return runtime.ErrExecutorSMMainHashPLenLengthMismatch
+	case ExecutorError_EXECUTOR_ERROR_SM_MAIN_HASHPLEN_CALLED_TWICE:
+		return runtime.ErrExecutorSMMainHashPLenCalledTwice
+	case ExecutorError_EXECUTOR_ERROR_SM_MAIN_HASHPDIGEST_DIGEST_MISMATCH:
+		return runtime.ErrExecutorSMMainHashPDigestDigestMismatch
+	case ExecutorError_EXECUTOR_ERROR_SM_MAIN_HASHPDIGEST_CALLED_TWICE:
+		return runtime.ErrExecutorSMMainHashPDigestCalledTwice
+	case ExecutorError_EXECUTOR_ERROR_SM_MAIN_ARITH_MISMATCH:
+		return runtime.ErrExecutorSMMainArithMismatch
+	case ExecutorError_EXECUTOR_ERROR_SM_MAIN_ARITH_ECRECOVER_MISMATCH:
+		return runtime.ErrExecutorSMMainArithECRecoverMismatch
+	case ExecutorError_EXECUTOR_ERROR_SM_MAIN_BINARY_ADD_MISMATCH:
+		return runtime.ErrExecutorSMMainBinaryAddMismatch
+	case ExecutorError_EXECUTOR_ERROR_SM_MAIN_BINARY_SUB_MISMATCH:
+		return runtime.ErrExecutorSMMainBinarySubMismatch
+	case ExecutorError_EXECUTOR_ERROR_SM_MAIN_BINARY_LT_MISMATCH:
+		return runtime.ErrExecutorSMMainBinaryLtMismatch
+	case ExecutorError_EXECUTOR_ERROR_SM_MAIN_BINARY_SLT_MISMATCH:
+		return runtime.ErrExecutorSMMainBinarySLtMismatch
+	case ExecutorError_EXECUTOR_ERROR_SM_MAIN_BINARY_EQ_MISMATCH:
+		return runtime.ErrExecutorSMMainBinaryEqMismatch
+	case ExecutorError_EXECUTOR_ERROR_SM_MAIN_BINARY_AND_MISMATCH:
+		return runtime.ErrExecutorSMMainBinaryAndMismatch
+	case ExecutorError_EXECUTOR_ERROR_SM_MAIN_BINARY_OR_MISMATCH:
+		return runtime.ErrExecutorSMMainBinaryOrMismatch
+	case ExecutorError_EXECUTOR_ERROR_SM_MAIN_BINARY_XOR_MISMATCH:
+		return runtime.ErrExecutorSMMainBinaryXorMismatch
+	case ExecutorError_EXECUTOR_ERROR_SM_MAIN_MEMALIGN_WRITE_MISMATCH:
+		return runtime.ErrExecutorSMMainMemAlignWriteMismatch
+	case ExecutorError_EXECUTOR_ERROR_SM_MAIN_MEMALIGN_WRITE8_MISMATCH:
+		return runtime.ErrExecutorSMMainMemAlignWrite8Mismatch
+	case ExecutorError_EXECUTOR_ERROR_SM_MAIN_MEMALIGN_READ_MISMATCH:
+		return runtime.ErrExecutorSMMainMemAlignReadMismatch
+	case ExecutorError_EXECUTOR_ERROR_SM_MAIN_JMPN_OUT_OF_RANGE:
+		return runtime.ErrExecutorSMMainJmpnOutOfRange
+	case ExecutorError_EXECUTOR_ERROR_SM_MAIN_HASHK_READ_OUT_OF_RANGE:
+		return runtime.ErrExecutorSMMainHashKReadOutOfRange
+	case ExecutorError_EXECUTOR_ERROR_SM_MAIN_HASHP_READ_OUT_OF_RANGE:
+		return runtime.ErrExecutorSMMainHashPReadOutOfRange
 	}
-	return ErrUnknown
+	return ErrExecutorUnknown
 }
 
 // ExecutorErrorCode returns the error code for a given error
-func ExecutorErrorCode(err error) pb.ExecutorError {
+func ExecutorErrorCode(err error) ExecutorError {
 	switch err {
 	case nil:
-		return pb.ExecutorError(EXECUTOR_ERROR_NO_ERROR)
-	case runtime.ErrOutOfCountersKeccak:
-		return pb.ExecutorError(EXECUTOR_ERROR_COUNTERS_OVERFLOW_KECCAK)
-	case runtime.ErrOutOfCountersBinary:
-		return pb.ExecutorError(EXECUTOR_ERROR_COUNTERS_OVERFLOW_BINARY)
-	case runtime.ErrOutOfCountersMemory:
-		return pb.ExecutorError(EXECUTOR_ERROR_COUNTERS_OVERFLOW_MEM)
-	case runtime.ErrOutOfCountersArith:
-		return pb.ExecutorError(EXECUTOR_ERROR_COUNTERS_OVERFLOW_ARITH)
-	case runtime.ErrOutOfCountersPadding:
-		return pb.ExecutorError(EXECUTOR_ERROR_COUNTERS_OVERFLOW_PADDING)
-	case runtime.ErrOutOfCountersPoseidon:
-		return pb.ExecutorError(EXECUTOR_ERROR_COUNTERS_OVERFLOW_POSEIDON)
-	case runtime.ErrUnsupportedForkId:
-		return pb.ExecutorError(EXECUTOR_ERROR_UNSUPPORTED_FORK_ID)
-	case runtime.ErrBalanceMismatch:
-		return pb.ExecutorError(EXECUTOR_ERROR_BALANCE_MISMATCH)
-	case runtime.ErrFea2Scalar:
-		return pb.ExecutorError(EXECUTOR_ERROR_FEA2SCALAR)
-	case runtime.ErrTos32:
-		return pb.ExecutorError(EXECUTOR_ERROR_TOS32)
+		return ExecutorError_EXECUTOR_ERROR_NO_ERROR
+	case runtime.ErrExecutorDBError:
+		return ExecutorError_EXECUTOR_ERROR_DB_ERROR
+	case runtime.ErrExecutorSMMainCountersOverflowSteps:
+		return ExecutorError_EXECUTOR_ERROR_SM_MAIN_COUNTERS_OVERFLOW_STEPS
+	case runtime.ErrExecutorSMMainCountersOverflowKeccak:
+		return ExecutorError_EXECUTOR_ERROR_SM_MAIN_COUNTERS_OVERFLOW_KECCAK
+	case runtime.ErrExecutorSMMainCountersOverflowBinary:
+		return ExecutorError_EXECUTOR_ERROR_SM_MAIN_COUNTERS_OVERFLOW_BINARY
+	case runtime.ErrExecutorSMMainCountersOverflowMem:
+		return ExecutorError_EXECUTOR_ERROR_SM_MAIN_COUNTERS_OVERFLOW_MEM
+	case runtime.ErrExecutorSMMainCountersOverflowArith:
+		return ExecutorError_EXECUTOR_ERROR_SM_MAIN_COUNTERS_OVERFLOW_ARITH
+	case runtime.ErrExecutorSMMainCountersOverflowPadding:
+		return ExecutorError_EXECUTOR_ERROR_SM_MAIN_COUNTERS_OVERFLOW_PADDING
+	case runtime.ErrExecutorSMMainCountersOverflowPoseidon:
+		return ExecutorError_EXECUTOR_ERROR_SM_MAIN_COUNTERS_OVERFLOW_POSEIDON
+	case runtime.ErrExecutorUnsupportedForkId:
+		return ExecutorError_EXECUTOR_ERROR_UNSUPPORTED_FORK_ID
+	case runtime.ErrExecutorBalanceMismatch:
+		return ExecutorError_EXECUTOR_ERROR_BALANCE_MISMATCH
+	case runtime.ErrExecutorFEA2Scalar:
+		return ExecutorError_EXECUTOR_ERROR_FEA2SCALAR
+	case runtime.ErrExecutorTOS32:
+		return ExecutorError_EXECUTOR_ERROR_TOS32
+	case runtime.ErrExecutorSMMainInvalidUnsignedTx:
+		return ExecutorError_EXECUTOR_ERROR_SM_MAIN_INVALID_UNSIGNED_TX
+	case runtime.ErrExecutorSMMainInvalidNoCounters:
+		return ExecutorError_EXECUTOR_ERROR_SM_MAIN_INVALID_NO_COUNTERS
+	case runtime.ErrExecutorSMMainArithECRecoverDivideByZero:
+		return ExecutorError_EXECUTOR_ERROR_SM_MAIN_ARITH_ECRECOVER_DIVIDE_BY_ZERO
+	case runtime.ErrExecutorSMMainAddressOutOfRange:
+		return ExecutorError_EXECUTOR_ERROR_SM_MAIN_ADDRESS_OUT_OF_RANGE
+	case runtime.ErrExecutorSMMainAddressNegative:
+		return ExecutorError_EXECUTOR_ERROR_SM_MAIN_ADDRESS_NEGATIVE
+	case runtime.ErrExecutorSMMainStorageInvalidKey:
+		return ExecutorError_EXECUTOR_ERROR_SM_MAIN_STORAGE_INVALID_KEY
+	case runtime.ErrExecutorSMMainHashK:
+		return ExecutorError_EXECUTOR_ERROR_SM_MAIN_HASHK
+	case runtime.ErrExecutorSMMainHashKSizeOutOfRange:
+		return ExecutorError_EXECUTOR_ERROR_SM_MAIN_HASHK_SIZE_OUT_OF_RANGE
+	case runtime.ErrExecutorSMMainHashKPositionNegative:
+		return ExecutorError_EXECUTOR_ERROR_SM_MAIN_HASHK_POSITION_NEGATIVE
+	case runtime.ErrExecutorSMMainHashKPositionPlusSizeOutOfRange:
+		return ExecutorError_EXECUTOR_ERROR_SM_MAIN_HASHK_POSITION_PLUS_SIZE_OUT_OF_RANGE
+	case runtime.ErrExecutorSMMainHashKDigestAddressNotFound:
+		return ExecutorError_EXECUTOR_ERROR_SM_MAIN_HASHKDIGEST_ADDRESS_NOT_FOUND
+	case runtime.ErrExecutorSMMainHashKDigestNotCompleted:
+		return ExecutorError_EXECUTOR_ERROR_SM_MAIN_HASHKDIGEST_NOT_COMPLETED
+	case runtime.ErrExecutorSMMainHashP:
+		return ExecutorError_EXECUTOR_ERROR_SM_MAIN_HASHP
+	case runtime.ErrExecutorSMMainHashPSizeOutOfRange:
+		return ExecutorError_EXECUTOR_ERROR_SM_MAIN_HASHP_SIZE_OUT_OF_RANGE
+	case runtime.ErrExecutorSMMainHashPPositionNegative:
+		return ExecutorError_EXECUTOR_ERROR_SM_MAIN_HASHP_POSITION_NEGATIVE
+	case runtime.ErrExecutorSMMainHashPPositionPlusSizeOutOfRange:
+		return ExecutorError_EXECUTOR_ERROR_SM_MAIN_HASHP_POSITION_PLUS_SIZE_OUT_OF_RANGE
+	case runtime.ErrExecutorSMMainHashPDigestAddressNotFound:
+		return ExecutorError_EXECUTOR_ERROR_SM_MAIN_HASHPDIGEST_ADDRESS_NOT_FOUND
+	case runtime.ErrExecutorSMMainHashPDigestNotCompleted:
+		return ExecutorError_EXECUTOR_ERROR_SM_MAIN_HASHPDIGEST_NOT_COMPLETED
+	case runtime.ErrExecutorSMMainMemAlignOffsetOutOfRange:
+		return ExecutorError_EXECUTOR_ERROR_SM_MAIN_MEMALIGN_OFFSET_OUT_OF_RANGE
+	case runtime.ErrExecutorSMMainMultipleFreeIn:
+		return ExecutorError_EXECUTOR_ERROR_SM_MAIN_MULTIPLE_FREEIN
+	case runtime.ErrExecutorSMMainAssert:
+		return ExecutorError_EXECUTOR_ERROR_SM_MAIN_ASSERT
+	case runtime.ErrExecutorSMMainMemory:
+		return ExecutorError_EXECUTOR_ERROR_SM_MAIN_MEMORY
+	case runtime.ErrExecutorSMMainStorageReadMismatch:
+		return ExecutorError_EXECUTOR_ERROR_SM_MAIN_STORAGE_READ_MISMATCH
+	case runtime.ErrExecutorSMMainStorageWriteMismatch:
+		return ExecutorError_EXECUTOR_ERROR_SM_MAIN_STORAGE_WRITE_MISMATCH
+	case runtime.ErrExecutorSMMainHashKValueMismatch:
+		return ExecutorError_EXECUTOR_ERROR_SM_MAIN_HASHK_VALUE_MISMATCH
+	case runtime.ErrExecutorSMMainHashKPaddingMismatch:
+		return ExecutorError_EXECUTOR_ERROR_SM_MAIN_HASHK_PADDING_MISMATCH
+	case runtime.ErrExecutorSMMainHashKSizeMismatch:
+		return ExecutorError_EXECUTOR_ERROR_SM_MAIN_HASHK_SIZE_MISMATCH
+	case runtime.ErrExecutorSMMainHashKLenLengthMismatch:
+		return ExecutorError_EXECUTOR_ERROR_SM_MAIN_HASHKLEN_LENGTH_MISMATCH
+	case runtime.ErrExecutorSMMainHashKLenCalledTwice:
+		return ExecutorError_EXECUTOR_ERROR_SM_MAIN_HASHKLEN_CALLED_TWICE
+	case runtime.ErrExecutorSMMainHashKDigestNotFound:
+		return ExecutorError_EXECUTOR_ERROR_SM_MAIN_HASHKDIGEST_NOT_FOUND
+	case runtime.ErrExecutorSMMainHashKDigestDigestMismatch:
+		return ExecutorError_EXECUTOR_ERROR_SM_MAIN_HASHKDIGEST_DIGEST_MISMATCH
+	case runtime.ErrExecutorSMMainHashKDigestCalledTwice:
+		return ExecutorError_EXECUTOR_ERROR_SM_MAIN_HASHKDIGEST_CALLED_TWICE
+	case runtime.ErrExecutorSMMainHashPValueMismatch:
+		return ExecutorError_EXECUTOR_ERROR_SM_MAIN_HASHP_VALUE_MISMATCH
+	case runtime.ErrExecutorSMMainHashPPaddingMismatch:
+		return ExecutorError_EXECUTOR_ERROR_SM_MAIN_HASHP_PADDING_MISMATCH
+	case runtime.ErrExecutorSMMainHashPSizeMismatch:
+		return ExecutorError_EXECUTOR_ERROR_SM_MAIN_HASHP_SIZE_MISMATCH
+	case runtime.ErrExecutorSMMainHashPLenLengthMismatch:
+		return ExecutorError_EXECUTOR_ERROR_SM_MAIN_HASHPLEN_LENGTH_MISMATCH
+	case runtime.ErrExecutorSMMainHashPLenCalledTwice:
+		return ExecutorError_EXECUTOR_ERROR_SM_MAIN_HASHPLEN_CALLED_TWICE
+	case runtime.ErrExecutorSMMainHashPDigestDigestMismatch:
+		return ExecutorError_EXECUTOR_ERROR_SM_MAIN_HASHPDIGEST_DIGEST_MISMATCH
+	case runtime.ErrExecutorSMMainHashPDigestCalledTwice:
+		return ExecutorError_EXECUTOR_ERROR_SM_MAIN_HASHPDIGEST_CALLED_TWICE
+	case runtime.ErrExecutorSMMainArithMismatch:
+		return ExecutorError_EXECUTOR_ERROR_SM_MAIN_ARITH_MISMATCH
+	case runtime.ErrExecutorSMMainArithECRecoverMismatch:
+		return ExecutorError_EXECUTOR_ERROR_SM_MAIN_ARITH_ECRECOVER_MISMATCH
+	case runtime.ErrExecutorSMMainBinaryAddMismatch:
+		return ExecutorError_EXECUTOR_ERROR_SM_MAIN_BINARY_ADD_MISMATCH
+	case runtime.ErrExecutorSMMainBinarySubMismatch:
+		return ExecutorError_EXECUTOR_ERROR_SM_MAIN_BINARY_SUB_MISMATCH
+	case runtime.ErrExecutorSMMainBinaryLtMismatch:
+		return ExecutorError_EXECUTOR_ERROR_SM_MAIN_BINARY_LT_MISMATCH
+	case runtime.ErrExecutorSMMainBinarySLtMismatch:
+		return ExecutorError_EXECUTOR_ERROR_SM_MAIN_BINARY_SLT_MISMATCH
+	case runtime.ErrExecutorSMMainBinaryEqMismatch:
+		return ExecutorError_EXECUTOR_ERROR_SM_MAIN_BINARY_EQ_MISMATCH
+	case runtime.ErrExecutorSMMainBinaryAndMismatch:
+		return ExecutorError_EXECUTOR_ERROR_SM_MAIN_BINARY_AND_MISMATCH
+	case runtime.ErrExecutorSMMainBinaryOrMismatch:
+		return ExecutorError_EXECUTOR_ERROR_SM_MAIN_BINARY_OR_MISMATCH
+	case runtime.ErrExecutorSMMainBinaryXorMismatch:
+		return ExecutorError_EXECUTOR_ERROR_SM_MAIN_BINARY_XOR_MISMATCH
+	case runtime.ErrExecutorSMMainMemAlignWriteMismatch:
+		return ExecutorError_EXECUTOR_ERROR_SM_MAIN_MEMALIGN_WRITE_MISMATCH
+	case runtime.ErrExecutorSMMainMemAlignWrite8Mismatch:
+		return ExecutorError_EXECUTOR_ERROR_SM_MAIN_MEMALIGN_WRITE8_MISMATCH
+	case runtime.ErrExecutorSMMainMemAlignReadMismatch:
+		return ExecutorError_EXECUTOR_ERROR_SM_MAIN_MEMALIGN_READ_MISMATCH
+	case runtime.ErrExecutorSMMainJmpnOutOfRange:
+		return ExecutorError_EXECUTOR_ERROR_SM_MAIN_JMPN_OUT_OF_RANGE
+	case runtime.ErrExecutorSMMainHashKReadOutOfRange:
+		return ExecutorError_EXECUTOR_ERROR_SM_MAIN_HASHK_READ_OUT_OF_RANGE
+	case runtime.ErrExecutorSMMainHashPReadOutOfRange:
+		return ExecutorError_EXECUTOR_ERROR_SM_MAIN_HASHP_READ_OUT_OF_RANGE
 	}
 	return math.MaxInt32
 }

@@ -8,7 +8,7 @@ import (
 
 	common "github.com/ethereum/go-ethereum/common"
 
-	ethtxmanager "github.com/0xPolygonHermez/zkevm-node/ethtxmanager"
+	ethtxmanager "github.com/0xPolygon/cdk-validium-node/ethtxmanager"
 
 	mock "github.com/stretchr/testify/mock"
 

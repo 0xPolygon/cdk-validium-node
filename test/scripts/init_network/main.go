@@ -5,7 +5,7 @@ package main
 // 	"log"
 // 	"time"
 
-// 	NW "github.com/0xPolygonHermez/zkevm-node/tools/network"
+// 	NW "github.com/0xPolygon/cdk-validium-node/tools/network"
 // )
 
 // func main() {

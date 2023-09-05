@@ -1,7 +1,7 @@
 version: "3.5"
 networks:
   default:
-    name: zkevm
+    name: cdk-validium
     
 services:
   grafana:
@@ -13,8 +13,8 @@ services:
       - ./config/grafana/dashboard-dockers.json:/etc/grafana/provisioning/dashboards/dashboard-dockers.json:ro
       - ./config/grafana/dashboard-node.json:/etc/grafana/provisioning/dashboards/dashboard-node.json:ro
     environment:
-      - GF_SECURITY_ADMIN_USER=zkevm
-      - GF_SECURITY_ADMIN_PASSWORD=zkevm
+      - GF_SECURITY_ADMIN_USER=cdk-validium
+      - GF_SECURITY_ADMIN_PASSWORD=cdk-validium
     ports:
       - 3000:3000
     depends_on:
@@ -34,11 +34,11 @@ services:
       - POSTGRES_DB=grafana
     depends_on:
       - grafana-db
-      - zkevm-json-rpc
+      - cdk-validium-json-rpc
 
   grafana-db:
     container_name: grafana-db
-    image: postgres
+    image: postgres:15
     expose:
       - 5432
     environment:
@@ -46,30 +46,30 @@ services:
       - POSTGRES_PASSWORD=password
       - POSTGRES_DB=grafana
 
-  zkevm-sequencer:
-    container_name: zkevm-sequencer
-    image: zkevm-node
+  cdk-validium-sequencer:
+    container_name: cdk-validium-sequencer
+    image: cdk-validium-node
     ports:
       - 9092:9091 # needed if metrics enabled
       - 6060:6060
     environment:
-      - ZKEVM_NODE_STATEDB_HOST=zkevm-state-db
-      - ZKEVM_NODE_POOL_DB_HOST=zkevm-pool-db
+      - CDK_VALIDIUM_NODE_STATEDB_HOST=cdk-validium-state-db
+      - CDK_VALIDIUM_NODE_POOL_DB_HOST=cdk-validium-pool-db
     volumes:
       - ./config/test.node.config.toml:/app/config.toml
       - ./config/test.genesis.config.json:/app/genesis.json
     command:
       - "/bin/sh"
       - "-c"
-      - "/app/zkevm-node run --network custom --custom-network-file /app/genesis.json --cfg /app/config.toml --components sequencer"
+      - "/app/cdk-validium-node run --network custom --custom-network-file /app/genesis.json --cfg /app/config.toml --components sequencer"
 
-  zkevm-sequence-sender:
-    container_name: zkevm-sequence-sender
-    image: zkevm-node
+  cdk-validium-sequence-sender:
+    container_name: cdk-validium-sequence-sender
+    image: cdk-validium-node
     environment:
-      - ZKEVM_NODE_STATEDB_HOST=zkevm-state-db
-      - ZKEVM_NODE_POOL_DB_HOST=zkevm-pool-db
-      - ZKEVM_NODE_SEQUENCER_SENDER_ADDRESS=0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266
+      - CDK_VALIDIUM_NODE_STATEDB_HOST=cdk-validium-state-db
+      - CDK_VALIDIUM_NODE_POOL_DB_HOST=cdk-validium-pool-db
+      - CDK_VALIDIUM_NODE_SEQUENCER_SENDER_ADDRESS=0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266
     volumes:
       - ./sequencer.keystore:/pk/sequencer.keystore
       - ./config/test.node.config.toml:/app/config.toml
@@ -77,65 +77,63 @@ services:
     command:
       - "/bin/sh"
       - "-c"
-      - "/app/zkevm-node run --network custom --custom-network-file /app/genesis.json --cfg /app/config.toml --components sequence-sender"
+      - "/app/cdk-validium-node run --network custom --custom-network-file /app/genesis.json --cfg /app/config.toml --components sequence-sender"
 
-  zkevm-json-rpc:
-    container_name: zkevm-json-rpc
-    image: zkevm-node
+  cdk-validium-json-rpc:
+    container_name: cdk-validium-json-rpc
+    image: cdk-validium-node
     ports:
       - 8123:8123
       - 8133:8133 # needed if WebSockets enabled
       - 9091:9091 # needed if metrics enabled
     environment:
-      - ZKEVM_NODE_STATEDB_HOST=zkevm-state-db
-      - ZKEVM_NODE_POOL_DB_HOST=zkevm-pool-db
+      - CDK_VALIDIUM_NODE_STATEDB_HOST=cdk-validium-state-db
+      - CDK_VALIDIUM_NODE_POOL_DB_HOST=cdk-validium-pool-db
     volumes:
       - ./config/test.node.config.toml:/app/config.toml
       - ./config/test.genesis.config.json:/app/genesis.json
     command:
       - "/bin/sh"
       - "-c"
-      - "/app/zkevm-node run --network custom --custom-network-file /app/genesis.json --cfg /app/config.toml --components rpc"
+      - "/app/cdk-validium-node run --network custom --custom-network-file /app/genesis.json --cfg /app/config.toml --components rpc"
 
-  zkevm-aggregator:
-    container_name: zkevm-aggregator
-    image: zkevm-node
+  cdk-validium-aggregator:
+    container_name: cdk-validium-aggregator
+    image: cdk-validium-node
     ports:
       - 50081:50081
       - 9093:9091 # needed if metrics enabled
     environment:
-      - ZKEVM_NODE_STATEDB_HOST=zkevm-state-db
-      - ZKEVM_NODE_AGGREGATOR_SENDER_ADDRESS=0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266
+      - CDK_VALIDIUM_NODE_STATEDB_HOST=cdk-validium-state-db
+      - CDK_VALIDIUM_NODE_AGGREGATOR_SENDER_ADDRESS=0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266
     volumes:
       - ./config/test.node.config.toml:/app/config.toml
       - ./config/test.genesis.config.json:/app/genesis.json
     command:
       - "/bin/sh"
       - "-c"
-      - "/app/zkevm-node run --network custom --custom-network-file /app/genesis.json --cfg /app/config.toml --components aggregator"
+      - "/app/cdk-validium-node run --network custom --custom-network-file /app/genesis.json --cfg /app/config.toml --components aggregator"
 
-  zkevm-sync:
-    container_name: zkevm-sync
-    image: zkevm-node
-    ports:
-      - 9095:9091 # needed if metrics enabled
+  cdk-validium-sync:
+    container_name: cdk-validium-sync
+    image: cdk-validium-node
     environment:
-      - ZKEVM_NODE_STATEDB_HOST=zkevm-state-db
+      - CDK_VALIDIUM_NODE_STATEDB_HOST=cdk-validium-state-db
     volumes:
       - ./config/test.node.config.toml:/app/config.toml
       - ./config/test.genesis.config.json:/app/genesis.json
     command:
       - "/bin/sh"
       - "-c"
-      - "/app/zkevm-node run --network custom --custom-network-file /app/genesis.json --cfg /app/config.toml --components synchronizer"
+      - "/app/cdk-validium-node run --network custom --custom-network-file /app/genesis.json --cfg /app/config.toml --components synchronizer"
 
-  zkevm-eth-tx-manager:
-    container_name: zkevm-eth-tx-manager
-    image: zkevm-node
+  cdk-validium-eth-tx-manager:
+    container_name: cdk-validium-eth-tx-manager
+    image: cdk-validium-node
     ports:
       - 9094:9091 # needed if metrics enabled
     environment:
-      - ZKEVM_NODE_STATEDB_HOST=zkevm-state-db
+      - CDK_VALIDIUM_NODE_STATEDB_HOST=cdk-validium-state-db
     volumes:
       - ./sequencer.keystore:/pk/sequencer.keystore
       - ./aggregator.keystore:/pk/aggregator.keystore
@@ -144,13 +142,13 @@ services:
     command:
       - "/bin/sh"
       - "-c"
-      - "/app/zkevm-node run --network custom --custom-network-file /app/genesis.json --cfg /app/config.toml --components eth-tx-manager"
+      - "/app/cdk-validium-node run --network custom --custom-network-file /app/genesis.json --cfg /app/config.toml --components eth-tx-manager"
 
-  zkevm-l2gaspricer:
-    container_name: zkevm-l2gaspricer
-    image: zkevm-node
+  cdk-validium-l2gaspricer:
+    container_name: cdk-validium-l2gaspricer
+    image: cdk-validium-node
     environment:
-      - ZKEVM_NODE_POOL_DB_HOST=zkevm-pool-db
+      - CDK_VALIDIUM_NODE_POOL_DB_HOST=cdk-validium-pool-db
     volumes:
       - ./test.keystore:/pk/keystore
       - ./config/test.node.config.toml:/app/config.toml
@@ -158,11 +156,11 @@ services:
     command:
       - "/bin/sh"
       - "-c"
-      - "/app/zkevm-node run --network custom --custom-network-file /app/genesis.json --cfg /app/config.toml --components l2gaspricer"
+      - "/app/cdk-validium-node run --network custom --custom-network-file /app/genesis.json --cfg /app/config.toml --components l2gaspricer"
 
-  zkevm-state-db:
-    container_name: zkevm-state-db
-    image: postgres
+  cdk-validium-state-db:
+    container_name: cdk-validium-state-db
+    image: postgres:15
     deploy:
       resources:
         limits:
@@ -182,9 +180,9 @@ services:
       - "-N"
       - "500"
 
-  zkevm-pool-db:
-    container_name: zkevm-pool-db
-    image: postgres
+  cdk-validium-pool-db:
+    container_name: cdk-validium-pool-db
+    image: postgres:15
     deploy:
       resources:
         limits:
@@ -202,9 +200,9 @@ services:
       - "-N"
       - "500"
 
-  zkevm-event-db:
-    container_name: zkevm-event-db
-    image: postgres
+  cdk-validium-event-db:
+    container_name: cdk-validium-event-db
+    image: postgres:15
     deploy:
       resources:
         limits:
@@ -224,8 +222,8 @@ services:
       - "-N"
       - "500"
 
-  zkevm-explorer-l1:
-    container_name: zkevm-explorer-l1
+  cdk-validium-explorer-l1:
+    container_name: cdk-validium-explorer-l1
     image: hermeznetwork/zkevm-explorer:latest
     ports:
       - 4000:4000
@@ -234,8 +232,8 @@ services:
       - SUBNETWORK=Local Ethereum
       - COIN=ETH
       - ETHEREUM_JSONRPC_VARIANT=geth
-      - ETHEREUM_JSONRPC_HTTP_URL=http://zkevm-mock-l1-network:8545
-      - DATABASE_URL=postgres://l1_explorer_user:l1_explorer_password@zkevm-explorer-l1-db:5432/l1_explorer_db
+      - ETHEREUM_JSONRPC_HTTP_URL=http://cdk-validium-mock-l1-network:8545
+      - DATABASE_URL=postgres://l1_explorer_user:l1_explorer_password@cdk-validium-explorer-l1-db:5432/l1_explorer_db
       - ECTO_USE_SSL=false
       - MIX_ENV=prod
     command:
@@ -243,9 +241,9 @@ services:
       - "-c"
       - "mix do ecto.create, ecto.migrate; mix phx.server"
 
-  zkevm-explorer-l1-db:
-    container_name: zkevm-explorer-l1-db
-    image: postgres
+  cdk-validium-explorer-l1-db:
+    container_name: cdk-validium-explorer-l1-db
+    image: postgres:15
     ports:
       - 5436:5432
     environment:
@@ -257,8 +255,8 @@ services:
       - "-N"
       - "500"
 
-  zkevm-explorer-l2:
-    container_name: zkevm-explorer-l2
+  cdk-validium-explorer-l2:
+    container_name: cdk-validium-explorer-l2
     image: hermeznetwork/zkevm-explorer:latest
     ports:
       - 4001:4000
@@ -267,8 +265,8 @@ services:
       - SUBNETWORK=Polygon Hermez
       - COIN=ETH
       - ETHEREUM_JSONRPC_VARIANT=geth
-      - ETHEREUM_JSONRPC_HTTP_URL=http://zkevm-explorer-json-rpc:8124
-      - DATABASE_URL=postgres://l2_explorer_user:l2_explorer_password@zkevm-explorer-l2-db:5432/l2_explorer_db
+      - ETHEREUM_JSONRPC_HTTP_URL=http://cdk-validium-explorer-json-rpc:8124
+      - DATABASE_URL=postgres://l2_explorer_user:l2_explorer_password@cdk-validium-explorer-l2-db:5432/l2_explorer_db
       - ECTO_USE_SSL=false
       - MIX_ENV=prod
       - LOGO=/images/blockscout_logo.svg
@@ -278,28 +276,28 @@ services:
       - "-c"
       - "mix do ecto.create, ecto.migrate; mix phx.server"
 
-  zkevm-explorer-json-rpc:
-    container_name: zkevm-explorer-json-rpc
-    image: zkevm-node
+  cdk-validium-explorer-json-rpc:
+    container_name: cdk-validium-explorer-json-rpc
+    image: cdk-validium-node
     ports:
       - 8124:8124
       - 8134:8134 # needed if WebSockets enabled
     environment:
-      - ZKEVM_NODE_STATEDB_HOST=zkevm-state-db
-      - ZKEVM_NODE_POOL_DB_HOST=zkevm-pool-db
-      - ZKEVM_NODE_RPC_PORT=8124
-      - ZKEVM_NODE_RPC_WEBSOCKETS_PORT=8134
+      - CDK_VALIDIUM_NODE_STATEDB_HOST=cdk-validium-state-db
+      - CDK_VALIDIUM_NODE_POOL_DB_HOST=cdk-validium-pool-db
+      - CDK_VALIDIUM_NODE_RPC_PORT=8124
+      - CDK_VALIDIUM_NODE_RPC_WEBSOCKETS_PORT=8134
     volumes:
       - ./config/test.node.config.toml:/app/config.toml
       - ./config/test.genesis.config.json:/app/genesis.json
     command:
       - "/bin/sh"
       - "-c"
-      - "/app/zkevm-node run --network custom --custom-network-file /app/genesis.json --cfg /app/config.toml --components rpc --http.api eth,net,debug,zkevm,txpool,web3"
+      - "/app/cdk-validium-node run --network custom --custom-network-file /app/genesis.json --cfg /app/config.toml --components rpc --http.api eth,net,debug,zkevm,txpool,web3"
 
-  zkevm-explorer-l2-db:
-    container_name: zkevm-explorer-l2-db
-    image: postgres
+  cdk-validium-explorer-l2-db:
+    container_name: cdk-validium-explorer-l2-db
+    image: postgres:15
     ports:
       - 5437:5432
     environment:
@@ -308,9 +306,9 @@ services:
       - POSTGRES_DB=l2_explorer_db
     command: [ "postgres", "-N", "500" ]
 
-  zkevm-mock-l1-network:
-    container_name: zkevm-mock-l1-network
-    image: hermeznetwork/geth-zkevm-contracts:v2.0.0-RC1-fork.5-geth1.12.0
+  cdk-validium-mock-l1-network:
+    container_name: cdk-validium-mock-l1-network
+    image: hermeznetwork/geth-cdk-validium-contracts:v0.0.1
     ports:
       - 8545:8545
       - 8546:8546
@@ -330,15 +328,17 @@ services:
       - "--ws.addr"
       - "0.0.0.0"
       - "--dev"
+      - "--dev.period"
+      - "1"
       - "--datadir"
       - "/geth_data"
       - "--syncmode"
       - "full"
       - "--rpc.allow-unprotected-txs"
 
-  zkevm-prover:
-    container_name: zkevm-prover
-    image: hermeznetwork/zkevm-prover:v0.2.0-RC3
+  cdk-validium-prover:
+    container_name: cdk-validium-prover
+    image: hermeznetwork/zkevm-prover:v2.2.0
     ports:
       # - 50051:50051 # Prover
       - 50052:50052 # Mock prover
@@ -349,22 +349,11 @@ services:
     command: >
       zkProver -c /usr/src/app/config.json
 
-  zkprover-mock:
-    container_name: zkprover-mock
-    image: hermeznetwork/zkprover-mock:latest
-    ports:
-      - 43061:43061 # MT
-      - 43071:43071 # Executor
-    volumes:
-      - ./vectors/src:/app/testvectors
-    command: >
-      /app/zkprover-mock server --statedb-port 43061 --executor-port 43071 --test-vector-path /app/testvectors
-
-  zkevm-approve:
-    container_name: zkevm-approve
-    image: zkevm-node
+  cdk-validium-approve:
+    container_name: cdk-validium-approve
+    image: cdk-validium-node
     environment:
-      - ZKEVM_NODE_STATEDB_HOST=zkevm-state-db
+      - CDK_VALIDIUM_NODE_STATEDB_HOST=cdk-validium-state-db
     volumes:
       - ./sequencer.keystore:/pk/keystore
       - ./config/test.node.config.toml:/app/config.toml
@@ -372,11 +361,11 @@ services:
     command:
       - "/bin/sh"
       - "-c"
-      - "/app/zkevm-node approve --network custom --custom-network-file /app/genesis.json --key-store-path /pk/keystore --pw testonly --am 115792089237316195423570985008687907853269984665640564039457584007913129639935 -y --cfg /app/config.toml"
+      - "/app/cdk-validium-node approve --network custom --custom-network-file /app/genesis.json --key-store-path /pk/keystore --pw testonly --am 115792089237316195423570985008687907853269984665640564039457584007913129639935 -y --cfg /app/config.toml"
 
-  zkevm-permissionless-db:
-    container_name: zkevm-permissionless-db
-    image: postgres
+  cdk-validium-permissionless-db:
+    container_name: cdk-validium-permissionless-db
+    image: postgres:15
     deploy:
       resources:
         limits:
@@ -396,36 +385,84 @@ services:
       - "-N"
       - "500"
 
-  zkevm-permissionless-node:
-    container_name: zkevm-permissionless-node
-    image: zkevm-node
+  cdk-validium-permissionless-node-forced-DAC:
+    container_name: cdk-validium-permissionless-node-forced-DAC
+    image: cdk-validium-node
     ports:
       - 8125:8125
     environment:
-      - ZKEVM_NODE_ISTRUSTEDSEQUENCER=false
-      - ZKEVM_NODE_STATEDB_USER=test_user
-      - ZKEVM_NODE_STATEDB_PASSWORD=test_password
-      - ZKEVM_NODE_STATEDB_NAME=state_db
-      - ZKEVM_NODE_STATEDB_HOST=zkevm-permissionless-db
-      - ZKEVM_NODE_POOL_DB_USER=test_user
-      - ZKEVM_NODE_POOL_DB_PASSWORD=test_password
-      - ZKEVM_NODE_POOL_DB_NAME=pool_db
-      - ZKEVM_NODE_POOL_DB_HOST=zkevm-permissionless-db
-      - ZKEVM_NODE_RPC_PORT=8125
-      - ZKEVM_NODE_RPC_SEQUENCERNODEURI=http://zkevm-json-rpc:8123
-      - ZKEVM_NODE_MTCLIENT_URI=zkevm-permissionless-prover:50061
-      - ZKEVM_NODE_EXECUTOR_URI=zkevm-permissionless-prover:50071
+      - CDK_VALIDIUM_NODE_ISTRUSTEDSEQUENCER=false
+      - CDK_VALIDIUM_NODE_STATEDB_USER=test_user
+      - CDK_VALIDIUM_NODE_STATEDB_PASSWORD=test_password
+      - CDK_VALIDIUM_NODE_STATEDB_NAME=state_db
+      - CDK_VALIDIUM_NODE_STATEDB_HOST=cdk-validium-permissionless-db
+      - CDK_VALIDIUM_NODE_POOL_DB_USER=test_user
+      - CDK_VALIDIUM_NODE_POOL_DB_PASSWORD=test_password
+      - CDK_VALIDIUM_NODE_POOL_DB_NAME=pool_db
+      - CDK_VALIDIUM_NODE_POOL_DB_HOST=cdk-validium-permissionless-db
+      - CDK_VALIDIUM_NODE_RPC_PORT=8125
+      - CDK_VALIDIUM_NODE_RPC_SEQUENCERNODEURI=http://cdk-validium-json-rpc:8123
+      - CDK_VALIDIUM_NODE_SYNCHRONIZER_TRUSTEDSEQUENCERURL=http://you-cant-touch-this:8123
+      - CDK_VALIDIUM_NODE_MTCLIENT_URI=cdk-validium-permissionless-prover:50061
+      - CDK_VALIDIUM_NODE_EXECUTOR_URI=cdk-validium-permissionless-prover:50071
     volumes:
       - ./config/test.node.config.toml:/app/config.toml
       - ./config/test.genesis.config.json:/app/genesis.json
     command:
       - "/bin/sh"
       - "-c"
-      - "/app/zkevm-node run --network custom --custom-network-file /app/genesis.json --cfg /app/config.toml --components \"rpc,synchronizer\""
+      - "/app/cdk-validium-node run --network custom --custom-network-file /app/genesis.json --cfg /app/config.toml --components \"rpc,synchronizer\""
 
-  zkevm-permissionless-prover:
-    container_name: zkevm-permissionless-prover
-    image: hermeznetwork/zkevm-prover:v0.2.0-RC3
+  cdk-validium-permissionless-node:
+    container_name: cdk-validium-permissionless-node
+    image: cdk-validium-node
+    ports:
+      - 8125:8125
+    environment:
+      - CDK_VALIDIUM_NODE_ISTRUSTEDSEQUENCER=false
+      - CDK_VALIDIUM_NODE_STATEDB_USER=test_user
+      - CDK_VALIDIUM_NODE_STATEDB_PASSWORD=test_password
+      - CDK_VALIDIUM_NODE_STATEDB_NAME=state_db
+      - CDK_VALIDIUM_NODE_STATEDB_HOST=cdk-validium-permissionless-db
+      - CDK_VALIDIUM_NODE_POOL_DB_USER=test_user
+      - CDK_VALIDIUM_NODE_POOL_DB_PASSWORD=test_password
+      - CDK_VALIDIUM_NODE_POOL_DB_NAME=pool_db
+      - CDK_VALIDIUM_NODE_POOL_DB_HOST=cdk-validium-permissionless-db
+      - CDK_VALIDIUM_NODE_RPC_PORT=8125
+      - CDK_VALIDIUM_NODE_RPC_SEQUENCERNODEURI=http://cdk-validium-json-rpc:8123
+      - CDK_VALIDIUM_NODE_MTCLIENT_URI=cdk-validium-permissionless-prover:50061
+      - CDK_VALIDIUM_NODE_EXECUTOR_URI=cdk-validium-permissionless-prover:50071
+    volumes:
+      - ./config/test.node.config.toml:/app/config.toml
+      - ./config/test.genesis.config.json:/app/genesis.json
+    command:
+      - "/bin/sh"
+      - "-c"
+      - "/app/cdk-validium-node run --network custom --custom-network-file /app/genesis.json --cfg /app/config.toml --components \"rpc,synchronizer\""
+
+  cdk-validium-data-node-db:
+    container_name: cdk-validium-data-node-db
+    restart: unless-stopped
+    image: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - 5444:5432
+    environment:
+      - POSTGRES_USER=committee_user
+      - POSTGRES_PASSWORD=committee_password
+      - POSTGRES_DB=committee_db
+    command:
+      - "postgres"
+      - "-N"
+      - "500"
+
+  cdk-validium-permissionless-prover:
+    container_name: cdk-validium-permissionless-prover
+    image: hermeznetwork/zkevm-prover:v2.2.0
     ports:
       # - 50058:50058 # Prover
       - 50059:50052 # Mock prover
@@ -436,9 +473,9 @@ services:
     command: >
       zkProver -c /usr/src/app/config.json
 
-  zkevm-metrics:
+  cdk-validium-metrics:
     image: prom/prometheus:v2.39.1
-    container_name: zkevm-metrics
+    container_name: cdk-validium-metrics
     restart: unless-stopped
     ports:
       - 9090:9090
@@ -447,3 +484,17 @@ services:
       - --web.enable-lifecycle
     volumes:
       - ../config/metrics/prometheus:/etc/prometheus
+
+  cdk-validium-sh:
+    container_name: cdk-validium-sh
+    image: cdk-validium-node
+    stdin_open: true 
+    tty: true
+    environment:
+      - CDK_VALIDIUM_NODE_STATEDB_HOST=cdk-validium-state-db
+      - CDK_VALIDIUM_NODE_POOL_DB_HOST=cdk-validium-pool-db
+    volumes:
+      - ./config/test.node.config.toml:/app/config.toml
+      - ./config/test.genesis.config.json:/app/genesis.json
+    command:
+      - "/bin/sh"

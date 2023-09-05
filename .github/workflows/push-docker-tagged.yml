@@ -30,4 +30,4 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            hermeznetwork/zkevm-node:${{ github.ref_name }}
+            hermeznetwork/cdk-validium-node:${{ github.ref_name }}

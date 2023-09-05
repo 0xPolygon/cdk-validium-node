@@ -4,10 +4,10 @@ import (
 	"os"
 	"time"
 
-	"github.com/0xPolygonHermez/zkevm-node/etherman/smartcontracts/polygonzkevm"
-	"github.com/0xPolygonHermez/zkevm-node/hex"
-	"github.com/0xPolygonHermez/zkevm-node/log"
-	"github.com/0xPolygonHermez/zkevm-node/test/operations"
+	"github.com/0xPolygon/cdk-validium-node/etherman/smartcontracts/cdkvalidium"
+	"github.com/0xPolygon/cdk-validium-node/hex"
+	"github.com/0xPolygon/cdk-validium-node/log"
+	"github.com/0xPolygon/cdk-validium-node/test/operations"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
@@ -99,7 +99,7 @@ func sendForcedBatches(cliCtx *cli.Context) error {
 	}
 	// Create smc client
 	poeAddr := common.HexToAddress(cliCtx.String(flagSmcAddrName))
-	poe, err := polygonzkevm.NewPolygonzkevm(poeAddr, ethClient)
+	poe, err := cdkvalidium.NewCdkvalidium(poeAddr, ethClient)
 	if err != nil {
 		return err
 	}
@@ -130,7 +130,7 @@ func sendForcedBatches(cliCtx *cli.Context) error {
 		log.Error("error decoding txs. Error: ", err)
 		return err
 	}
-	fbData := []polygonzkevm.PolygonZkEVMForcedBatchData{{
+	fbData := []cdkvalidium.CDKValidiumForcedBatchData{{
 		Transactions:       transactions,
 		GlobalExitRoot:     common.HexToHash(cliCtx.String(flagGerName)),
 		MinForcedTimestamp: cliCtx.Uint64(flagTimestampName),
