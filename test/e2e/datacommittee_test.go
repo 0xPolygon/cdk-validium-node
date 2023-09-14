@@ -32,16 +32,16 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestDataCommittee(t *testing.T) {
-	const (
-		nSignatures      = 4
-		mMembers         = 5
-		ksFile           = "/tmp/pkey"
-		cfgFile          = "/tmp/dacnodeconfigfile.json"
-		ksPass           = "pass"
-		dacNodeContainer = "hermeznetwork/cdk-data-availability:v0.0.1"
-	)
+const (
+	nSignatures      = 4
+	mMembers         = 5
+	ksFile           = "/tmp/pkey"
+	cfgFile          = "/tmp/dacnodeconfigfile.json"
+	ksPass           = "pass"
+	dacNodeContainer = "hermeznetwork/cdk-data-availability:v0.0.1"
+)
 
+func TestDataCommittee(t *testing.T) {
 	// Setup
 	var err error
 	if testing.Short() {
@@ -57,12 +57,8 @@ func TestDataCommittee(t *testing.T) {
 	opsCfg.State.MaxCumulativeGasUsed = 80000000000
 	opsman, err := operations.NewManager(ctx, opsCfg)
 	require.NoError(t, err)
-	defer func() {
-		require.NoError(t, opsman.StopDACDB())
-	}()
 	err = opsman.Setup()
 	require.NoError(t, err)
-	require.NoError(t, opsman.StartDACDB())
 	time.Sleep(5 * time.Second)
 	authL2, err := operations.GetAuth(operations.DefaultSequencerPrivateKey, operations.DefaultL2ChainID)
 	require.NoError(t, err)
@@ -107,35 +103,6 @@ func TestDataCommittee(t *testing.T) {
 	err = operations.WaitTxToBeMined(ctx, clientL1, tx, operations.DefaultTimeoutTxToBeMined)
 	require.NoError(t, err)
 
-	// Spin up M DAC nodes
-	dacNodeConfig := config.Config{
-		L1: config.L1Config{
-			RpcURL:               "http://cdk-validium-mock-l1-network:8545",
-			WsURL:                "ws://cdk-validium-mock-l1-network:8546",
-			CDKValidiumAddress:   operations.DefaultL1CDKValidiumSmartContract,
-			DataCommitteeAddress: operations.DefaultL1DataCommitteeContract,
-			Timeout:              cTypes.Duration{Duration: time.Second},
-			RetryPeriod:          cTypes.Duration{Duration: time.Second},
-		},
-		PrivateKey: cTypes.KeystoreFileConfig{
-			Path:     ksFile,
-			Password: ksPass,
-		},
-		DB: db.Config{
-			Name:      "committee_db",
-			User:      "committee_user",
-			Password:  "committee_password",
-			Host:      "cdk-validium-data-node-db",
-			Port:      "5432",
-			EnableLog: false,
-			MaxConns:  10,
-		},
-		RPC: jsonrpc.Config{
-			Host:                             "0.0.0.0",
-			EnableL2SuggestedGasPricePolling: false,
-			MaxRequestsPerIPAndSecond:        100,
-		},
-	}
 	defer func() {
 		// Remove tmp files
 		assert.NoError(t,
@@ -147,48 +114,21 @@ func TestDataCommittee(t *testing.T) {
 		assert.NoError(t,
 			exec.Command("rm", ksFile).Run(),
 		)
-		// Stop DAC nodes
-		for i := 0; i < mMembers; i++ {
-			assert.NoError(t, exec.Command(
-				"docker", "kill", "cdk-data-availability-"+strconv.Itoa(i),
-			).Run())
-			assert.NoError(t, exec.Command(
-				"docker", "rm", "cdk-data-availability-"+strconv.Itoa(i),
-			).Run())
+		// Stop the members
+		for _, m := range membs {
+			stopDACMember(t, m)
 		}
+
 		// Stop permissionless node
 		require.NoError(t, opsman.StopPermissionlessNodeForcedToSYncThroughDAC())
 	}()
+
 	// Start permissionless node
 	require.NoError(t, opsman.StartPermissionlessNodeForcedToSYncThroughDAC())
-	// Star DAC nodes
+
+	// Start DAC nodes & DBs
 	for _, m := range membs {
-		// Set correct port
-		port := 4200 + m.i
-		dacNodeConfig.RPC.Port = port
-		// Write config file
-		file, err := json.MarshalIndent(dacNodeConfig, "", " ")
-		require.NoError(t, err)
-		err = os.WriteFile(cfgFile, file, 0644)
-		require.NoError(t, err)
-		// Write private key keystore file
-		err = createKeyStore(m.pk, ksFile, ksPass)
-		require.NoError(t, err)
-		// Run DAC node
-		cmd := exec.Command(
-			"docker", "run", "-d",
-			"--name", "cdk-data-availability-"+strconv.Itoa(m.i),
-			"-v", cfgFile+":/app/config.json",
-			"-v", ksFile+":"+ksFile,
-			"--network", "cdk-validium",
-			dacNodeContainer,
-			"/bin/sh", "-c",
-			"/app/cdk-data-availability run --cfg /app/config.json",
-		)
-		out, err := cmd.CombinedOutput()
-		require.NoError(t, err, string(out))
-		log.Infof("DAC node %d started", m.i)
-		time.Sleep(time.Second * 5)
+		startDACMember(t, m)
 	}
 
 	// Send txs
@@ -220,7 +160,7 @@ func TestDataCommittee(t *testing.T) {
 	_, err = operations.ApplyL2Txs(ctx, txs, authL2, clientL2, operations.VerifiedConfirmationLevel)
 	require.NoError(t, err)
 
-	// Assert that he permissionless node is fully synced (through the DAC)
+	// Assert that the permissionless node is fully synced (through the DAC)
 	time.Sleep(30 * time.Second) // Give some time for the permissionless node to get synced
 	clientL2Permissionless, err := ethclient.Dial(operations.PermissionlessL2NetworkURL)
 	require.NoError(t, err)
@@ -270,4 +210,94 @@ func createKeyStore(pk *ecdsa.PrivateKey, outputDir, password string) error {
 		return err
 	}
 	return nil
+}
+
+func startDACMember(t *testing.T, m member) {
+	dacNodeConfig := config.Config{
+		L1: config.L1Config{
+			RpcURL:               "http://cdk-validium-mock-l1-network:8545",
+			WsURL:                "ws://cdk-validium-mock-l1-network:8546",
+			CDKValidiumAddress:   operations.DefaultL1CDKValidiumSmartContract,
+			DataCommitteeAddress: operations.DefaultL1DataCommitteeContract,
+			Timeout:              cTypes.Duration{Duration: time.Second},
+			RetryPeriod:          cTypes.Duration{Duration: time.Second},
+		},
+		PrivateKey: cTypes.KeystoreFileConfig{
+			Path:     ksFile,
+			Password: ksPass,
+		},
+		DB: db.Config{
+			Name:      "committee_db",
+			User:      "committee_user",
+			Password:  "committee_password",
+			Host:      "cdk-validium-data-node-db-" + strconv.Itoa(m.i),
+			Port:      "5432",
+			EnableLog: false,
+			MaxConns:  10,
+		},
+		RPC: jsonrpc.Config{
+			Host:                             "0.0.0.0",
+			EnableL2SuggestedGasPricePolling: false,
+			MaxRequestsPerIPAndSecond:        100,
+		},
+	}
+
+	// Run the DB
+	dbCmd := exec.Command(
+		"docker", "run", "-d",
+		"--name", dacNodeConfig.DB.Host,
+		"-e", "POSTGRES_DB=committee_db",
+		"-e", "POSTGRES_PASSWORD=committee_password",
+		"-e", "POSTGRES_USER=committee_user",
+		"-p", fmt.Sprintf("553%d:5432", m.i),
+		"--network", "cdk-validium",
+		"postgres", "-N", "500",
+	)
+	out, err := dbCmd.CombinedOutput()
+	require.NoError(t, err, string(out))
+	log.Infof("DAC DB %d started", m.i)
+	time.Sleep(time.Second * 2)
+
+	// Set correct port
+	port := 4200 + m.i
+	dacNodeConfig.RPC.Port = port
+
+	// Write config file
+	file, err := json.MarshalIndent(dacNodeConfig, "", " ")
+	require.NoError(t, err)
+	err = os.WriteFile(cfgFile, file, 0644)
+	require.NoError(t, err)
+	// Write private key keystore file
+	err = createKeyStore(m.pk, ksFile, ksPass)
+	require.NoError(t, err)
+	// Run DAC node
+	cmd := exec.Command(
+		"docker", "run", "-d",
+		"--name", "cdk-data-availability-"+strconv.Itoa(m.i),
+		"-v", cfgFile+":/app/config.json",
+		"-v", ksFile+":"+ksFile,
+		"--network", "cdk-validium",
+		dacNodeContainer,
+		"/bin/sh", "-c",
+		"/app/cdk-data-availability run --cfg /app/config.json",
+	)
+	out, err = cmd.CombinedOutput()
+	require.NoError(t, err, string(out))
+	log.Infof("DAC node %d started", m.i)
+	time.Sleep(time.Second * 5)
+}
+
+func stopDACMember(t *testing.T, m member) {
+	assert.NoError(t, exec.Command(
+		"docker", "kill", "cdk-data-availability-"+strconv.Itoa(m.i),
+	).Run())
+	assert.NoError(t, exec.Command(
+		"docker", "rm", "cdk-data-availability-"+strconv.Itoa(m.i),
+	).Run())
+	assert.NoError(t, exec.Command(
+		"docker", "kill", "cdk-validium-data-node-db-"+strconv.Itoa(m.i),
+	).Run())
+	assert.NoError(t, exec.Command(
+		"docker", "rm", "cdk-validium-data-node-db-"+strconv.Itoa(m.i),
+	).Run())
 }
