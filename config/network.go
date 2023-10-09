@@ -12,6 +12,7 @@ import (
 	"github.com/0xPolygon/cdk-validium-node/merkletree"
 	"github.com/0xPolygon/cdk-validium-node/state"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/go-playground/validator/v10"
 	"github.com/urfave/cli/v2"
 )
 
@@ -105,6 +106,7 @@ func loadGenesisFileAsString(ctx *cli.Context) (string, error) {
 
 func loadGenesisFromJSONString(jsonStr string) (NetworkConfig, error) {
 	var cfg NetworkConfig
+	validate := validator.New()
 
 	var cfgJSON GenesisFromJSON
 	if err := json.Unmarshal([]byte(jsonStr), &cfgJSON); err != nil {
@@ -115,7 +117,13 @@ func loadGenesisFromJSONString(jsonStr string) (NetworkConfig, error) {
 		return cfg, nil
 	}
 
+	err := validate.Struct(cfgJSON.L1Config)
+	if err != nil {
+		return cfg, err
+	}
+
 	cfg.L1Config = cfgJSON.L1Config
+
 	cfg.Genesis = state.Genesis{
 		GenesisBlockNum: cfgJSON.GenesisBlockNum,
 		Root:            common.HexToHash(cfgJSON.Root),

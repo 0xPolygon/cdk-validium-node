@@ -163,9 +163,23 @@ func TestLoadCustomNetworkConfig(t *testing.T) {
       "balance": "3000000000000000000000"
     }
   ],
+  "l1Config" : {
+    "chainId": 420,
+    "supernets2Address": "0xc949254d682d8c9ad5682521675b8f43b102aec4",
+    "maticTokenAddress": "0xc949254d682d8c9ad5682521675b8f43b102aec4",
+    "polygonZkEVMGlobalExitRootAddress": "0xc949254d682d8c9ad5682521675b8f43b102aec4",
+    "supernets2DataCommitteeContract": "0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6"
+  },
   "maxCumulativeGasUsed": 123456
 }`,
 			expectedConfig: NetworkConfig{
+				L1Config: etherman.L1Config{
+					L1ChainID:                 420,
+					Supernets2Addr:            common.HexToAddress("0xc949254d682d8c9ad5682521675b8f43b102aec4"),
+					MaticAddr:                 common.HexToAddress("0xc949254d682d8c9ad5682521675b8f43b102aec4"),
+					GlobalExitRootManagerAddr: common.HexToAddress("0xc949254d682d8c9ad5682521675b8f43b102aec4"),
+					DataCommitteeAddr:         common.HexToAddress("0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6"),
+				},
 				Genesis: state.Genesis{
 					GenesisActions: []*state.GenesisAction{
 						{
@@ -186,6 +200,33 @@ func TestLoadCustomNetworkConfig(t *testing.T) {
 					},
 				},
 			},
+		},
+		{
+			description: "missing required JSON params in l1Config",
+			inputConfigStr: `{
+  "genesis": [
+    {
+      "address": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+      "balance": "1000000000000000000000"
+    },
+    {
+      "address": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+      "balance": "2000000000000000000000"
+    },
+    {
+      "address": "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+      "balance": "3000000000000000000000"
+    }
+  ],
+  "l1Config" : {
+    "chainId": 420,
+    "supernets2Address": "0xc949254d682d8c9ad5682521675b8f43b102aec4",
+    "maticTokenAddress": "0xc949254d682d8c9ad5682521675b8f43b102aec4",
+    "supernets2DataCommitteeContract": "0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6"
+  },
+  "maxCumulativeGasUsed": 123456
+}`,
+			expectedErrorMsg: "failed to load genesis configuration from file. Error: Key: 'L1Config.GlobalExitRootManagerAddr' Error:Field validation for 'GlobalExitRootManagerAddr' failed on the 'required' tag",
 		},
 		{
 			description:      "not valid JSON gives error",

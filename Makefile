@@ -49,6 +49,9 @@ install-linter: ## Installs the linter
 lint: ## Runs the linter
 	export "GOROOT=$$(go env GOROOT)" && $$(go env GOPATH)/bin/golangci-lint run
 
+.PHONY: format
+format: ## Runs the formatter
+	export "GOROOT=$$(go env GOROOT)" && $$(go env GOPATH)/bin/gofmt -l -s -w .
 
 $(VENV_PYTHON):
 	rm -rf $(VENV)

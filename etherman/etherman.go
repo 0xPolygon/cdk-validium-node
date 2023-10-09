@@ -119,15 +119,15 @@ type ethereumClient interface {
 // L1Config represents the configuration of the network used in L1
 type L1Config struct {
 	// Chain ID of the L1 network
-	L1ChainID uint64 `json:"chainId"`
+	L1ChainID uint64 `json:"chainId" validate:"required"`
 	// Address of the L1 contract
-	CDKValidiumAddr common.Address `json:"cdkValidiumAddress"`
+	CDKValidiumAddr common.Address `json:"cdkValidiumAddress" validate:"required"`
 	// Address of the L1 Matic token Contract
-	MaticAddr common.Address `json:"maticTokenAddress"`
+	MaticAddr common.Address `json:"maticTokenAddress" validate:"required"`
 	// Address of the L1 GlobalExitRootManager contract
-	GlobalExitRootManagerAddr common.Address `json:"polygonZkEVMGlobalExitRootAddress"`
+	GlobalExitRootManagerAddr common.Address `json:"polygonZkEVMGlobalExitRootAddress" validate:"required"`
 	// Address of the data availability committee contract
-	DataCommitteeAddr common.Address `json:"cdkDataCommitteeContract"`
+	DataCommitteeAddr common.Address `json:"cdkDataCommitteeContract" validate:"required"`
 }
 
 type externalGasProviders struct {
