@@ -71,9 +71,9 @@ func (s *ClientSynchronizer) getBatchL2Data(batchNum uint64, expectedTransaction
 }
 
 func (s *ClientSynchronizer) getDataFromCommittee(batchNum uint64, expectedTransactionsHash common.Hash) ([]byte, error) {
-	intialMember := s.selectedCommitteeMember
+	initialMember := s.selectedCommitteeMember
 	found := false
-	for !found && intialMember != -1 {
+	for !found && initialMember != -1 {
 		member := s.committeeMembers[s.selectedCommitteeMember]
 		log.Infof("trying to get data from %s at %s", member.Addr.Hex(), member.URL)
 		c := s.dataCommitteeClientFactory.New(member.URL)
@@ -84,7 +84,7 @@ func (s *ClientSynchronizer) getDataFromCommittee(batchNum uint64, expectedTrans
 				member.Addr.Hex(), member.URL, err,
 			)
 			s.selectedCommitteeMember = (s.selectedCommitteeMember + 1) % len(s.committeeMembers)
-			if s.selectedCommitteeMember == intialMember {
+			if s.selectedCommitteeMember == initialMember {
 				break
 			}
 			continue
@@ -99,7 +99,7 @@ func (s *ClientSynchronizer) getDataFromCommittee(batchNum uint64, expectedTrans
 				member.Addr.Hex(), member.URL, unexpectedHash,
 			)
 			s.selectedCommitteeMember = (s.selectedCommitteeMember + 1) % len(s.committeeMembers)
-			if s.selectedCommitteeMember == intialMember {
+			if s.selectedCommitteeMember == initialMember {
 				break
 			}
 			continue
