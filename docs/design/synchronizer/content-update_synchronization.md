@@ -1,10 +1,10 @@
 # L1 parallel synchronization
 This is a refactor of L1 synchronization to improve speed.
-- It ask data in parallel  to L1 meanwhile another goroutine is executing the rollup info.
-- It makes that the executor be occupied 100% of the time.
-
+- It processes data in parallel to L1 while at the same time, its goroutine is executing the rollup info.
+- It ensures the executor is 100% of the time occupied.
+  
 ## Pending to do  
-- Some test on ` synchronizer/synchronizer_test.go` are based on this feature, so are running against legacy code
+- Some test on ` synchronizer/synchronizer_test.go` are based on this feature, they are running against legacy code
 
 ## Configuration
 You could choose between new L1 parallel sync or sequential one (legacy): 
@@ -13,7 +13,7 @@ You could choose between new L1 parallel sync or sequential one (legacy):
 L1SynchronizationMode = "parallel"
 ```
 If you activate this feature you can configure:
-- `MaxClients`: how many parallel request can be done. You must consider that 1 is just for requesting the last block on L1, and the rest for rollup info
+- `MaxClients`: how many parallel requests can be done. You must consider that 1 is just for requesting the last block on L1, and the rest for rollup info
 - `MaxPendingNoProcessedBlocks`:  buffer of data pending to be processed. This is the queue data to be executed by consumer.
 
 For a full description of fields please check config-file documentation.
@@ -37,14 +37,14 @@ L1SynchronizationMode = parallel
 
 ```
 ## Remakable logs
-### How to known the occupation of executor
-To check that executor are fully ocuppied you can check next log:
+### How to determine the executor's capacity
+To check that executor are fully occupied you can check next log:
 ```
 consumer: processing rollupInfo #808: range:[9606297, 9606397] num_blocks [7] statistics:wasted_time_waiting_for_data [0s] last_process_time [27.557166427s] block_per_second [0.318281]
 ```
 The `wasted_time_waiting_for_data` show the waiting time between this call and the previous to executor. It could generate a warning depending on the configuring `SSynchronizer.L1ParallelSynchronization.PerformanceWarning`
 
-### Estimated time to be fully synchronizer with L1
+### Time estimation for a full synchronization with L1
 This log show the estimated time (**ETA**) to reach the block goal. You can configure the frequency with var `StatisticsPeriod`
 ```
 INFO	producer: Statistics: EstimatedTimeOfArrival: 1h58m42.730543611s percent:0.15  blocks_per_seconds:201.24 pending_block:2222/1435629 num_errors:0
@@ -55,8 +55,8 @@ INFO	producer: Statistics: EstimatedTimeOfArrival: 1h58m42.730543611s percent:0.
 
 
 ### The main objects are:
-- `l1SyncOrchestration`: is the entry point and the reponsable to launch the producer and consumer
-- `l1RollupInfoProducer`: this object send rollup data through the channel to the consumer
-- `l1RollupInfoConsumer`: that receive the data and execute it
+- `l1SyncOrchestration`: is the entry point and the responsable to launch the producer and consumer
+- `l1RollupInfoProducer`: this object sends rollup data through the channel to the consumer
+- `l1RollupInfoConsumer`: receive the data and execute it
 
 
