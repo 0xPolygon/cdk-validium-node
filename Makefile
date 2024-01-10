@@ -12,7 +12,7 @@ endif
 GOBASE := $(shell pwd)
 GOBIN := $(GOBASE)/dist
 GOENVVARS := GOBIN=$(GOBIN) CGO_ENABLED=0 GOOS=linux GOARCH=$(ARCH)
-GOBINARY := zkevm-node
+GOBINARY := cdk-validium-node
 GOCMD := $(GOBASE)/cmd
 
 LDFLAGS += -X 'github.com/0xPolygonHermez/zkevm-node.Version=$(VERSION)'
@@ -80,11 +80,11 @@ build: ## Builds the binary locally into ./dist
 
 .PHONY: build-docker
 build-docker: ## Builds a docker image with the node binary
-	docker build -t zkevm-node -f ./Dockerfile .
+	docker build -t $(GOBINARY) -f ./Dockerfile .
 
 .PHONY: build-docker-nc
 build-docker-nc: ## Builds a docker image with the node binary - but without build cache
-	docker build --no-cache=true -t zkevm-node -f ./Dockerfile .
+	docker build --no-cache=true -t $(GOBINARY) -f ./Dockerfile .
 
 .PHONY: run-rpc
 run-rpc: ## Runs all the services needed to run a local zkEVM RPC node
