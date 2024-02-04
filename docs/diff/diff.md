@@ -88,7 +88,7 @@ The main changes on Validium vs Rollup consensus smart contracts are:
 
 ### Config
 
-- removed hardcoded config options for testnet / mainnet. Those are meant to easilly config a netwrok of Polygon zkEVM Mainnet / Testnet Beta, but there's no such thing for Validium networks at the moment
+- removed hardcoded config options for testnet / mainnet / cardona. Those are meant to easilly config a netwrok of Polygon zkEVM Mainnet / Testnet Beta, but there's no such thing for Validium networks at the moment
 - duration marshlling: used at some point when this type was used in the API of the DAC. This is likely not used anymore and could be removed
 
 ### Data Availability
@@ -159,3 +159,7 @@ Add a test specific for DAC, this requires new containers configured in a way to
 - docker-compose
 - The new test file
 - Operations manager
+
+### Upstream Version
+
+v0.5.0
