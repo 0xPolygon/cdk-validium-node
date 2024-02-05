@@ -7,10 +7,10 @@ import (
 	"github.com/0xPolygonHermez/zkevm-node/etherman/smartcontracts/polygondatacommittee"
 	"github.com/0xPolygonHermez/zkevm-node/log"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum/accounts/abi/bind/backends"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/ethclient/simulated"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -63,7 +63,7 @@ func init() {
 // This function prepare the blockchain, the wallet with funds and deploy the smc
 func newTestingEnv(t *testing.T) (
 	dac *DataCommitteeBackend,
-	ethBackend *simulated.Backend,
+	ethBackend *backends.SimulatedBackend,
 	auth *bind.TransactOpts,
 	da *polygondatacommittee.Polygondatacommittee,
 ) {
@@ -87,7 +87,7 @@ func newTestingEnv(t *testing.T) (
 // must be 1337. The address that holds the auth will have an initial balance of 10 ETH
 func newSimulatedDacman(t *testing.T, auth *bind.TransactOpts) (
 	dacman *DataCommitteeBackend,
-	ethBackend *simulated.Backend,
+	ethBackend *backends.SimulatedBackend,
 	da *polygondatacommittee.Polygondatacommittee,
 	err error,
 ) {
@@ -105,8 +105,7 @@ func newSimulatedDacman(t *testing.T, auth *bind.TransactOpts) (
 		},
 	}
 	blockGasLimit := uint64(999999999999999999) //nolint:gomnd
-	backend := simulated.NewBackend(genesisAlloc, simulated.WithBlockGasLimit(blockGasLimit))
-	client := backend.Client()
+	client := backends.NewSimulatedBackend(genesisAlloc, blockGasLimit)
 
 	// DAC Setup
 	_, _, da, err = polygondatacommittee.DeployPolygondatacommittee(auth, client)
@@ -121,10 +120,10 @@ func newSimulatedDacman(t *testing.T, auth *bind.TransactOpts) (
 	if err != nil {
 		return &DataCommitteeBackend{}, nil, nil, err
 	}
-	backend.Commit()
+	client.Commit()
 
 	c := &DataCommitteeBackend{
 		dataCommitteeContract: da,
 	}
-	return c, backend, da, nil
+	return c, client, da, nil
 }

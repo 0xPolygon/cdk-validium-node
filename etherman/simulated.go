@@ -16,15 +16,15 @@ import (
 	"github.com/0xPolygonHermez/zkevm-node/etherman/smartcontracts/proxy"
 	"github.com/0xPolygonHermez/zkevm-node/log"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum/accounts/abi/bind/backends"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/ethclient/simulated"
 )
 
 // NewSimulatedEtherman creates an etherman that uses a simulated blockchain. It's important to notice that the ChainID of the auth
 // must be 1337. The address that holds the auth will have an initial balance of 10 ETH
-func NewSimulatedEtherman(cfg Config, auth *bind.TransactOpts, daBackend dataAvailabilityProvider) (etherman *Client, ethBackend *simulated.Backend, polAddr common.Address, br *polygonzkevmbridge.Polygonzkevmbridge, err error) {
+func NewSimulatedEtherman(cfg Config, auth *bind.TransactOpts, daBackend dataAvailabilityProvider) (etherman *Client, ethBackend *backends.SimulatedBackend, polAddr common.Address, br *polygonzkevmbridge.Polygonzkevmbridge, err error) {
 	if auth == nil {
 		// read only client
 		return &Client{}, nil, common.Address{}, nil, nil
@@ -38,8 +38,7 @@ func NewSimulatedEtherman(cfg Config, auth *bind.TransactOpts, daBackend dataAva
 		},
 	}
 	blockGasLimit := uint64(999999999999999999) //nolint:gomnd
-	backend := simulated.NewBackend(genesisAlloc, simulated.WithBlockGasLimit(blockGasLimit))
-	client := backend.Client()
+	client := backends.NewSimulatedBackend(genesisAlloc, blockGasLimit)
 
 	// DAC Setup
 	daAddr, _, da, err := polygondatacommittee.DeployPolygondatacommittee(auth, client)
@@ -137,7 +136,7 @@ func NewSimulatedEtherman(cfg Config, auth *bind.TransactOpts, daBackend dataAva
 		log.Error("error: ", err)
 		return nil, nil, common.Address{}, nil, err
 	}
-	backend.Commit()
+	client.Commit()
 
 	rollUpTypeID, err := mockRollupManager.RollupTypeCount(&bind.CallOpts{Pending: false})
 	if err != nil {
@@ -150,7 +149,7 @@ func NewSimulatedEtherman(cfg Config, auth *bind.TransactOpts, daBackend dataAva
 		log.Error("error: ", err)
 		return nil, nil, common.Address{}, nil, err
 	}
-	backend.Commit()
+	client.Commit()
 
 	rollupID, err := mockRollupManager.ChainIDToRollupID(&bind.CallOpts{Pending: false}, zkevmChainID)
 	if err != nil {
@@ -205,7 +204,7 @@ func NewSimulatedEtherman(cfg Config, auth *bind.TransactOpts, daBackend dataAva
 		return nil, nil, common.Address{}, nil, err
 	}
 
-	backend.Commit()
+	client.Commit()
 	c := &Client{
 		EthClient:             client,
 		ZkEVM:                 trueZkevm,
@@ -222,5 +221,5 @@ func NewSimulatedEtherman(cfg Config, auth *bind.TransactOpts, daBackend dataAva
 	if err != nil {
 		return nil, nil, common.Address{}, nil, err
 	}
-	return c, backend, polAddr, br, nil
+	return c, client, polAddr, br, nil
 }
