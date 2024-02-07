@@ -30,7 +30,7 @@ func TestIsSynced(t *testing.T) {
 	stateMock := new(StateMock)
 	ethermanMock := new(EthermanMock)
 	ethTxManagerMock := new(EthTxManagerMock)
-	ssender, err := New(Config{}, stateMock, ethermanMock, ethTxManagerMock, nil)
+	ssender, err := New(Config{}, stateMock, ethermanMock, ethTxManagerMock, nil, nil)
 	assert.NoError(t, err)
 
 	testCases := []IsSyncedTestCase{
