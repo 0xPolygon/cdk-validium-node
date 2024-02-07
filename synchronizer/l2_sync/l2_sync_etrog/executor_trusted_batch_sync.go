@@ -89,7 +89,7 @@ func (b *SyncTrustedBatchExecutorForEtrog) NothingProcess(ctx context.Context, d
 			return nil, ErrCriticalClosedBatchDontContainExpectedData
 		}
 	}
-
+	res := l2_shared.NewProcessResponse()
 	if data.BatchMustBeClosed {
 		log.Debugf("%s Closing batch", data.DebugPrefix)
 		err := b.CloseBatch(ctx, data.TrustedBatch, dbTx, data.DebugPrefix)
@@ -97,10 +97,30 @@ func (b *SyncTrustedBatchExecutorForEtrog) NothingProcess(ctx context.Context, d
 			log.Error("%s error closing batch. Error: ", data.DebugPrefix, err)
 			return nil, err
 		}
+		data.StateBatch.WIP = false
+		res.UpdateCurrentBatch(data.StateBatch)
 	}
-	data.StateBatch.WIP = !data.BatchMustBeClosed
+
+	return &res, nil
+}
+
+// CreateEmptyBatch create a new empty batch (no batchL2Data and WIP)
+func (b *SyncTrustedBatchExecutorForEtrog) CreateEmptyBatch(ctx context.Context, data *l2_shared.ProcessData, dbTx pgx.Tx) (*l2_shared.ProcessResponse, error) {
+	log.Debugf("%s The Batch is a WIP empty, so just creating a DB entry", data.DebugPrefix)
+	err := b.openBatch(ctx, data.TrustedBatch, dbTx, data.DebugPrefix)
+	if err != nil {
+		log.Errorf("%s error openning batch. Error: %v", data.DebugPrefix, err)
+		return nil, err
+	}
+	log.Debugf("%s updateWIPBatch", data.DebugPrefix)
+	err = b.updateWIPBatch(ctx, data, data.TrustedBatch.StateRoot, dbTx)
+	if err != nil {
+		log.Errorf("%s error updateWIPBatch. Error: ", data.DebugPrefix, err)
+		return nil, err
+	}
 	res := l2_shared.NewProcessResponse()
-	res.UpdateCurrentBatch(data.StateBatch)
+	stateBatch := syncCommon.RpcBatchToStateBatch(data.TrustedBatch)
+	res.UpdateCurrentBatch(stateBatch)
 	return &res, nil
 }
 
@@ -395,7 +415,7 @@ func (b *SyncTrustedBatchExecutorForEtrog) processAndStoreTxs(ctx context.Contex
 		return nil, fmt.Errorf("%s romOOCError detected.err: %w", debugPrefix, ErrFailExecuteBatch)
 	}
 	for _, block := range processBatchResp.BlockResponses {
-		log.Debugf("%s Storing trusted tx %+v", block.BlockNumber, debugPrefix)
+		log.Debugf("%s Storing trusted tx %d", debugPrefix, block.BlockNumber)
 		if err = b.state.StoreL2Block(ctx, request.BatchNumber, block, nil, dbTx); err != nil {
 			newErr := fmt.Errorf("%s failed to store l2block: %v  err:%w", debugPrefix, block.BlockNumber, err)
 			log.Error(newErr.Error())
