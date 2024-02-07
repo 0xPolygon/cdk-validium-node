@@ -2,7 +2,6 @@ package e2e
 
 import (
 	"context"
-	"fmt"
 	"os/exec"
 	"regexp"
 	"testing"
@@ -77,11 +76,7 @@ func TestSetDataAvailabilityProtocol(t *testing.T) {
 	require.NoError(t, err)
 
 	txHash := common.HexToHash(extractHexFromString(string(output)))
-	fmt.Println("SetDataAvailabilityProtocol Output: ", string(output))
-	fmt.Println("SetDataAvailabilityProtocol TxHash: ", extractHexFromString(string(output)))
-	fmt.Println("SetDataAvailabilityProtocol TxHash after: ", txHash.String())
-
-	receipt, err := operations.WaitTxReceipt(ctx, txHash, 2*operations.DefaultTimeoutTxToBeMined, clientL1)
+	receipt, err := operations.WaitTxReceipt(ctx, txHash, operations.DefaultTimeoutTxToBeMined, clientL1)
 	require.NoError(t, err)
 	require.Equal(t, types.ReceiptStatusSuccessful, receipt.Status)
 
