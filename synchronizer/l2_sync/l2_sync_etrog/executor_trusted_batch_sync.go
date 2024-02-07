@@ -124,26 +124,6 @@ func (b *SyncTrustedBatchExecutorForEtrog) CreateEmptyBatch(ctx context.Context,
 	return &res, nil
 }
 
-// CreateEmptyBatch create a new empty batch (no batchL2Data and WIP)
-func (b *SyncTrustedBatchExecutorForEtrog) CreateEmptyBatch(ctx context.Context, data *l2_shared.ProcessData, dbTx pgx.Tx) (*l2_shared.ProcessResponse, error) {
-	log.Debugf("%s The Batch is a WIP empty, so just creating a DB entry", data.DebugPrefix)
-	err := b.openBatch(ctx, data.TrustedBatch, dbTx, data.DebugPrefix)
-	if err != nil {
-		log.Errorf("%s error openning batch. Error: %v", data.DebugPrefix, err)
-		return nil, err
-	}
-	log.Debugf("%s updateWIPBatch", data.DebugPrefix)
-	err = b.updateWIPBatch(ctx, data, data.TrustedBatch.StateRoot, dbTx)
-	if err != nil {
-		log.Errorf("%s error updateWIPBatch. Error: ", data.DebugPrefix, err)
-		return nil, err
-	}
-	res := l2_shared.NewProcessResponse()
-	stateBatch := syncCommon.RpcBatchToStateBatch(data.TrustedBatch)
-	res.UpdateCurrentBatch(stateBatch)
-	return &res, nil
-}
-
 // FullProcess process a batch that is not on database, so is the first time we process it
 func (b *SyncTrustedBatchExecutorForEtrog) FullProcess(ctx context.Context, data *l2_shared.ProcessData, dbTx pgx.Tx) (*l2_shared.ProcessResponse, error) {
 	log.Debugf("%s FullProcess", data.DebugPrefix)
