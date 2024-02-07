@@ -54,9 +54,9 @@ func TestSetDataAvailabilityProtocol(t *testing.T) {
 	require.Equal(t, common.HexToAddress(operations.DefaultL1DataCommitteeContract), currentDAPAddr)
 
 	// New DAC Setup
-	newDAAddr, tx, newDA, err := polygondatacommittee.DeployPolygondatacommittee(auth, clientL1)
+	newDAPAddr, tx, newDA, err := polygondatacommittee.DeployPolygondatacommittee(auth, clientL1)
 	require.NoError(t, err)
-	require.NotEqual(t, newDAAddr, currentDAPAddr)
+	require.NotEqual(t, newDAPAddr, currentDAPAddr)
 	require.NoError(t, operations.WaitTxToBeMined(ctx, clientL1, tx, operations.DefaultTimeoutTxToBeMined))
 
 	tx, err = newDA.Initialize(auth)
@@ -65,7 +65,7 @@ func TestSetDataAvailabilityProtocol(t *testing.T) {
 
 	cmd := exec.Command("docker", "exec", "zkevm-sequence-sender",
 		"/app/zkevm-node", "set-dap",
-		"--da-addr", newDAAddr.String(),
+		"--da-addr", newDAPAddr.String(),
 		"--network", "custom",
 		"--custom-network-file", "/app/genesis.json",
 		"--key-store-path", "/pk/sequencer.keystore",
@@ -82,7 +82,7 @@ func TestSetDataAvailabilityProtocol(t *testing.T) {
 
 	currentDAPAddr, err = zkEVM.DataAvailabilityProtocol(&bind.CallOpts{Pending: false})
 	require.NoError(t, err)
-	require.Equal(t, newDAAddr, currentDAPAddr)
+	require.Equal(t, newDAPAddr, currentDAPAddr)
 }
 
 func extractHexFromString(output string) string {
