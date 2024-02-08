@@ -37,7 +37,7 @@ docker compose --env-file $ZKEVM_CONFIG_DIR/.env -f $ZKEVM_DIR/$ZKEVM_NET/docker
 
 ### Explained step by step:
 
-1. Define network: `ZKEVM_NET=cardona` or `ZKEVM_NET=testnet` or `ZKEVM_NET=mainnet`
+1. Define network: `ZKEVM_NET=custom`
 2. Define installation path: `ZKEVM_DIR=./path/to/install`
 3. Define a config directory: `ZKEVM_CONFIG_DIR=./path/to/config`
 4. It's recommended to source this env vars in your `~/.bashrc`, `~/.zshrc` or whatever you're using
