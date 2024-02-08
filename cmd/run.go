@@ -121,7 +121,16 @@ func start(cliCtx *cli.Context) error {
 		log.Fatal(err)
 	}
 
-	st, currentForkID := newState(cliCtx.Context, c, tmpEthMan, l2ChainID, stateSqlDB, eventLog, needsExecutor, needsStateTree, false)
+	etherman, err := etherman.NewClient(c.Etherman, c.NetworkConfig.L1Config, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	st, currentForkID := newState(cliCtx.Context, c, etherman, l2ChainID, stateSqlDB, eventLog, needsExecutor, needsStateTree, false)
+
+	etherman, err = newEtherman(*c, st)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	c.Aggregator.ChainID = l2ChainID
 	c.Sequencer.StreamServer.ChainID = l2ChainID
@@ -135,7 +144,7 @@ func start(cliCtx *cli.Context) error {
 		log.Fatal(err)
 	}
 
-	etm := ethtxmanager.New(c.EthTxManager, tmpEthMan, ethTxManagerStorage, st)
+	etm := ethtxmanager.New(c.EthTxManager, etherman, ethTxManagerStorage, st)
 
 	ev := &event.Event{
 		ReceivedAt: time.Now(),
@@ -158,7 +167,7 @@ func start(cliCtx *cli.Context) error {
 			if err != nil {
 				log.Fatal(err)
 			}
-			go runAggregator(cliCtx.Context, c.Aggregator, tmpEthMan, etm, st)
+			go runAggregator(cliCtx.Context, c.Aggregator, etherman, etm, st)
 		case SEQUENCER:
 			c.Sequencer.StreamServer.Log = datastreamerlog.Config{
 				Environment: datastreamerlog.LogEnvironment(c.Log.Environment),
@@ -174,7 +183,7 @@ func start(cliCtx *cli.Context) error {
 			if poolInstance == nil {
 				poolInstance = createPool(c.Pool, c.State.Batch.Constraints, l2ChainID, st, eventLog)
 			}
-			seq := createSequencer(*c, poolInstance, st, tmpEthMan, eventLog)
+			seq := createSequencer(*c, poolInstance, st, etherman, eventLog)
 			go seq.Start(cliCtx.Context)
 		case SEQUENCE_SENDER:
 			ev.Component = event.Component_Sequence_Sender
@@ -207,8 +216,8 @@ func start(cliCtx *cli.Context) error {
 			for _, a := range cliCtx.StringSlice(config.FlagHTTPAPI) {
 				apis[a] = true
 			}
-			st, _ := newState(cliCtx.Context, c, tmpEthMan, l2ChainID, stateSqlDB, eventLog, needsExecutor, needsStateTree, true)
-			go runJSONRPCServer(*c, tmpEthMan, l2ChainID, poolInstance, st, apis)
+			st, _ := newState(cliCtx.Context, c, etherman, l2ChainID, stateSqlDB, eventLog, needsExecutor, needsStateTree, true)
+			go runJSONRPCServer(*c, etherman, l2ChainID, poolInstance, st, apis)
 		case SYNCHRONIZER:
 			ev.Component = event.Component_Synchronizer
 			ev.Description = "Running synchronizer"
@@ -219,7 +228,7 @@ func start(cliCtx *cli.Context) error {
 			if poolInstance == nil {
 				poolInstance = createPool(c.Pool, c.State.Batch.Constraints, l2ChainID, st, eventLog)
 			}
-			go runSynchronizer(*c, tmpEthMan, ethTxManagerStorage, st, poolInstance, eventLog)
+			go runSynchronizer(*c, etherman, ethTxManagerStorage, st, poolInstance, eventLog)
 		case ETHTXMANAGER:
 			ev.Component = event.Component_EthTxManager
 			ev.Description = "Running eth tx manager service"
@@ -239,7 +248,7 @@ func start(cliCtx *cli.Context) error {
 			if poolInstance == nil {
 				poolInstance = createPool(c.Pool, c.State.Batch.Constraints, l2ChainID, st, eventLog)
 			}
-			go runL2GasPriceSuggester(c.L2GasPriceSuggester, st, poolInstance, tmpEthMan)
+			go runL2GasPriceSuggester(c.L2GasPriceSuggester, st, poolInstance, etherman)
 		}
 	}
 
