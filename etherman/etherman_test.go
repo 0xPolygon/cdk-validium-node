@@ -83,7 +83,7 @@ func TestGEREvent(t *testing.T) {
 	blocks, _, err := etherman.GetRollupInfoByBlockRange(ctx, initBlock.NumberU64(), &finalBlockNumber)
 	require.NoError(t, err)
 	t.Logf("Blocks: %+v", blocks)
-	assert.Equal(t, uint64(8), blocks[0].L1InfoTree[0].BlockNumber)
+	assert.Equal(t, uint64(11), blocks[0].L1InfoTree[0].BlockNumber)
 	assert.NotEqual(t, common.Hash{}, blocks[0].L1InfoTree[0].MainnetExitRoot)
 	assert.Equal(t, common.Hash{}, blocks[0].L1InfoTree[0].RollupExitRoot)
 }
@@ -115,8 +115,8 @@ func TestForcedBatchEvent(t *testing.T) {
 	blocks, _, err := etherman.GetRollupInfoByBlockRange(ctx, initBlock.NumberU64(), &finalBlockNumber)
 	require.NoError(t, err)
 	t.Logf("Blocks: %+v", blocks)
-	assert.Equal(t, uint64(8), blocks[0].BlockNumber)
-	assert.Equal(t, uint64(8), blocks[0].ForcedBatches[0].BlockNumber)
+	assert.Equal(t, uint64(11), blocks[0].BlockNumber)
+	assert.Equal(t, uint64(11), blocks[0].ForcedBatches[0].BlockNumber)
 	assert.NotEqual(t, common.Hash{}, blocks[0].ForcedBatches[0].GlobalExitRoot)
 	assert.NotEqual(t, time.Time{}, blocks[0].ForcedBatches[0].ForcedAt)
 	assert.Equal(t, uint64(1), blocks[0].ForcedBatches[0].ForcedBatchNumber)
@@ -224,7 +224,7 @@ func TestVerifyBatchEvent(t *testing.T) {
 	blocks, order, err := etherman.GetRollupInfoByBlockRange(ctx, initBlock.NumberU64(), &finalBlockNumber)
 	require.NoError(t, err)
 	t.Logf("Blocks: %+v, \nOrder: %+v", blocks, order)
-	assert.Equal(t, uint64(9), blocks[1].BlockNumber)
+	assert.Equal(t, uint64(12), blocks[1].BlockNumber)
 	assert.Equal(t, uint64(1), blocks[1].VerifiedBatches[0].BatchNumber)
 	assert.NotEqual(t, common.Address{}, blocks[1].VerifiedBatches[0].Aggregator)
 	assert.NotEqual(t, common.Hash{}, blocks[1].VerifiedBatches[0].TxHash)
@@ -287,7 +287,7 @@ func TestSequenceForceBatchesEvent(t *testing.T) {
 	blocks, order, err := etherman.GetRollupInfoByBlockRange(ctx, initBlock.NumberU64(), &finalBlockNumber)
 	require.NoError(t, err)
 	t.Logf("Blocks: %+v", blocks)
-	assert.Equal(t, uint64(12), blocks[1].BlockNumber)
+	assert.Equal(t, uint64(15), blocks[1].BlockNumber)
 	assert.Equal(t, uint64(2), blocks[1].SequencedForceBatches[0][0].BatchNumber)
 	assert.Equal(t, forcedGer, common.BytesToHash(blocks[1].SequencedForceBatches[0][0].ForcedGlobalExitRoot[:]))
 	assert.Equal(t, forcedTimestamp, blocks[1].SequencedForceBatches[0][0].ForcedTimestamp)
@@ -368,7 +368,7 @@ func TestErrorEthGasStationPrice(t *testing.T) {
 
 	ethGasStationM.On("SuggestGasPrice", ctx).Return(big.NewInt(0), fmt.Errorf("error getting gasPrice from ethGasStation"))
 	gp := etherman.GetL1GasPrice(ctx)
-	assert.Equal(t, big.NewInt(1392695906), gp)
+	assert.Equal(t, big.NewInt(1263075579), gp)
 
 	etherscanM := new(etherscanMock)
 	etherman.GasProviders.Providers = []ethereum.GasPricer{etherman.EthClient, etherscanM, ethGasStationM}

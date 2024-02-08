@@ -46,14 +46,17 @@ func NewSimulatedEtherman(cfg Config, auth *bind.TransactOpts, daBackend dataAva
 	if err != nil {
 		return nil, nil, common.Address{}, nil, err
 	}
+	client.Commit()
 	_, err = da.Initialize(auth)
 	if err != nil {
 		return nil, nil, common.Address{}, nil, err
 	}
+	client.Commit()
 	_, err = da.SetupCommittee(auth, big.NewInt(0), []string{}, []byte{})
 	if err != nil {
 		return nil, nil, common.Address{}, nil, err
 	}
+	client.Commit()
 
 	// Deploy contracts
 	const polDecimalPlaces = 18
