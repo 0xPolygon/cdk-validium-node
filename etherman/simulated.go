@@ -211,6 +211,7 @@ func NewSimulatedEtherman(cfg Config, auth *bind.TransactOpts, daBackend dataAva
 		log.Error("error: ", err)
 		return nil, nil, common.Address{}, nil, err
 	}
+	client.Commit()
 
 	c := &Client{
 		EthClient:             client.Client(),
