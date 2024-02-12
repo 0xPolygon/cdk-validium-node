@@ -212,7 +212,6 @@ func NewSimulatedEtherman(cfg Config, auth *bind.TransactOpts, daBackend dataAva
 		return nil, nil, common.Address{}, nil, err
 	}
 
-	client.Commit()
 	c := &Client{
 		EthClient:             client.Client(),
 		ZkEVM:                 trueZkevm,
