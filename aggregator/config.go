@@ -8,6 +8,17 @@ import (
 	"github.com/0xPolygonHermez/zkevm-node/encoding"
 )
 
+// SettlementBackend is the type of the settlement backend
+type SettlementBackend string
+
+const (
+	// AggLayer settlement backend
+	AggLayer SettlementBackend = "agglayer"
+
+	// L1 settlement backend
+	L1 SettlementBackend = "l1"
+)
+
 // TokenAmountWithDecimals is a wrapper type that parses token amount with decimals to big int
 type TokenAmountWithDecimals struct {
 	*big.Int `validate:"required"`
@@ -85,4 +96,19 @@ type Config struct {
 	// gas offset: 100
 	// final gas: 1100
 	GasOffset uint64 `mapstructure:"GasOffset"`
+
+	// SettlementBackend configuration defines how a final ZKP should be settled. Directly to L1 or over the Beethoven service.
+	SettlementBackend SettlementBackend `mapstructure:"SettlementBackend"`
+
+	// AggLayerTxTimeout is the interval time to wait for a tx to be mined from the agglayer
+	AggLayerTxTimeout types.Duration `mapstructure:"AggLayerTxTimeout"`
+
+	// AggLayerURL url of the agglayer service
+	AggLayerURL string `mapstructure:"AggLayerURL"`
+
+	// SequencerPrivateKey Private key of the trusted sequencer
+	SequencerPrivateKey types.KeystoreFileConfig `mapstructure:"SequencerPrivateKey"`
+
+	// RollupID ID of the rollup
+	RollupID uint32 `mapstructure:"RollupID"`
 }

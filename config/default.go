@@ -161,6 +161,10 @@ ProofStatePollingInterval = "5s"
 CleanupLockedProofsInterval = "2m"
 GeneratingProofCleanupThreshold = "10m"
 GasOffset = 0
+SettlementBackend = "l1"
+AggLayerTxTimeout = "5m"
+AggLayerURL = ""
+SequencerPrivateKey = {}
 
 [L2GasPriceSuggester]
 Type = "follower"

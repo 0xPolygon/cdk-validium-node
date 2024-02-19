@@ -2307,6 +2307,11 @@ MaxBatchesForL1=300
 | - [CleanupLockedProofsInterval](#Aggregator_CleanupLockedProofsInterval )                           | No      | string  | No         | -          | Duration                                                                                                                                                                                                                                                                                                                                                                                                                      |
 | - [GeneratingProofCleanupThreshold](#Aggregator_GeneratingProofCleanupThreshold )                   | No      | string  | No         | -          | GeneratingProofCleanupThreshold represents the time interval after<br />which a proof in generating state is considered to be stuck and<br />allowed to be cleared.                                                                                                                                                                                                                                                           |
 | - [GasOffset](#Aggregator_GasOffset )                                                               | No      | integer | No         | -          | GasOffset is the amount of gas to be added to the gas estimation in order<br />to provide an amount that is higher than the estimated one. This is used<br />to avoid the TX getting reverted in case something has changed in the network<br />state after the estimation which can cause the TX to require more gas to be<br />executed.<br /><br />ex:<br />gas estimation: 1000<br />gas offset: 100<br />final gas: 1100 |
+| - [SettlementBackend](#Aggregator_SettlementBackend )                                               | No      | string  | No         | -          | SettlementBackend configuration defines how a final ZKP should be settled. Directly to L1 or over the Beethoven service.                                                                                                                                                                                                                                                                                                      |
+| - [AggLayerTxTimeout](#Aggregator_AggLayerTxTimeout )                                               | No      | string  | No         | -          | Duration                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| - [AggLayerURL](#Aggregator_AggLayerURL )                                                           | No      | string  | No         | -          | AggLayerURL url of the agglayer service                                                                                                                                                                                                                                                                                                                                                                                       |
+| - [SequencerPrivateKey](#Aggregator_SequencerPrivateKey )                                           | No      | object  | No         | -          | SequencerPrivateKey Private key of the trusted sequencer                                                                                                                                                                                                                                                                                                                                                                      |
+| - [RollupID](#Aggregator_RollupID )                                                                 | No      | integer | No         | -          | RollupID ID of the rollup                                                                                                                                                                                                                                                                                                                                                                                                     |
 
 ### <a name="Aggregator_Host"></a>12.1. `Aggregator.Host`
 
@@ -2568,6 +2573,112 @@ final gas: 1100
 ```
 [Aggregator]
 GasOffset=0
+```
+
+### <a name="Aggregator_SettlementBackend"></a>12.15. `Aggregator.SettlementBackend`
+
+**Type:** : `string`
+
+**Default:** `"l1"`
+
+**Description:** SettlementBackend configuration defines how a final ZKP should be settled. Directly to L1 or over the Beethoven service.
+
+**Example setting the default value** ("l1"):
+```
+[Aggregator]
+SettlementBackend="l1"
+```
+
+### <a name="Aggregator_AggLayerTxTimeout"></a>12.16. `Aggregator.AggLayerTxTimeout`
+
+**Title:** Duration
+
+**Type:** : `string`
+
+**Default:** `"5m0s"`
+
+**Description:** AggLayerTxTimeout is the interval time to wait for a tx to be mined from the agglayer
+
+**Examples:** 
+
+```json
+"1m"
+```
+
+```json
+"300ms"
+```
+
+**Example setting the default value** ("5m0s"):
+```
+[Aggregator]
+AggLayerTxTimeout="5m0s"
+```
+
+### <a name="Aggregator_AggLayerURL"></a>12.17. `Aggregator.AggLayerURL`
+
+**Type:** : `string`
+
+**Default:** `""`
+
+**Description:** AggLayerURL url of the agglayer service
+
+**Example setting the default value** (""):
+```
+[Aggregator]
+AggLayerURL=""
+```
+
+### <a name="Aggregator_SequencerPrivateKey"></a>12.18. `[Aggregator.SequencerPrivateKey]`
+
+**Type:** : `object`
+**Description:** SequencerPrivateKey Private key of the trusted sequencer
+
+| Property                                                | Pattern | Type   | Deprecated | Definition | Title/Description                                      |
+| ------------------------------------------------------- | ------- | ------ | ---------- | ---------- | ------------------------------------------------------ |
+| - [Path](#Aggregator_SequencerPrivateKey_Path )         | No      | string | No         | -          | Path is the file path for the key store file           |
+| - [Password](#Aggregator_SequencerPrivateKey_Password ) | No      | string | No         | -          | Password is the password to decrypt the key store file |
+
+#### <a name="Aggregator_SequencerPrivateKey_Path"></a>12.18.1. `Aggregator.SequencerPrivateKey.Path`
+
+**Type:** : `string`
+
+**Default:** `""`
+
+**Description:** Path is the file path for the key store file
+
+**Example setting the default value** (""):
+```
+[Aggregator.SequencerPrivateKey]
+Path=""
+```
+
+#### <a name="Aggregator_SequencerPrivateKey_Password"></a>12.18.2. `Aggregator.SequencerPrivateKey.Password`
+
+**Type:** : `string`
+
+**Default:** `""`
+
+**Description:** Password is the password to decrypt the key store file
+
+**Example setting the default value** (""):
+```
+[Aggregator.SequencerPrivateKey]
+Password=""
+```
+
+### <a name="Aggregator_RollupID"></a>12.19. `Aggregator.RollupID`
+
+**Type:** : `integer`
+
+**Default:** `0`
+
+**Description:** RollupID ID of the rollup
+
+**Example setting the default value** (0):
+```
+[Aggregator]
+RollupID=0
 ```
 
 ## <a name="NetworkConfig"></a>13. `[NetworkConfig]`

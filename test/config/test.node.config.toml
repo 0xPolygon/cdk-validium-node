@@ -119,7 +119,7 @@ MaxTxLifetime = "3h"
 	[Sequencer.StreamServer]
 		Port = 6900
 		Filename = "/datastreamer/datastream.bin"
-		Enabled = true
+		Enabled = false
 
 [SequenceSender]
 WaitPeriodSendSequence = "15s"
@@ -139,6 +139,10 @@ ProofStatePollingInterval = "5s"
 SenderAddress = "0x70997970c51812dc3a010c7d01b50e0d17dc79c8"
 CleanupLockedProofsInterval = "2m"
 GeneratingProofCleanupThreshold = "10m"
+SettlementBackend = "l1"
+AggLayerTxTimeout = "5m"
+AggLayerURL = ""
+SequencerPrivateKey = {}
 
 [EthTxManager]
 ForcedGas = 0
