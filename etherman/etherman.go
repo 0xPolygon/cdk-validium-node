@@ -103,11 +103,6 @@ var (
 	beaconUpgradedSignatureHash   = crypto.Keccak256Hash([]byte("BeaconUpgraded(address)"))
 	upgradedSignatureHash         = crypto.Keccak256Hash([]byte("Upgraded(address)"))
 
-	// methodIDSequenceBatchesEtrog: MethodID for sequenceBatches in Etrog
-	methodIDSequenceBatchesEtrog = []byte{0xec, 0xef, 0x3f, 0x99} // 0xecef3f99
-	// methodIDSequenceBatchesElderberry: MethodID for sequenceBatches in Elderberry
-	methodIDSequenceBatchesElderberry = []byte{0xde, 0xf5, 0x7e, 0x54} // 0xdef57e54 sequenceBatches((bytes,bytes32,uint64,bytes32)[],uint64,uint64,address)
-
 	// ErrNotFound is used when the object is not found
 	ErrNotFound = errors.New("not found")
 	// ErrIsReadOnlyMode is used when the EtherMan client is in read-only mode.
