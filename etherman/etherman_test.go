@@ -315,9 +315,11 @@ func TestSendSequences(t *testing.T) {
 	batchL2Data, err := state.EncodeTransactions([]types.Transaction{*tx1}, constants.EffectivePercentage, forkID6)
 	require.NoError(t, err)
 	sequence := ethmanTypes.Sequence{
-		BatchL2Data: batchL2Data,
+		BatchNumber:          0,
+		BatchL2Data:          batchL2Data,
+		LastL2BLockTimestamp: time.Now().Unix(),
 	}
-	tx, err := etherman.sequenceBatches(*auth, []ethmanTypes.Sequence{sequence}, auth.From, []byte{})
+	tx, err := etherman.sequenceBatches(*auth, []ethmanTypes.Sequence{sequence}, 100, 1, auth.From, []byte{})
 	require.NoError(t, err)
 	da.Mock.On("GetBatchL2Data", uint64(2), crypto.Keccak256Hash(batchL2Data)).Return(batchL2Data, nil)
 	log.Debug("TX: ", tx.Hash())
