@@ -2872,7 +2872,7 @@ Path="/pk/sequencer.keystore"
 Password="testonly"
 ```
 
-### <a name="Aggregator_BatchProofL1BlockConfirmations"></a>12.16. `Aggregator.BatchProofL1BlockConfirmations`
+### <a name="Aggregator_BatchProofL1BlockConfirmations"></a>12.20. `Aggregator.BatchProofL1BlockConfirmations`
 
 **Type:** : `integer`
 
