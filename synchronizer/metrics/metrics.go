@@ -21,7 +21,7 @@ const (
 	FullL1SyncTimeName = Prefix + "full_L1_sync_time"
 
 	// FullSyncIterationTimeName is the name of the label for a L1 synchronization.
-	FullSyncIterationTimeName = Prefix + "full_L1_sync_time"
+	FullSyncIterationTimeName = Prefix + "full_L1_sync_iteration_time"
 
 	// ReadL1DataTimeName is the name of the label to read L1 data.
 	ReadL1DataTimeName = Prefix + "read_L1_data_time"
