@@ -109,6 +109,11 @@ var (
 	// methodIDSequenceBatchesElderberry: MethodID for sequenceBatches in Elderberry
 	methodIDSequenceBatchesElderberry = []byte{0xde, 0xf5, 0x7e, 0x54} // 0xdef57e54 sequenceBatches((bytes,bytes32,uint64,bytes32)[],uint64,uint64,address)
 
+	// methodIDSequenceBatchesValidiumEtrog: MethodID for sequenceBatchesValidium in Etrog
+	methodIDSequenceBatchesValidiumEtrog = []byte{0x2d, 0x72, 0xc2, 0x48} // 0x2d72c248 sequenceBatchesValidium((bytes32,bytes32,uint64,bytes32)[],address,bytes)
+	// methodIDSequenceBatchesValidiumElderberry: MethodID for sequenceBatchesValidium in Elderberry
+	methodIDSequenceBatchesValidiumElderberry = []byte{0xdb, 0x5b, 0x0e, 0xd7} // 0xdb5b0ed7 sequenceBatchesValidium((bytes32,bytes32,uint64,bytes32)[],uint64,uint64,address,bytes)
+
 	// ErrNotFound is used when the object is not found
 	ErrNotFound = errors.New("not found")
 	// ErrIsReadOnlyMode is used when the EtherMan client is in read-only mode.
@@ -1178,12 +1183,14 @@ func (etherMan *Client) sequencedBatchesEvent(ctx context.Context, vLog types.Lo
 	if sb.NumBatch != 1 {
 		methodId := tx.Data()[:4]
 		log.Debugf("MethodId: %s", common.Bytes2Hex(methodId))
-		if bytes.Equal(methodId, methodIDSequenceBatchesEtrog) {
+		if bytes.Equal(methodId, methodIDSequenceBatchesEtrog) ||
+			bytes.Equal(methodId, methodIDSequenceBatchesValidiumEtrog) {
 			sequences, err = decodeSequencesEtrog(tx.Data(), sb.NumBatch, msg.From, vLog.TxHash, msg.Nonce, sb.L1InfoRoot, etherMan.da)
 			if err != nil {
 				return fmt.Errorf("error decoding the sequences (etrog): %v", err)
 			}
-		} else if bytes.Equal(methodId, methodIDSequenceBatchesElderberry) {
+		} else if bytes.Equal(methodId, methodIDSequenceBatchesElderberry) ||
+			bytes.Equal(methodId, methodIDSequenceBatchesValidiumElderberry) {
 			sequences, err = decodeSequencesElderberry(tx.Data(), sb.NumBatch, msg.From, vLog.TxHash, msg.Nonce, sb.L1InfoRoot, etherMan.da)
 			if err != nil {
 				return fmt.Errorf("error decoding the sequences (elderberry): %v", err)
