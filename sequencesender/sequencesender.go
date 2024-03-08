@@ -192,7 +192,6 @@ func (s *SequenceSender) tryToSendSequence(ctx context.Context) {
 	}
 
 	firstSequence := sequences[0]
-	// TODO: eth_call with the provided return values and if it fails, we should have the revert reason (just log the revert hash)
 	to, data, err := s.etherman.BuildSequenceBatchesTxData(s.cfg.SenderAddress, sequences, uint64(lastSequence.LastL2BLockTimestamp), firstSequence.BatchNumber-1, s.cfg.L2Coinbase, dataAvailabilityMessage)
 	if err != nil {
 		log.Error("error estimating new sequenceBatches to add to eth tx manager: ", err)
