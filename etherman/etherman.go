@@ -1285,7 +1285,7 @@ func decodeSequencesElderberry(txData []byte, lastBatchNumber uint64, sequencer 
 		return nil, err
 	}
 
-	return decodeSequencedBatches(smcAbi, txData, state.FORKID_ETROG, lastBatchNumber, sequencer, txHash, nonce, l1InfoRoot, da)
+	return decodeSequencedBatches(smcAbi, txData, state.FORKID_ELDERBERRY, lastBatchNumber, sequencer, txHash, nonce, l1InfoRoot, da)
 }
 
 func decodeSequencesEtrog(txData []byte, lastBatchNumber uint64, sequencer common.Address, txHash common.Hash, nonce uint64, l1InfoRoot common.Hash,
@@ -1297,7 +1297,7 @@ func decodeSequencesEtrog(txData []byte, lastBatchNumber uint64, sequencer commo
 		return nil, err
 	}
 
-	return decodeSequencedBatches(smcAbi, txData, state.FORKID_ELDERBERRY, lastBatchNumber, sequencer, txHash, nonce, l1InfoRoot, da)
+	return decodeSequencedBatches(smcAbi, txData, state.FORKID_ETROG, lastBatchNumber, sequencer, txHash, nonce, l1InfoRoot, da)
 }
 
 // decodeSequencedBatches decodes provided data, based on the funcName, whether it is rollup or validium data and returns sequenced batches
@@ -1343,7 +1343,7 @@ func decodeSequencedBatches(smcAbi abi.ABI, txData []byte, forkID uint64, lastBa
 				Coinbase:                        coinbase,
 				PolygonRollupBaseEtrogBatchData: &s,
 			}
-			if forkID == state.FORKID_ELDERBERRY {
+			if forkID >= state.FORKID_ELDERBERRY {
 				batch.SequencedBatchElderberryData = &SequencedBatchElderberryData{
 					MaxSequenceTimestamp:     maxSequenceTimestamp,
 					InitSequencedBatchNumber: initSequencedBatchNumber,
@@ -1385,7 +1385,7 @@ func decodeSequencedBatches(smcAbi abi.ABI, txData []byte, forkID uint64, lastBa
 				Coinbase:                        coinbase,
 				PolygonRollupBaseEtrogBatchData: &s,
 			}
-			if forkID == state.FORKID_ELDERBERRY {
+			if forkID >= state.FORKID_ELDERBERRY {
 				elderberry := &SequencedBatchElderberryData{
 					MaxSequenceTimestamp:     maxSequenceTimestamp,
 					InitSequencedBatchNumber: initSequencedBatchNumber,
