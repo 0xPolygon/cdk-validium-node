@@ -1,4 +1,4 @@
-//go:build !validium
+//go:build validium
 
 package aggregator
 
