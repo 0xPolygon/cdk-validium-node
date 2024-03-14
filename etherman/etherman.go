@@ -1368,8 +1368,10 @@ func decodeSequencedBatches(smcAbi abi.ABI, txData []byte, forkID uint64, lastBa
 		var hashes []common.Hash
 		for i, validiumData := range sequencesValidium {
 			bn := lastBatchNumber - uint64(len(sequencesValidium)-(i+1))
-			batchNums = append(batchNums, bn)
-			hashes = append(hashes, validiumData.TransactionsHash)
+			if validiumData.ForcedTimestamp == 0 {
+				batchNums = append(batchNums, bn)
+				hashes = append(hashes, validiumData.TransactionsHash)
+			}
 		}
 		batchL2Data, err := da.GetBatchL2Data(batchNums, hashes, dataAvailabilityMessage)
 		if err != nil {
