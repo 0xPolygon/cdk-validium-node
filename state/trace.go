@@ -262,64 +262,6 @@ func (s *State) DebugTransaction(ctx context.Context, transactionHash common.Has
 			TimestampLimit:         uint64(time.Now().Unix()),
 			SkipFirstChangeL2Block: cFalse,
 			SkipWriteBlockInfoRoot: cTrue,
-			ExecutionMode:          executor.ExecutionMode0,
-		}
-
-		// gets the L1InfoTreeData for the transactions
-		l1InfoTreeData, _, _, err := s.GetL1InfoTreeDataFromBatchL2Data(ctx, transactions, dbTx)
-		if err != nil {
-			return nil, err
-		}
-
-		// In case we have any l1InfoTreeData, add them to the request
-		if len(l1InfoTreeData) > 0 {
-			processBatchRequestV2.L1InfoTreeData = map[uint32]*executor.L1DataV2{}
-			processBatchRequestV2.SkipVerifyL1InfoRoot = cTrue
-			for k, v := range l1InfoTreeData {
-				processBatchRequestV2.L1InfoTreeData[k] = &executor.L1DataV2{
-					GlobalExitRoot: v.GlobalExitRoot.Bytes(),
-					BlockHashL1:    v.BlockHashL1.Bytes(),
-					MinTimestamp:   v.MinTimestamp,
-				}
-			}
-		}
-
-		// gets the L1InfoTreeData for the transactions
-		l1InfoTreeData, _, _, err = s.GetL1InfoTreeDataFromBatchL2Data(ctx, transactions, dbTx)
-		if err != nil {
-			return nil, err
-		}
-
-		// In case we have any l1InfoTreeData, add them to the request
-		if len(l1InfoTreeData) > 0 {
-			processBatchRequestV2.L1InfoTreeData = map[uint32]*executor.L1DataV2{}
-			processBatchRequestV2.SkipVerifyL1InfoRoot = cTrue
-			for k, v := range l1InfoTreeData {
-				processBatchRequestV2.L1InfoTreeData[k] = &executor.L1DataV2{
-					GlobalExitRoot: v.GlobalExitRoot.Bytes(),
-					BlockHashL1:    v.BlockHashL1.Bytes(),
-					MinTimestamp:   v.MinTimestamp,
-				}
-			}
-		}
-
-		// gets the L1InfoTreeData for the transactions
-		l1InfoTreeData, _, _, err = s.GetL1InfoTreeDataFromBatchL2Data(ctx, transactions, dbTx)
-		if err != nil {
-			return nil, err
-		}
-
-		// In case we have any l1InfoTreeData, add them to the request
-		if len(l1InfoTreeData) > 0 {
-			processBatchRequestV2.L1InfoTreeData = map[uint32]*executor.L1DataV2{}
-			processBatchRequestV2.SkipVerifyL1InfoRoot = cTrue
-			for k, v := range l1InfoTreeData {
-				processBatchRequestV2.L1InfoTreeData[k] = &executor.L1DataV2{
-					GlobalExitRoot: v.GlobalExitRoot.Bytes(),
-					BlockHashL1:    v.BlockHashL1.Bytes(),
-					MinTimestamp:   v.MinTimestamp,
-				}
-			}
 		}
 
 		if isInjectedTx {
