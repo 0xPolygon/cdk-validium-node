@@ -364,6 +364,25 @@ func (p *PostgresStorage) GetBatchL2DataByNumber(ctx context.Context, batchNumbe
 	err := q.QueryRow(ctx, getBatchL2DataByBatchNumber, batchNumber).Scan(&batchL2Data)
 
 	if errors.Is(err, pgx.ErrNoRows) {
+		return p.GetBatchL2DataByNumberFromBackup(ctx, batchNumber, dbTx)
+	} else if err != nil {
+		return nil, err
+	}
+	return batchL2Data, nil
+}
+
+// GetBatchL2DataByNumberFromBackup returns the batch L2 data of the given batch number from the backup table
+func (p *PostgresStorage) GetBatchL2DataByNumberFromBackup(ctx context.Context, batchNumber uint64, dbTx pgx.Tx) ([]byte, error) {
+	getBatchL2DataByBatchNumber := `
+		SELECT data FROM state.batch_data_backup
+		WHERE batch_num = $1
+		ORDER BY created_at DESC
+		LIMIT 1
+	`
+	q := p.getExecQuerier(dbTx)
+	var batchL2Data []byte
+	err := q.QueryRow(ctx, getBatchL2DataByBatchNumber, batchNumber).Scan(&batchL2Data)
+	if errors.Is(err, pgx.ErrNoRows) {
 		return nil, state.ErrNotFound
 	} else if err != nil {
 		return nil, err
