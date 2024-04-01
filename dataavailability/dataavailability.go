@@ -113,7 +113,7 @@ func (d *DataAvailability) trustedSequencerData(batchNums []uint64, expectedHash
 		return nil, fmt.Errorf("invalid arguments, len of batch numbers does not equal length of expected hashes: %d != %d",
 			len(batchNums), len(expectedHashes))
 	}
-	var nums []*big.Int
+	nums := make([]*big.Int, 0, len(batchNums))
 	for _, n := range batchNums {
 		nums = append(nums, new(big.Int).SetUint64(n))
 	}
@@ -124,7 +124,7 @@ func (d *DataAvailability) trustedSequencerData(batchNums []uint64, expectedHash
 	if len(batchData) != len(batchNums) {
 		return nil, fmt.Errorf("missing batch data, expected %d, got %d", len(batchNums), len(batchData))
 	}
-	var result [][]byte
+	result := make([][]byte, 0, len(batchNums))
 	for i := 0; i < len(batchNums); i++ {
 		number := batchNums[i]
 		batch := batchData[i]
