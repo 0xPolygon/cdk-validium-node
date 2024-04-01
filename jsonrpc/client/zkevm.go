@@ -61,21 +61,15 @@ func (c *Client) BatchByNumber(ctx context.Context, number *big.Int) (*types.Bat
 // BatchesByNumbers returns batches from the current canonical chain by batch numbers. If the list is empty, the last
 // known batch is returned as a list.
 func (c *Client) BatchesByNumbers(_ context.Context, numbers []*big.Int) ([]*types.BatchData, error) {
-	batchNumbers := make([]string, 0, len(numbers))
+	batchNumbers := make([]types.BatchNumber, 0, len(numbers))
 	for _, n := range numbers {
-		bn := types.BatchNumber(n.Int64())
-		batchNumbers = append(batchNumbers, bn.StringOrHex())
+		batchNumbers = append(batchNumbers, types.BatchNumber(n.Int64()))
 	}
 	if len(batchNumbers) == 0 {
-		latestBatchNum := types.LatestBatchNumber
-		batchNumbers = append(batchNumbers, latestBatchNum.StringOrHex())
+		batchNumbers = append(batchNumbers, types.LatestBatchNumber)
 	}
 
-	batchNumsMap := map[string][]string{
-		"numbers": batchNumbers,
-	}
-
-	response, err := JSONRPCCall(c.url, "zkevm_getBatchDataByNumbers", batchNumsMap)
+	response, err := JSONRPCCall(c.url, "zkevm_getBatchDataByNumbers", &types.BatchFilter{Numbers: batchNumbers})
 	if err != nil {
 		return nil, err
 	}
