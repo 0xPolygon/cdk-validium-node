@@ -2705,3 +2705,32 @@ func TestGetLatestGlobalExitRoot(t *testing.T) {
 		})
 	}
 }
+
+func TestClient_BatchesByNumbers(t *testing.T) {
+	const batchesCount = 6
+
+	s, m, _ := newSequencerMockedServer(t)
+	defer s.Stop()
+
+	batchesDataMap := make(map[uint64][]byte, batchesCount)
+	for i := 0; i < batchesCount; i++ {
+		batchesDataMap[uint64(i+1)] = []byte(fmt.Sprintf("batch %d data", i+1))
+	}
+
+	m.State.On("GetBatchL2DataByNumbers", mock.Anything, mock.Anything, mock.Anything).
+		Return(batchesDataMap, nil).Once()
+
+	m.State.On("BeginStateTransaction", context.Background()).
+		Return(m.DbTx, nil).Once()
+
+	m.DbTx.On("Commit", context.Background()).Return(nil).Once()
+
+	zkEVMClient := client.NewClient(s.ServerURL)
+	reqBatchesNum := []*big.Int{big.NewInt(1), big.NewInt(3), big.NewInt(4)}
+	result, err := zkEVMClient.BatchesByNumbers(context.Background(), reqBatchesNum)
+	require.NoError(t, err)
+	require.Len(t, result, len(reqBatchesNum))
+	for i, batchNum := range reqBatchesNum {
+		require.Equal(t, hex.EncodeToHex(batchesDataMap[batchNum.Uint64()]), result[i].BatchL2Data.Hex())
+	}
+}
