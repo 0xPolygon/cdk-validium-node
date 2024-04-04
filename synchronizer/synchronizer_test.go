@@ -32,12 +32,13 @@ const (
 )
 
 type mocks struct {
-	Etherman     *mock_syncinterfaces.EthermanFullInterface
-	State        *mock_syncinterfaces.StateFullInterface
-	Pool         *mock_syncinterfaces.PoolInterface
-	EthTxManager *mock_syncinterfaces.EthTxManager
-	DbTx         *syncMocks.DbTxMock
-	ZKEVMClient  *mock_syncinterfaces.ZKEVMClientInterface
+	Etherman                      *mock_syncinterfaces.EthermanFullInterface
+	State                         *mock_syncinterfaces.StateFullInterface
+	Pool                          *mock_syncinterfaces.PoolInterface
+	EthTxManager                  *mock_syncinterfaces.EthTxManager
+	DbTx                          *syncMocks.DbTxMock
+	ZKEVMClient                   *mock_syncinterfaces.ZKEVMClientInterface
+	zkEVMClientEthereumCompatible *mock_syncinterfaces.ZKEVMClientEthereumCompatibleInterface
 	//EventLog     *eventLogMock
 }
 
@@ -47,7 +48,7 @@ type mocks struct {
 func TestGivenPermissionlessNodeWhenSyncronizeAgainSameBatchThenUseTheOneInMemoryInstaeadOfGettingFromDb(t *testing.T) {
 	genesis, cfg, m := setupGenericTest(t)
 	ethermanForL1 := []syncinterfaces.EthermanFullInterface{m.Etherman}
-	syncInterface, err := NewSynchronizer(false, m.Etherman, ethermanForL1, m.State, m.Pool, m.EthTxManager, m.ZKEVMClient, nil, *genesis, *cfg, false)
+	syncInterface, err := NewSynchronizer(false, m.Etherman, ethermanForL1, m.State, m.Pool, m.EthTxManager, m.ZKEVMClient, m.zkEVMClientEthereumCompatible, nil, *genesis, *cfg, false)
 	require.NoError(t, err)
 	sync, ok := syncInterface.(*ClientSynchronizer)
 	require.EqualValues(t, true, ok, "Can't convert to underlaying struct the interface of syncronizer")
@@ -87,7 +88,7 @@ func TestGivenPermissionlessNodeWhenSyncronizeAgainSameBatchThenUseTheOneInMemor
 func TestGivenPermissionlessNodeWhenSyncronizeFirstTimeABatchThenStoreItInALocalVar(t *testing.T) {
 	genesis, cfg, m := setupGenericTest(t)
 	ethermanForL1 := []syncinterfaces.EthermanFullInterface{m.Etherman}
-	syncInterface, err := NewSynchronizer(false, m.Etherman, ethermanForL1, m.State, m.Pool, m.EthTxManager, m.ZKEVMClient, nil, *genesis, *cfg, false)
+	syncInterface, err := NewSynchronizer(false, m.Etherman, ethermanForL1, m.State, m.Pool, m.EthTxManager, m.ZKEVMClient, m.zkEVMClientEthereumCompatible, nil, *genesis, *cfg, false)
 	require.NoError(t, err)
 	sync, ok := syncInterface.(*ClientSynchronizer)
 	require.EqualValues(t, true, ok, "Can't convert to underlaying struct the interface of syncronizer")
@@ -135,7 +136,7 @@ func TestForcedBatchEtrog(t *testing.T) {
 		ZKEVMClient: mock_syncinterfaces.NewZKEVMClientInterface(t),
 	}
 	ethermanForL1 := []syncinterfaces.EthermanFullInterface{m.Etherman}
-	sync, err := NewSynchronizer(false, m.Etherman, ethermanForL1, m.State, m.Pool, m.EthTxManager, m.ZKEVMClient, nil, genesis, cfg, false)
+	sync, err := NewSynchronizer(false, m.Etherman, ethermanForL1, m.State, m.Pool, m.EthTxManager, m.ZKEVMClient, m.zkEVMClientEthereumCompatible, nil, genesis, cfg, false)
 	require.NoError(t, err)
 
 	// state preparation
@@ -393,7 +394,7 @@ func TestSequenceForcedBatchIncaberry(t *testing.T) {
 		ZKEVMClient: mock_syncinterfaces.NewZKEVMClientInterface(t),
 	}
 	ethermanForL1 := []syncinterfaces.EthermanFullInterface{m.Etherman}
-	sync, err := NewSynchronizer(true, m.Etherman, ethermanForL1, m.State, m.Pool, m.EthTxManager, m.ZKEVMClient, nil, genesis, cfg, false)
+	sync, err := NewSynchronizer(true, m.Etherman, ethermanForL1, m.State, m.Pool, m.EthTxManager, m.ZKEVMClient, m.zkEVMClientEthereumCompatible, nil, genesis, cfg, false)
 	require.NoError(t, err)
 
 	// state preparation
@@ -641,12 +642,13 @@ func setupGenericTest(t *testing.T) (*state.Genesis, *Config, *mocks) {
 	}
 
 	m := mocks{
-		Etherman:     mock_syncinterfaces.NewEthermanFullInterface(t),
-		State:        mock_syncinterfaces.NewStateFullInterface(t),
-		Pool:         mock_syncinterfaces.NewPoolInterface(t),
-		DbTx:         syncMocks.NewDbTxMock(t),
-		ZKEVMClient:  mock_syncinterfaces.NewZKEVMClientInterface(t),
-		EthTxManager: mock_syncinterfaces.NewEthTxManager(t),
+		Etherman:                      mock_syncinterfaces.NewEthermanFullInterface(t),
+		State:                         mock_syncinterfaces.NewStateFullInterface(t),
+		Pool:                          mock_syncinterfaces.NewPoolInterface(t),
+		DbTx:                          syncMocks.NewDbTxMock(t),
+		ZKEVMClient:                   mock_syncinterfaces.NewZKEVMClientInterface(t),
+		zkEVMClientEthereumCompatible: mock_syncinterfaces.NewZKEVMClientEthereumCompatibleInterface(t),
+		EthTxManager:                  mock_syncinterfaces.NewEthTxManager(t),
 		//EventLog:    newEventLogMock(t),
 	}
 	return &genesis, &cfg, &m
