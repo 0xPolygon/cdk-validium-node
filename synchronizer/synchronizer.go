@@ -117,6 +117,7 @@ func NewSynchronizer(
 		previousExecutorFlushID: 0,
 		l1SyncOrchestration:     nil,
 		l1EventProcessors:       nil,
+		syncBlockProtection:     syncBlockProtection,
 		halter:                  syncCommon.NewCriticalErrorHalt(eventLog, 5*time.Second), //nolint:gomnd
 	}
 	L1SyncChecker := l2_sync_etrog.NewCheckSyncStatusToProcessBatch(res.zkEVMClient, res.state)
