@@ -18,6 +18,7 @@ import (
 	syncMocks "github.com/0xPolygonHermez/zkevm-node/synchronizer/mocks"
 	"github.com/ethereum/go-ethereum/common"
 	ethTypes "github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/jackc/pgx/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -125,6 +126,7 @@ func TestForcedBatchEtrog(t *testing.T) {
 		SyncInterval:          cfgTypes.Duration{Duration: 1 * time.Second},
 		SyncChunkSize:         10,
 		L1SynchronizationMode: SequentialMode,
+		SyncBlockProtection:   "latest",
 	}
 
 	m := mocks{
@@ -201,7 +203,7 @@ func TestForcedBatchEtrog(t *testing.T) {
 				Return(ethBlock, nil).
 				Once()
 
-			var n *big.Int
+			n := big.NewInt(rpc.LatestBlockNumber.Int64())
 			m.Etherman.
 				On("HeaderByNumber", mock.Anything, n).
 				Return(ethHeader, nil).
@@ -254,6 +256,9 @@ func TestForcedBatchEtrog(t *testing.T) {
 
 			fromBlock := ethBlock.NumberU64() + 1
 			toBlock := fromBlock + cfg.SyncChunkSize
+			if toBlock > ethHeader.Number.Uint64() {
+				toBlock = ethHeader.Number.Uint64()
+			}
 
 			m.Etherman.
 				On("GetRollupInfoByBlockRange", mock.Anything, fromBlock, &toBlock).
@@ -378,6 +383,7 @@ func TestSequenceForcedBatchIncaberry(t *testing.T) {
 		SyncInterval:          cfgTypes.Duration{Duration: 1 * time.Second},
 		SyncChunkSize:         10,
 		L1SynchronizationMode: SequentialMode,
+		SyncBlockProtection:   "latest",
 	}
 
 	m := mocks{
@@ -455,7 +461,7 @@ func TestSequenceForcedBatchIncaberry(t *testing.T) {
 				Return(ethBlock, nil).
 				Once()
 
-			var n *big.Int
+			n := big.NewInt(rpc.LatestBlockNumber.Int64())
 			m.Etherman.
 				On("HeaderByNumber", ctx, n).
 				Return(ethHeader, nil).
@@ -503,6 +509,9 @@ func TestSequenceForcedBatchIncaberry(t *testing.T) {
 
 			fromBlock := ethBlock.NumberU64() + 1
 			toBlock := fromBlock + cfg.SyncChunkSize
+			if toBlock > ethHeader.Number.Uint64() {
+				toBlock = ethHeader.Number.Uint64()
+			}
 
 			m.Etherman.
 				On("GetRollupInfoByBlockRange", ctx, fromBlock, &toBlock).
@@ -617,6 +626,7 @@ func setupGenericTest(t *testing.T) (*state.Genesis, *Config, *mocks) {
 		SyncInterval:          cfgTypes.Duration{Duration: 1 * time.Second},
 		SyncChunkSize:         10,
 		L1SynchronizationMode: SequentialMode,
+		SyncBlockProtection:   "latest",
 		L1ParallelSynchronization: L1ParallelSynchronizationConfig{
 			MaxClients:                             2,
 			MaxPendingNoProcessedBlocks:            2,

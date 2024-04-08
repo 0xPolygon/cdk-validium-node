@@ -102,6 +102,7 @@ EnableHttpLog = true
 SyncInterval = "1s"
 SyncChunkSize = 100
 TrustedSequencerURL = "" # If it is empty or not specified, then the value is read from the smc
+SyncBlockProtection = "safe" # latest, finalized, safe
 L1SynchronizationMode = "sequential"
 	[Synchronizer.L1ParallelSynchronization]
 		MaxClients = 10

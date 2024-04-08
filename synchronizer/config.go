@@ -13,6 +13,8 @@ type Config struct {
 	SyncChunkSize uint64 `mapstructure:"SyncChunkSize"`
 	// TrustedSequencerURL is the rpc url to connect and sync the trusted state
 	TrustedSequencerURL string `mapstructure:"TrustedSequencerURL"`
+	// SyncBlockProtection specify the state to sync (lastest, finalized or safe)
+	SyncBlockProtection string `mapstructure:"SyncBlockProtection"`
 
 	// L1SynchronizationMode define how to synchronize with L1:
 	// - parallel: Request data to L1 in parallel, and process sequentially. The advantage is that executor is not blocked waiting for L1 data
