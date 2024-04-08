@@ -519,6 +519,8 @@ services:
       - 50071:50071 # Executor
     volumes:
       - ./config/test.prover.config.json:/usr/src/app/config.json
+    environment:
+      - EXPERIMENTAL_DOCKER_DESKTOP_FORCE_QEMU=1
     command: >
       zkProver -c /usr/src/app/config.json
 
