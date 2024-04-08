@@ -225,6 +225,15 @@
 							"type": "integer",
 							"description": "MaxConns is the maximum number of connections in the pool.",
 							"default": 200
+						},
+						"MaxConnLifetime": {
+							"type": "string",
+							"title": "Duration",
+							"default": "0s",
+							"examples": [
+								"1m",
+								"300ms"
+							]
 						}
 					},
 					"additionalProperties": false,
@@ -516,6 +525,11 @@
 					"type": "string",
 					"description": "TrustedSequencerURL is the rpc url to connect and sync the trusted state",
 					"default": ""
+				},
+				"SyncBlockProtection": {
+					"type": "string",
+					"description": "SyncBlockProtection specify the state to sync (lastest, finalized or safe)",
+					"default": "safe"
 				},
 				"L1SynchronizationMode": {
 					"type": "string",
@@ -1403,6 +1417,15 @@
 							"type": "integer",
 							"description": "MaxConns is the maximum number of connections in the pool.",
 							"default": 0
+						},
+						"MaxConnLifetime": {
+							"type": "string",
+							"title": "Duration",
+							"default": "0s",
+							"examples": [
+								"1m",
+								"300ms"
+							]
 						}
 					},
 					"additionalProperties": false,
@@ -1450,6 +1473,15 @@
 					"type": "integer",
 					"description": "MaxConns is the maximum number of connections in the pool.",
 					"default": 200
+				},
+				"MaxConnLifetime": {
+					"type": "string",
+					"title": "Duration",
+					"default": "0s",
+					"examples": [
+						"1m",
+						"300ms"
+					]
 				}
 			},
 			"additionalProperties": false,
@@ -1555,6 +1587,15 @@
 							"type": "integer",
 							"description": "MaxConns is the maximum number of connections in the pool.",
 							"default": 200
+						},
+						"MaxConnLifetime": {
+							"type": "string",
+							"title": "Duration",
+							"default": "1h0m0s",
+							"examples": [
+								"1m",
+								"300ms"
+							]
 						}
 					},
 					"additionalProperties": false,

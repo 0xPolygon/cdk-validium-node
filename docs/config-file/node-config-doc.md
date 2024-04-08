@@ -513,15 +513,16 @@ MaxTxDataBytesSize=100000
 **Type:** : `object`
 **Description:** DB is the database configuration
 
-| Property                           | Pattern | Type    | Deprecated | Definition | Title/Description                                          |
-| ---------------------------------- | ------- | ------- | ---------- | ---------- | ---------------------------------------------------------- |
-| - [Name](#Pool_DB_Name )           | No      | string  | No         | -          | Database name                                              |
-| - [User](#Pool_DB_User )           | No      | string  | No         | -          | Database User name                                         |
-| - [Password](#Pool_DB_Password )   | No      | string  | No         | -          | Database Password of the user                              |
-| - [Host](#Pool_DB_Host )           | No      | string  | No         | -          | Host address of database                                   |
-| - [Port](#Pool_DB_Port )           | No      | string  | No         | -          | Port Number of database                                    |
-| - [EnableLog](#Pool_DB_EnableLog ) | No      | boolean | No         | -          | EnableLog                                                  |
-| - [MaxConns](#Pool_DB_MaxConns )   | No      | integer | No         | -          | MaxConns is the maximum number of connections in the pool. |
+| Property                                       | Pattern | Type    | Deprecated | Definition | Title/Description                                          |
+| ---------------------------------------------- | ------- | ------- | ---------- | ---------- | ---------------------------------------------------------- |
+| - [Name](#Pool_DB_Name )                       | No      | string  | No         | -          | Database name                                              |
+| - [User](#Pool_DB_User )                       | No      | string  | No         | -          | Database User name                                         |
+| - [Password](#Pool_DB_Password )               | No      | string  | No         | -          | Database Password of the user                              |
+| - [Host](#Pool_DB_Host )                       | No      | string  | No         | -          | Host address of database                                   |
+| - [Port](#Pool_DB_Port )                       | No      | string  | No         | -          | Port Number of database                                    |
+| - [EnableLog](#Pool_DB_EnableLog )             | No      | boolean | No         | -          | EnableLog                                                  |
+| - [MaxConns](#Pool_DB_MaxConns )               | No      | integer | No         | -          | MaxConns is the maximum number of connections in the pool. |
+| - [MaxConnLifetime](#Pool_DB_MaxConnLifetime ) | No      | string  | No         | -          | Duration                                                   |
 
 #### <a name="Pool_DB_Name"></a>7.5.1. `Pool.DB.Name`
 
@@ -619,6 +620,30 @@ EnableLog=false
 ```
 [Pool.DB]
 MaxConns=200
+```
+
+#### <a name="Pool_DB_MaxConnLifetime"></a>7.5.8. `Pool.DB.MaxConnLifetime`
+
+**Title:** Duration
+
+**Type:** : `string`
+
+**Default:** `"0s"`
+
+**Examples:** 
+
+```json
+"1m"
+```
+
+```json
+"300ms"
+```
+
+**Example setting the default value** ("0s"):
+```
+[Pool.DB]
+MaxConnLifetime="0s"
 ```
 
 ### <a name="Pool_DefaultMinGasPriceAllowed"></a>7.6. `Pool.DefaultMinGasPriceAllowed`
@@ -1339,6 +1364,7 @@ because depending of this values is going to ask to a trusted node for trusted t
 | - [SyncInterval](#Synchronizer_SyncInterval )                           | No      | string           | No         | -          | Duration                                                                                                                                                                                                                                                |
 | - [SyncChunkSize](#Synchronizer_SyncChunkSize )                         | No      | integer          | No         | -          | SyncChunkSize is the number of blocks to sync on each chunk                                                                                                                                                                                             |
 | - [TrustedSequencerURL](#Synchronizer_TrustedSequencerURL )             | No      | string           | No         | -          | TrustedSequencerURL is the rpc url to connect and sync the trusted state                                                                                                                                                                                |
+| - [SyncBlockProtection](#Synchronizer_SyncBlockProtection )             | No      | string           | No         | -          | SyncBlockProtection specify the state to sync (lastest, finalized or safe)                                                                                                                                                                              |
 | - [L1SynchronizationMode](#Synchronizer_L1SynchronizationMode )         | No      | enum (of string) | No         | -          | L1SynchronizationMode define how to synchronize with L1:<br />- parallel: Request data to L1 in parallel, and process sequentially. The advantage is that executor is not blocked waiting for L1 data<br />- sequential: Request data to L1 and execute |
 | - [L1ParallelSynchronization](#Synchronizer_L1ParallelSynchronization ) | No      | object           | No         | -          | L1ParallelSynchronization Configuration for parallel mode (if L1SynchronizationMode equal to 'parallel')                                                                                                                                                |
 
@@ -1396,7 +1422,21 @@ SyncChunkSize=100
 TrustedSequencerURL=""
 ```
 
-### <a name="Synchronizer_L1SynchronizationMode"></a>9.4. `Synchronizer.L1SynchronizationMode`
+### <a name="Synchronizer_SyncBlockProtection"></a>9.4. `Synchronizer.SyncBlockProtection`
+
+**Type:** : `string`
+
+**Default:** `"safe"`
+
+**Description:** SyncBlockProtection specify the state to sync (lastest, finalized or safe)
+
+**Example setting the default value** ("safe"):
+```
+[Synchronizer]
+SyncBlockProtection="safe"
+```
+
+### <a name="Synchronizer_L1SynchronizationMode"></a>9.5. `Synchronizer.L1SynchronizationMode`
 
 **Type:** : `enum (of string)`
 
@@ -1416,7 +1456,7 @@ Must be one of:
 * "sequential"
 * "parallel"
 
-### <a name="Synchronizer_L1ParallelSynchronization"></a>9.5. `[Synchronizer.L1ParallelSynchronization]`
+### <a name="Synchronizer_L1ParallelSynchronization"></a>9.6. `[Synchronizer.L1ParallelSynchronization]`
 
 **Type:** : `object`
 **Description:** L1ParallelSynchronization Configuration for parallel mode (if L1SynchronizationMode equal to 'parallel')
@@ -1434,7 +1474,7 @@ Must be one of:
 | - [RollupInfoRetriesSpacing](#Synchronizer_L1ParallelSynchronization_RollupInfoRetriesSpacing )                             | No      | string  | No         | -          | Duration                                                                                                                                                                                      |
 | - [FallbackToSequentialModeOnSynchronized](#Synchronizer_L1ParallelSynchronization_FallbackToSequentialModeOnSynchronized ) | No      | boolean | No         | -          | FallbackToSequentialModeOnSynchronized if true switch to sequential mode if the system is synchronized                                                                                        |
 
-#### <a name="Synchronizer_L1ParallelSynchronization_MaxClients"></a>9.5.1. `Synchronizer.L1ParallelSynchronization.MaxClients`
+#### <a name="Synchronizer_L1ParallelSynchronization_MaxClients"></a>9.6.1. `Synchronizer.L1ParallelSynchronization.MaxClients`
 
 **Type:** : `integer`
 
@@ -1448,7 +1488,7 @@ Must be one of:
 MaxClients=10
 ```
 
-#### <a name="Synchronizer_L1ParallelSynchronization_MaxPendingNoProcessedBlocks"></a>9.5.2. `Synchronizer.L1ParallelSynchronization.MaxPendingNoProcessedBlocks`
+#### <a name="Synchronizer_L1ParallelSynchronization_MaxPendingNoProcessedBlocks"></a>9.6.2. `Synchronizer.L1ParallelSynchronization.MaxPendingNoProcessedBlocks`
 
 **Type:** : `integer`
 
@@ -1463,7 +1503,7 @@ sugested twice of NumberOfParallelOfEthereumClients
 MaxPendingNoProcessedBlocks=25
 ```
 
-#### <a name="Synchronizer_L1ParallelSynchronization_RequestLastBlockPeriod"></a>9.5.3. `Synchronizer.L1ParallelSynchronization.RequestLastBlockPeriod`
+#### <a name="Synchronizer_L1ParallelSynchronization_RequestLastBlockPeriod"></a>9.6.3. `Synchronizer.L1ParallelSynchronization.RequestLastBlockPeriod`
 
 **Title:** Duration
 
@@ -1491,7 +1531,7 @@ This value only apply when the system is synchronized
 RequestLastBlockPeriod="5s"
 ```
 
-#### <a name="Synchronizer_L1ParallelSynchronization_PerformanceWarning"></a>9.5.4. `[Synchronizer.L1ParallelSynchronization.PerformanceWarning]`
+#### <a name="Synchronizer_L1ParallelSynchronization_PerformanceWarning"></a>9.6.4. `[Synchronizer.L1ParallelSynchronization.PerformanceWarning]`
 
 **Type:** : `object`
 **Description:** Consumer Configuration for the consumer of rollup information from L1
@@ -1501,7 +1541,7 @@ RequestLastBlockPeriod="5s"
 | - [AceptableInacctivityTime](#Synchronizer_L1ParallelSynchronization_PerformanceWarning_AceptableInacctivityTime )       | No      | string  | No         | -          | Duration                                                                                                                 |
 | - [ApplyAfterNumRollupReceived](#Synchronizer_L1ParallelSynchronization_PerformanceWarning_ApplyAfterNumRollupReceived ) | No      | integer | No         | -          | ApplyAfterNumRollupReceived is the number of iterations to<br />start checking the time waiting for new rollup info data |
 
-##### <a name="Synchronizer_L1ParallelSynchronization_PerformanceWarning_AceptableInacctivityTime"></a>9.5.4.1. `Synchronizer.L1ParallelSynchronization.PerformanceWarning.AceptableInacctivityTime`
+##### <a name="Synchronizer_L1ParallelSynchronization_PerformanceWarning_AceptableInacctivityTime"></a>9.6.4.1. `Synchronizer.L1ParallelSynchronization.PerformanceWarning.AceptableInacctivityTime`
 
 **Title:** Duration
 
@@ -1530,7 +1570,7 @@ fast enought then you could increse the number of parallel clients to sync with 
 AceptableInacctivityTime="5s"
 ```
 
-##### <a name="Synchronizer_L1ParallelSynchronization_PerformanceWarning_ApplyAfterNumRollupReceived"></a>9.5.4.2. `Synchronizer.L1ParallelSynchronization.PerformanceWarning.ApplyAfterNumRollupReceived`
+##### <a name="Synchronizer_L1ParallelSynchronization_PerformanceWarning_ApplyAfterNumRollupReceived"></a>9.6.4.2. `Synchronizer.L1ParallelSynchronization.PerformanceWarning.ApplyAfterNumRollupReceived`
 
 **Type:** : `integer`
 
@@ -1545,7 +1585,7 @@ start checking the time waiting for new rollup info data
 ApplyAfterNumRollupReceived=10
 ```
 
-#### <a name="Synchronizer_L1ParallelSynchronization_RequestLastBlockTimeout"></a>9.5.5. `Synchronizer.L1ParallelSynchronization.RequestLastBlockTimeout`
+#### <a name="Synchronizer_L1ParallelSynchronization_RequestLastBlockTimeout"></a>9.6.5. `Synchronizer.L1ParallelSynchronization.RequestLastBlockTimeout`
 
 **Title:** Duration
 
@@ -1571,7 +1611,7 @@ ApplyAfterNumRollupReceived=10
 RequestLastBlockTimeout="5s"
 ```
 
-#### <a name="Synchronizer_L1ParallelSynchronization_RequestLastBlockMaxRetries"></a>9.5.6. `Synchronizer.L1ParallelSynchronization.RequestLastBlockMaxRetries`
+#### <a name="Synchronizer_L1ParallelSynchronization_RequestLastBlockMaxRetries"></a>9.6.6. `Synchronizer.L1ParallelSynchronization.RequestLastBlockMaxRetries`
 
 **Type:** : `integer`
 
@@ -1585,7 +1625,7 @@ RequestLastBlockTimeout="5s"
 RequestLastBlockMaxRetries=3
 ```
 
-#### <a name="Synchronizer_L1ParallelSynchronization_StatisticsPeriod"></a>9.5.7. `Synchronizer.L1ParallelSynchronization.StatisticsPeriod`
+#### <a name="Synchronizer_L1ParallelSynchronization_StatisticsPeriod"></a>9.6.7. `Synchronizer.L1ParallelSynchronization.StatisticsPeriod`
 
 **Title:** Duration
 
@@ -1611,7 +1651,7 @@ RequestLastBlockMaxRetries=3
 StatisticsPeriod="5m0s"
 ```
 
-#### <a name="Synchronizer_L1ParallelSynchronization_TimeOutMainLoop"></a>9.5.8. `Synchronizer.L1ParallelSynchronization.TimeOutMainLoop`
+#### <a name="Synchronizer_L1ParallelSynchronization_TimeOutMainLoop"></a>9.6.8. `Synchronizer.L1ParallelSynchronization.TimeOutMainLoop`
 
 **Title:** Duration
 
@@ -1637,7 +1677,7 @@ StatisticsPeriod="5m0s"
 TimeOutMainLoop="5m0s"
 ```
 
-#### <a name="Synchronizer_L1ParallelSynchronization_RollupInfoRetriesSpacing"></a>9.5.9. `Synchronizer.L1ParallelSynchronization.RollupInfoRetriesSpacing`
+#### <a name="Synchronizer_L1ParallelSynchronization_RollupInfoRetriesSpacing"></a>9.6.9. `Synchronizer.L1ParallelSynchronization.RollupInfoRetriesSpacing`
 
 **Title:** Duration
 
@@ -1663,7 +1703,7 @@ TimeOutMainLoop="5m0s"
 RollupInfoRetriesSpacing="5s"
 ```
 
-#### <a name="Synchronizer_L1ParallelSynchronization_FallbackToSequentialModeOnSynchronized"></a>9.5.10. `Synchronizer.L1ParallelSynchronization.FallbackToSequentialModeOnSynchronized`
+#### <a name="Synchronizer_L1ParallelSynchronization_FallbackToSequentialModeOnSynchronized"></a>9.6.10. `Synchronizer.L1ParallelSynchronization.FallbackToSequentialModeOnSynchronized`
 
 **Type:** : `boolean`
 
@@ -3434,15 +3474,16 @@ ProfilingEnabled=false
 **Type:** : `object`
 **Description:** DB is the database configuration
 
-| Property                               | Pattern | Type    | Deprecated | Definition | Title/Description                                          |
-| -------------------------------------- | ------- | ------- | ---------- | ---------- | ---------------------------------------------------------- |
-| - [Name](#EventLog_DB_Name )           | No      | string  | No         | -          | Database name                                              |
-| - [User](#EventLog_DB_User )           | No      | string  | No         | -          | Database User name                                         |
-| - [Password](#EventLog_DB_Password )   | No      | string  | No         | -          | Database Password of the user                              |
-| - [Host](#EventLog_DB_Host )           | No      | string  | No         | -          | Host address of database                                   |
-| - [Port](#EventLog_DB_Port )           | No      | string  | No         | -          | Port Number of database                                    |
-| - [EnableLog](#EventLog_DB_EnableLog ) | No      | boolean | No         | -          | EnableLog                                                  |
-| - [MaxConns](#EventLog_DB_MaxConns )   | No      | integer | No         | -          | MaxConns is the maximum number of connections in the pool. |
+| Property                                           | Pattern | Type    | Deprecated | Definition | Title/Description                                          |
+| -------------------------------------------------- | ------- | ------- | ---------- | ---------- | ---------------------------------------------------------- |
+| - [Name](#EventLog_DB_Name )                       | No      | string  | No         | -          | Database name                                              |
+| - [User](#EventLog_DB_User )                       | No      | string  | No         | -          | Database User name                                         |
+| - [Password](#EventLog_DB_Password )               | No      | string  | No         | -          | Database Password of the user                              |
+| - [Host](#EventLog_DB_Host )                       | No      | string  | No         | -          | Host address of database                                   |
+| - [Port](#EventLog_DB_Port )                       | No      | string  | No         | -          | Port Number of database                                    |
+| - [EnableLog](#EventLog_DB_EnableLog )             | No      | boolean | No         | -          | EnableLog                                                  |
+| - [MaxConns](#EventLog_DB_MaxConns )               | No      | integer | No         | -          | MaxConns is the maximum number of connections in the pool. |
+| - [MaxConnLifetime](#EventLog_DB_MaxConnLifetime ) | No      | string  | No         | -          | Duration                                                   |
 
 #### <a name="EventLog_DB_Name"></a>18.1.1. `EventLog.DB.Name`
 
@@ -3542,20 +3583,45 @@ EnableLog=false
 MaxConns=0
 ```
 
+#### <a name="EventLog_DB_MaxConnLifetime"></a>18.1.8. `EventLog.DB.MaxConnLifetime`
+
+**Title:** Duration
+
+**Type:** : `string`
+
+**Default:** `"0s"`
+
+**Examples:** 
+
+```json
+"1m"
+```
+
+```json
+"300ms"
+```
+
+**Example setting the default value** ("0s"):
+```
+[EventLog.DB]
+MaxConnLifetime="0s"
+```
+
 ## <a name="HashDB"></a>19. `[HashDB]`
 
 **Type:** : `object`
 **Description:** Configuration of the hash database connection
 
-| Property                          | Pattern | Type    | Deprecated | Definition | Title/Description                                          |
-| --------------------------------- | ------- | ------- | ---------- | ---------- | ---------------------------------------------------------- |
-| - [Name](#HashDB_Name )           | No      | string  | No         | -          | Database name                                              |
-| - [User](#HashDB_User )           | No      | string  | No         | -          | Database User name                                         |
-| - [Password](#HashDB_Password )   | No      | string  | No         | -          | Database Password of the user                              |
-| - [Host](#HashDB_Host )           | No      | string  | No         | -          | Host address of database                                   |
-| - [Port](#HashDB_Port )           | No      | string  | No         | -          | Port Number of database                                    |
-| - [EnableLog](#HashDB_EnableLog ) | No      | boolean | No         | -          | EnableLog                                                  |
-| - [MaxConns](#HashDB_MaxConns )   | No      | integer | No         | -          | MaxConns is the maximum number of connections in the pool. |
+| Property                                      | Pattern | Type    | Deprecated | Definition | Title/Description                                          |
+| --------------------------------------------- | ------- | ------- | ---------- | ---------- | ---------------------------------------------------------- |
+| - [Name](#HashDB_Name )                       | No      | string  | No         | -          | Database name                                              |
+| - [User](#HashDB_User )                       | No      | string  | No         | -          | Database User name                                         |
+| - [Password](#HashDB_Password )               | No      | string  | No         | -          | Database Password of the user                              |
+| - [Host](#HashDB_Host )                       | No      | string  | No         | -          | Host address of database                                   |
+| - [Port](#HashDB_Port )                       | No      | string  | No         | -          | Port Number of database                                    |
+| - [EnableLog](#HashDB_EnableLog )             | No      | boolean | No         | -          | EnableLog                                                  |
+| - [MaxConns](#HashDB_MaxConns )               | No      | integer | No         | -          | MaxConns is the maximum number of connections in the pool. |
+| - [MaxConnLifetime](#HashDB_MaxConnLifetime ) | No      | string  | No         | -          | Duration                                                   |
 
 ### <a name="HashDB_Name"></a>19.1. `HashDB.Name`
 
@@ -3653,6 +3719,30 @@ EnableLog=false
 ```
 [HashDB]
 MaxConns=200
+```
+
+### <a name="HashDB_MaxConnLifetime"></a>19.8. `HashDB.MaxConnLifetime`
+
+**Title:** Duration
+
+**Type:** : `string`
+
+**Default:** `"0s"`
+
+**Examples:** 
+
+```json
+"1m"
+```
+
+```json
+"300ms"
+```
+
+**Example setting the default value** ("0s"):
+```
+[HashDB]
+MaxConnLifetime="0s"
 ```
 
 ## <a name="State"></a>20. `[State]`
@@ -3827,15 +3917,16 @@ ForkUpgradeNewForkId=0
 **Type:** : `object`
 **Description:** DB is the database configuration
 
-| Property                            | Pattern | Type    | Deprecated | Definition | Title/Description                                          |
-| ----------------------------------- | ------- | ------- | ---------- | ---------- | ---------------------------------------------------------- |
-| - [Name](#State_DB_Name )           | No      | string  | No         | -          | Database name                                              |
-| - [User](#State_DB_User )           | No      | string  | No         | -          | Database User name                                         |
-| - [Password](#State_DB_Password )   | No      | string  | No         | -          | Database Password of the user                              |
-| - [Host](#State_DB_Host )           | No      | string  | No         | -          | Host address of database                                   |
-| - [Port](#State_DB_Port )           | No      | string  | No         | -          | Port Number of database                                    |
-| - [EnableLog](#State_DB_EnableLog ) | No      | boolean | No         | -          | EnableLog                                                  |
-| - [MaxConns](#State_DB_MaxConns )   | No      | integer | No         | -          | MaxConns is the maximum number of connections in the pool. |
+| Property                                        | Pattern | Type    | Deprecated | Definition | Title/Description                                          |
+| ----------------------------------------------- | ------- | ------- | ---------- | ---------- | ---------------------------------------------------------- |
+| - [Name](#State_DB_Name )                       | No      | string  | No         | -          | Database name                                              |
+| - [User](#State_DB_User )                       | No      | string  | No         | -          | Database User name                                         |
+| - [Password](#State_DB_Password )               | No      | string  | No         | -          | Database Password of the user                              |
+| - [Host](#State_DB_Host )                       | No      | string  | No         | -          | Host address of database                                   |
+| - [Port](#State_DB_Port )                       | No      | string  | No         | -          | Port Number of database                                    |
+| - [EnableLog](#State_DB_EnableLog )             | No      | boolean | No         | -          | EnableLog                                                  |
+| - [MaxConns](#State_DB_MaxConns )               | No      | integer | No         | -          | MaxConns is the maximum number of connections in the pool. |
+| - [MaxConnLifetime](#State_DB_MaxConnLifetime ) | No      | string  | No         | -          | Duration                                                   |
 
 #### <a name="State_DB_Name"></a>20.8.1. `State.DB.Name`
 
@@ -3933,6 +4024,30 @@ EnableLog=false
 ```
 [State.DB]
 MaxConns=200
+```
+
+#### <a name="State_DB_MaxConnLifetime"></a>20.8.8. `State.DB.MaxConnLifetime`
+
+**Title:** Duration
+
+**Type:** : `string`
+
+**Default:** `"1h0m0s"`
+
+**Examples:** 
+
+```json
+"1m"
+```
+
+```json
+"300ms"
+```
+
+**Example setting the default value** ("1h0m0s"):
+```
+[State.DB]
+MaxConnLifetime="1h0m0s"
 ```
 
 ### <a name="State_Batch"></a>20.9. `[State.Batch]`
