@@ -91,14 +91,13 @@ func NewSynchronizer(
 	genesis state.Genesis,
 	cfg Config,
 	runInDevelopmentMode bool) (Synchronizer, error) {
-	ctx, cancel := context.WithCancel(context.Background())
-	metrics.Register()
 	syncBlockProtection, err := decodeSyncBlockProtection(cfg.SyncBlockProtection)
 	if err != nil {
 		log.Errorf("error decoding syncBlockProtection. Error: %v", err)
-		cancel()
 		return nil, err
 	}
+	ctx, cancel := context.WithCancel(context.Background())
+	metrics.Register()
 	log.Info("syncBlockProtection: ", syncBlockProtection)
 	res := &ClientSynchronizer{
 		isTrustedSequencer:      isTrustedSequencer,
