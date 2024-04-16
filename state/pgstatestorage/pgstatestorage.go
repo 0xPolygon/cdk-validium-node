@@ -363,9 +363,11 @@ func (p *PostgresStorage) GetBatchL2DataByNumber(ctx context.Context, batchNumbe
 	var batchL2Data []byte
 	err := q.QueryRow(ctx, getBatchL2DataByBatchNumber, batchNumber).Scan(&batchL2Data)
 
-	if errors.Is(err, pgx.ErrNoRows) {
-		return p.GetBatchL2DataByNumberFromBackup(ctx, batchNumber, dbTx)
-	} else if err != nil {
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return p.GetBatchL2DataByNumberFromBackup(ctx, batchNumber, dbTx)
+		}
+
 		return nil, err
 	}
 	return batchL2Data, nil
