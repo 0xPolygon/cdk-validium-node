@@ -600,9 +600,9 @@ func (s *ClientSynchronizer) syncBlocksSequential(lastEthBlockSynced *state.Bloc
 	if lastEthBlockSynced.BlockNumber > 0 {
 		fromBlock = lastEthBlockSynced.BlockNumber
 	}
+	toBlock := fromBlock + s.cfg.SyncChunkSize
 
 	for {
-		toBlock := fromBlock + s.cfg.SyncChunkSize
 		if toBlock > lastKnownBlock.Uint64() {
 			toBlock = lastKnownBlock.Uint64()
 		}
@@ -689,7 +689,8 @@ func (s *ClientSynchronizer) syncBlocksSequential(lastEthBlockSynced *state.Bloc
 			break
 		}
 
-		fromBlock = toBlock
+		fromBlock = lastEthBlockSynced.BlockNumber
+		toBlock = toBlock + s.cfg.SyncChunkSize
 	}
 
 	return lastEthBlockSynced, nil
