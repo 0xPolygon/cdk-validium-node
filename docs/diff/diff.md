@@ -1,3 +1,4 @@
+
 # Diff
 
 This repo is a fork from [zkevm-node](https://github.com/0xPolygonHermez.zkevm-node). The purpose of the fork is to implement tha Validium consensus, enabling data availability to be posted outside of L1.
