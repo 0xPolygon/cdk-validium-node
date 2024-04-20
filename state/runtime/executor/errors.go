@@ -1,7 +1,7 @@
 package executor
 
 import (
-	"fmt"
+	"errors"
 	"math"
 
 	"github.com/0xPolygonHermez/zkevm-node/state/runtime"
@@ -9,15 +9,15 @@ import (
 
 var (
 	// ErrExecutorUnspecified indicates an unspecified executor error
-	ErrExecutorUnspecified = fmt.Errorf("unspecified executor error")
+	ErrExecutorUnspecified = errors.New("unspecified executor error")
 	// ErrROMUnspecified indicates an unspecified ROM error
-	ErrROMUnspecified = fmt.Errorf("unspecified ROM error")
+	ErrROMUnspecified = errors.New("unspecified ROM error")
 	// ErrExecutorUnknown indicates an unknown executor error
-	ErrExecutorUnknown = fmt.Errorf("unknown executor error")
+	ErrExecutorUnknown = errors.New("unknown executor error")
 	// ErrCodeExecutorUnknown indicates an unknown executor error
 	ErrCodeExecutorUnknown = ExecutorError(math.MaxInt32)
 	// ErrROMUnknown indicates an unknown ROM error
-	ErrROMUnknown = fmt.Errorf("unknown ROM error")
+	ErrROMUnknown = errors.New("unknown ROM error")
 	// ErrCodeROMUnknown indicates an unknown ROM error
 	ErrCodeROMUnknown = RomError(math.MaxInt32)
 )
