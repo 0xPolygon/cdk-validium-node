@@ -413,6 +413,7 @@ func (f *finalizer) storeL2Block(ctx context.Context, l2Block *L2Block) error {
 		return err
 	}
 
+	//TODO: remove this log
 	log.Infof("l2 block %d [%d] stored in statedb", blockResponse.BlockNumber, l2Block.trackingNum)
 
 	// Update txs status in the pool
@@ -424,6 +425,7 @@ func (f *finalizer) storeL2Block(ctx context.Context, l2Block *L2Block) error {
 		}
 	}
 
+	//TODO: remove this log
 	log.Infof("l2 block %d [%d] transactions updated as selected in the pooldb", blockResponse.BlockNumber, l2Block.trackingNum)
 
 	// Send L2 block to data streamer
@@ -433,6 +435,7 @@ func (f *finalizer) storeL2Block(ctx context.Context, l2Block *L2Block) error {
 		log.Errorf("error sending L2 block %d [%d] to data streamer, error: %v", blockResponse.BlockNumber, l2Block.trackingNum, err)
 	}
 
+	//TODO: remove this log
 	log.Infof("l2 block %d [%d] sent to datastream", blockResponse.BlockNumber, l2Block.trackingNum)
 
 	for _, tx := range l2Block.transactions {
