@@ -227,6 +227,11 @@ func (a *Aggregator) Channel(stream prover.AggregatorService_ChannelServer) erro
 			_, err = a.tryBuildFinalProof(ctx, prover, nil)
 			if err != nil {
 				log.Errorf("Error checking proofs to verify: %v", err)
+
+				if errors.Is(err, context.Canceled) {
+					// the context was canceled, just continue, the loop will stop in the <-ctx.Done() case
+					continue
+				}
 			}
 
 			proofGenerated, err := a.tryAggregateProofs(ctx, prover)
