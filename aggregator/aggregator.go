@@ -495,8 +495,8 @@ func (a *Aggregator) tryBuildFinalProof(ctx context.Context, prover proverInterf
 	}
 	log.Debug("Send final proof time reached")
 
-	if err = a.waitForSyncronizerToSyncUp(ctx, nil); err != nil {
-		log.Warn("waiting for the syncronizer to sync up was canceled", err)
+	if err = a.waitForSynchronizerToSyncUp(ctx, nil); err != nil {
+		log.Warn("waiting for the synchronizer to sync up was canceled", err)
 		return false, err
 	}
 
@@ -1301,8 +1301,8 @@ func (a *Aggregator) handleMonitoredTxResult(result ethtxmanager.MonitoredTxResu
 
 	// wait for the synchronizer to catch up the verified batches
 	log.Debug("A final proof has been sent, waiting for the network to be synced")
-	if err := a.waitForSyncronizerToSyncUp(a.ctx, &proofBatchNumberFinal); err != nil {
-		log.Warn("waiting for the syncronizer to sync up was canceled", err)
+	if err := a.waitForSynchronizerToSyncUp(a.ctx, &proofBatchNumberFinal); err != nil {
+		log.Warn("waiting for the synchronizer to sync up was canceled", err)
 		return
 	}
 
@@ -1314,9 +1314,9 @@ func (a *Aggregator) handleMonitoredTxResult(result ethtxmanager.MonitoredTxResu
 	}
 }
 
-func (a *Aggregator) waitForSyncronizerToSyncUp(ctx context.Context, batchNum *uint64) error {
+func (a *Aggregator) waitForSynchronizerToSyncUp(ctx context.Context, batchNum *uint64) error {
 	for {
-		log.Info("Waiting for the synchronizer to sync...")
+		log.Info("waiting for the synchronizer to sync...")
 		synced, err := a.isSynced(ctx, batchNum)
 		if err != nil && errors.Is(err, context.Canceled) {
 			// if context is canceled, stop the loop, since it will never

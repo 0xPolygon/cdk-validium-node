@@ -1456,7 +1456,7 @@ func TestIsSynced(t *testing.T) {
 	}
 }
 
-func TestWaitForSyncronizerToSyncUp(t *testing.T) {
+func TestWaitForSynchronizerToSyncUp(t *testing.T) {
 	t.Parallel()
 
 	cfg := Config{}
@@ -1517,7 +1517,7 @@ func TestWaitForSyncronizerToSyncUp(t *testing.T) {
 				tc.setup(m, &a)
 			}
 
-			err = a.waitForSyncronizerToSyncUp(a.ctx, tc.batchNum)
+			err = a.waitForSynchronizerToSyncUp(a.ctx, tc.batchNum)
 			if tc.synced {
 				assert.NoError(t, err)
 			} else {
