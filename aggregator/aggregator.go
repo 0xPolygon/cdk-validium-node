@@ -1317,7 +1317,7 @@ func (a *Aggregator) handleMonitoredTxResult(result ethtxmanager.MonitoredTxResu
 func (a *Aggregator) waitForSyncronizerToSyncUp(ctx context.Context, batchNum *uint64) error {
 	for {
 		log.Info("Waiting for the synchronizer to sync...")
-		synced, err := a.isSynced(a.ctx, batchNum)
+		synced, err := a.isSynced(ctx, batchNum)
 		if err != nil && errors.Is(err, context.Canceled) {
 			// if context is canceled, stop the loop, since it will never
 			// be able to execute properly and break in this case, and we will be stuck in it forever
