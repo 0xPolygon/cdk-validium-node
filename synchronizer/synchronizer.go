@@ -999,7 +999,7 @@ func (s *ClientSynchronizer) newCheckReorg(latestStoredBlock *state.Block, synce
 		log.Infof("[checkReorg function] reorgedBlockNumber: %d reorgedBlockHash already synced: %s", reorgedBlock.BlockNumber, reorgedBlock.BlockHash.String())
 
 		// Compare hashes
-		if (block.BlockHash != reorgedBlock.BlockHash || block.ParentHash != reorgedBlock.ParentHash) && reorgedBlock.BlockNumber > s.genesis.RollupManagerBlockNumber {
+		if (block.BlockHash != reorgedBlock.BlockHash || block.ParentHash != reorgedBlock.ParentHash) && reorgedBlock.BlockNumber > s.genesis.RollupBlockNumber {
 			log.Infof("checkReorg: Bad block %d hashOk %t parentHashOk %t", reorgedBlock.BlockNumber, block.BlockHash == reorgedBlock.BlockHash, block.ParentHash == reorgedBlock.ParentHash)
 			log.Debug("[checkReorg function] => latestBlockNumber: ", reorgedBlock.BlockNumber)
 			log.Debug("[checkReorg function] => latestBlockHash: ", reorgedBlock.BlockHash)

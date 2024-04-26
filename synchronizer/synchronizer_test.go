@@ -921,7 +921,7 @@ func expectedCallsForsyncTrustedState(t *testing.T, m *mocks, sync *ClientSynchr
 
 func TestReorg(t *testing.T) {
 	genesis := state.Genesis{
-		BlockNumber: uint64(0),
+		RollupBlockNumber: uint64(0),
 	}
 	cfg := Config{
 		SyncInterval:          cfgTypes.Duration{Duration: 1 * time.Second},
@@ -1241,7 +1241,7 @@ func TestReorg(t *testing.T) {
 
 func TestLatestSyncedBlockEmpty(t *testing.T) {
 	genesis := state.Genesis{
-		BlockNumber: uint64(0),
+		RollupBlockNumber: uint64(0),
 	}
 	cfg := Config{
 		SyncInterval:          cfgTypes.Duration{Duration: 1 * time.Second},
@@ -1455,7 +1455,7 @@ func TestLatestSyncedBlockEmpty(t *testing.T) {
 
 func TestRegularReorg(t *testing.T) {
 	genesis := state.Genesis{
-		BlockNumber: uint64(0),
+		RollupBlockNumber: uint64(0),
 	}
 	cfg := Config{
 		SyncInterval:          cfgTypes.Duration{Duration: 1 * time.Second},
@@ -1737,7 +1737,7 @@ func TestRegularReorg(t *testing.T) {
 
 func TestLatestSyncedBlockEmptyWithExtraReorg(t *testing.T) {
 	genesis := state.Genesis{
-		BlockNumber: uint64(0),
+		RollupBlockNumber: uint64(0),
 	}
 	cfg := Config{
 		SyncInterval:          cfgTypes.Duration{Duration: 1 * time.Second},
@@ -2013,7 +2013,7 @@ func TestLatestSyncedBlockEmptyWithExtraReorg(t *testing.T) {
 
 func TestCallFromEmptyBlockAndReorg(t *testing.T) {
 	genesis := state.Genesis{
-		BlockNumber: uint64(0),
+		RollupBlockNumber: uint64(0),
 	}
 	cfg := Config{
 		SyncInterval:          cfgTypes.Duration{Duration: 1 * time.Second},
