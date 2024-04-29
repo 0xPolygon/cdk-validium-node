@@ -26,6 +26,7 @@ type Batch struct {
 	imRemainingResources    state.BatchResources // remaining batch resources when processing tx-by-tx
 	finalRemainingResources state.BatchResources // remaining batch resources when a L2 block is processed
 	closingReason           state.ClosingReason
+	finalLocalExitRoot      common.Hash
 }
 
 func (w *Batch) isEmpty() bool {
@@ -94,6 +95,7 @@ func (f *finalizer) setWIPBatch(ctx context.Context, wipStateBatch *state.Batch)
 		countOfTxs:              wipStateBatchCountOfTxs,
 		imRemainingResources:    remainingResources,
 		finalRemainingResources: remainingResources,
+		finalLocalExitRoot:      wipStateBatch.LocalExitRoot,
 	}
 
 	return wipBatch, nil
@@ -293,6 +295,7 @@ func (f *finalizer) openNewWIPBatch(ctx context.Context, batchNumber uint64, sta
 		imRemainingResources:    maxRemainingResources,
 		finalRemainingResources: maxRemainingResources,
 		closingReason:           state.EmptyClosingReason,
+		finalLocalExitRoot:      newStateBatch.LocalExitRoot,
 	}, err
 }
 
@@ -328,6 +331,9 @@ func (f *finalizer) closeWIPBatch(ctx context.Context) error {
 			log.Errorf("error committing close wip batch, error: %v", err)
 			return err
 		}
+
+		// Sent batch to DS
+		f.DSSendBatch(f.wipBatch.batchNumber, f.wipBatch.finalStateRoot, f.wipBatch.finalLocalExitRoot)
 	}
 
 	return nil
