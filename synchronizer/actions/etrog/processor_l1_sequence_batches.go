@@ -252,7 +252,7 @@ func (p *ProcessorL1SequenceBatchesEtrog) ProcessSequenceBatches(ctx context.Con
 			}
 		} else {
 			// Reprocess batch to compare the stateRoot with tBatch.StateRoot and get accInputHash
-			batchRespose, err := p.state.ExecuteBatchV2(ctx, batch, processCtx.L1InfoRoot, leaves, *processCtx.Timestamp, false, processCtx.SkipVerifyL1InfoRoot, processCtx.ForcedBlockHashL1, dbTx)
+			batchResponse, err := p.state.ExecuteBatchV2(ctx, batch, processCtx.L1InfoRoot, leaves, *processCtx.Timestamp, false, processCtx.SkipVerifyL1InfoRoot, processCtx.ForcedBlockHashL1, dbTx)
 			if err != nil {
 				log.Errorf("error executing L1 batch: %+v, error: %v", batch, err)
 				rollbackErr := dbTx.Rollback(ctx)
@@ -262,8 +262,8 @@ func (p *ProcessorL1SequenceBatchesEtrog) ProcessSequenceBatches(ctx context.Con
 				}
 				return err
 			}
-			newRoot = common.BytesToHash(batchRespose.NewStateRoot)
-			accumulatedInputHash := common.BytesToHash(batchRespose.NewAccInputHash)
+			newRoot = common.BytesToHash(batchResponse.NewStateRoot)
+			accumulatedInputHash := common.BytesToHash(batchResponse.NewAccInputHash)
 
 			//AddAccumulatedInputHash
 			err = p.state.AddAccumulatedInputHash(ctx, batch.BatchNumber, accumulatedInputHash, dbTx)
