@@ -260,8 +260,9 @@ func (f *finalizer) processL2Block(ctx context.Context, l2Block *L2Block) error 
 		return fmt.Errorf(overflowLog)
 	}
 
-	// Update finalStateRoot of the batch to the newStateRoot for the L2 block
+	// Update finalStateRoot/finalLocalExitRoot of the batch to the newStateRoot/newLocalExitRoot for the L2 block
 	l2Block.batch.finalStateRoot = l2Block.batchResponse.NewStateRoot
+	l2Block.batch.finalLocalExitRoot = l2Block.batchResponse.NewLocalExitRoot
 
 	f.updateFlushIDs(batchResponse.FlushID, batchResponse.StoredFlushID)
 
@@ -493,7 +494,7 @@ func (f *finalizer) storeL2Block(ctx context.Context, l2Block *L2Block) error {
 	log.Infof("[ds-debug] l2 block %d [%d] transactions updated as selected in the pooldb", blockResponse.BlockNumber, l2Block.trackingNum)
 
 	// Send L2 block to data streamer
-	err = f.DSSendL2Block(l2Block.batch.batchNumber, blockResponse, l2Block.getL1InfoTreeIndex())
+	err = f.DSSendL2Block(f.wipBatch.batchNumber, blockResponse, l2Block.getL1InfoTreeIndex(), l2Block.timestamp)
 	if err != nil {
 		//TODO: we need to halt/rollback the L2 block if we had an error sending to the data streamer?
 		log.Errorf("error sending L2 block %d [%d] to data streamer, error: %v", blockResponse.BlockNumber, l2Block.trackingNum, err)
