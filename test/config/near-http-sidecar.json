@@ -1,0 +1,7 @@
+{
+  "account_id": "test.near",
+  "secret_key": "HTTP_API_TEST_SECRET_KEY",
+  "contract_id": "test.near",
+  "network": "http://near-localnet:3030",
+  "namespace": null
+}

@@ -673,6 +673,7 @@ func (m *Manager) StopDACDB() error {
 	return StopComponent("dac-db")
 }
 
+// TODO: start a node that is forced to sync with near-da
 // StartPermissionlessNodeForcedToSYncThroughDAC starts a permissionless node that is froced to sync through the DAC
 func (m *Manager) StartPermissionlessNodeForcedToSYncThroughDAC() error {
 	return StartComponent("permissionless-dac", func() (bool, error) { return true, nil })
@@ -681,4 +682,13 @@ func (m *Manager) StartPermissionlessNodeForcedToSYncThroughDAC() error {
 // StopPermissionlessNodeForcedToSYncThroughDAC stops the permissionless node that is froced to sync through the DAC
 func (m *Manager) StopPermissionlessNodeForcedToSYncThroughDAC() error {
 	return StopComponent("permissionless-dac")
+}
+
+func (m *Manager) StartPermissionlessNodeForcedToSyncThroughNear() error {
+	return StartComponent("permissionless-near", func() (bool, error) { return true, nil })
+}
+
+// StopPermissionlessNodeForcedToSYncThroughDAC stops the permissionless node that is froced to sync through the DAC
+func (m *Manager) StopPermissionlessNodeForcedToSyncThroughNear() error {
+	return StopComponent("permissionless-near")
 }

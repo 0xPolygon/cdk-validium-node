@@ -21,6 +21,7 @@ import (
 	"github.com/0xPolygonHermez/zkevm-node/config"
 	"github.com/0xPolygonHermez/zkevm-node/dataavailability"
 	"github.com/0xPolygonHermez/zkevm-node/dataavailability/datacommittee"
+	"github.com/0xPolygonHermez/zkevm-node/dataavailability/near"
 	"github.com/0xPolygonHermez/zkevm-node/db"
 	"github.com/0xPolygonHermez/zkevm-node/etherman"
 	"github.com/0xPolygonHermez/zkevm-node/ethtxmanager"
@@ -350,6 +351,15 @@ func newDataAvailability(c config.Config, st *state.State, etherman *etherman.Cl
 			pk,
 			dataCommitteeClient.NewFactory(),
 		)
+		if err != nil {
+			return nil, err
+		}
+	case string(dataavailability.NearProtocol):
+		/// TODO: Feels like there should be more configuration here, but the key store is eth specific.
+		/// Since this is a configurable sidecar, it's valid to set this when it's running, but the sequencer
+		/// might want to update this in the future.
+		host := "http://near-da-sidecar:5888"
+		daBackend, err = near.New(host, nil)
 		if err != nil {
 			return nil, err
 		}

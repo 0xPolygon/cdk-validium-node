@@ -1,0 +1,7 @@
+{
+  "account_id": "test.near",
+  "secret_key": "ed25519:4dagBsEqCv3Ao5wa4KKFa57xNAH4wuBjh9wdTNYeCqDSeA9zE7fCnHSvWpU8t68jUpcCGqgfYwcH68suPaqmdcgm",
+  "contract_id": "test.near",
+  "network": "http://near-localnet:3030",
+  "namespace": null
+}
