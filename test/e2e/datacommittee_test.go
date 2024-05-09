@@ -8,8 +8,8 @@ import (
 	"math/big"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"sort"
-	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -18,18 +18,18 @@ import (
 	cTypes "github.com/0xPolygon/cdk-data-availability/config/types"
 	"github.com/0xPolygon/cdk-data-availability/db"
 	"github.com/0xPolygon/cdk-data-availability/rpc"
-	"github.com/0xPolygonHermez/zkevm-node/etherman/smartcontracts/polygondatacommittee"
-	"github.com/0xPolygonHermez/zkevm-node/log"
-	"github.com/0xPolygonHermez/zkevm-node/test/operations"
 	"github.com/ethereum/go-ethereum"
-	eTypes "github.com/ethereum/go-ethereum/core/types"
-
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"github.com/ethereum/go-ethereum/common"
+	eTypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/0xPolygonHermez/zkevm-node/etherman/smartcontracts/polygondatacommittee"
+	"github.com/0xPolygonHermez/zkevm-node/log"
+	"github.com/0xPolygonHermez/zkevm-node/test/operations"
 )
 
 func TestDataCommittee(t *testing.T) {
@@ -39,7 +39,7 @@ func TestDataCommittee(t *testing.T) {
 		ksFile           = "/tmp/pkey"
 		cfgFile          = "/tmp/dacnodeconfigfile.json"
 		ksPass           = "pass"
-		dacNodeContainer = "hermeznetwork/cdk-data-availability:v0.0.4"
+		dacNodeContainer = "0xpolygon/cdk-data-availability:0.0.7"
 	)
 
 	// Setup
@@ -78,7 +78,7 @@ func TestDataCommittee(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	// Register committe with N / M signatures
+	// Register committee with N / M signatures
 	membs := members{}
 	addrsBytes := []byte{}
 	urls := []string{}
@@ -146,11 +146,12 @@ func TestDataCommittee(t *testing.T) {
 		)
 		// Stop DAC nodes
 		for i := 0; i < mMembers; i++ {
+			dacNode := fmt.Sprintf("cdk-data-availability-%d", i)
 			assert.NoError(t, exec.Command(
-				"docker", "kill", "cdk-data-availability-"+strconv.Itoa(i),
+				"docker", "kill", dacNode,
 			).Run())
 			assert.NoError(t, exec.Command(
-				"docker", "rm", "cdk-data-availability-"+strconv.Itoa(i),
+				"docker", "rm", dacNode,
 			).Run())
 		}
 		// Stop permissionless node
@@ -160,13 +161,15 @@ func TestDataCommittee(t *testing.T) {
 	require.NoError(t, opsman.StartPermissionlessNodeForcedToSYncThroughDAC())
 	// Star DAC nodes
 	for _, m := range membs {
+		dacNode := fmt.Sprintf("cdk-data-availability-%d", m.i)
+
 		// Set correct port
 		port := 4200 + m.i
 		dacNodeConfig.RPC.Port = port
 		// Write config file
 		file, err := json.MarshalIndent(dacNodeConfig, "", " ")
 		require.NoError(t, err)
-		err = os.WriteFile(cfgFile, file, 0644)
+		err = os.WriteFile(cfgFile, file, 0600)
 		require.NoError(t, err)
 		// Write private key keystore file
 		err = createKeyStore(m.pk, ksFile, ksPass)
@@ -174,7 +177,7 @@ func TestDataCommittee(t *testing.T) {
 		// Run DAC node
 		cmd := exec.Command(
 			"docker", "run", "-d",
-			"--name", "cdk-data-availability-"+strconv.Itoa(m.i),
+			"--name", dacNode,
 			"-v", cfgFile+":/app/config.json",
 			"-v", ksFile+":"+ksFile,
 			"--network", "zkevm",
@@ -255,13 +258,14 @@ func createKeyStore(pk *ecdsa.PrivateKey, outputDir, password string) error {
 	if err != nil {
 		return err
 	}
-	fileNameB, err := exec.Command("ls", outputDir+"_/").CombinedOutput()
+	fileNameB, err := exec.Command("ls", outputDir).CombinedOutput()
 	fileName := strings.TrimSuffix(string(fileNameB), "\n")
 	if err != nil {
 		fmt.Println(fileName)
 		return err
 	}
-	out, err := exec.Command("mv", outputDir+"_/"+fileName, outputDir).CombinedOutput()
+	srcFile := filepath.Join(fmt.Sprintf("%s_", outputDir), fileName)
+	out, err := exec.Command("mv", srcFile, outputDir).CombinedOutput()
 	if err != nil {
 		fmt.Println(string(out))
 		return err
