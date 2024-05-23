@@ -70,6 +70,10 @@ func Test_Defaults(t *testing.T) {
 			expectedValue: []dataavailability.DataSourcePriority{"local", "trusted", "external"},
 		},
 		{
+			path:          "Synchronizer.L2Synchronization.Enable",
+			expectedValue: true,
+		},
+		{
 			path:          "Sequencer.DeletePoolTxsL1BlockConfirmations",
 			expectedValue: uint64(100),
 		},
