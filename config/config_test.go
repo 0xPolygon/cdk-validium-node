@@ -70,7 +70,15 @@ func Test_Defaults(t *testing.T) {
 			expectedValue: []dataavailability.DataSourcePriority{"local", "trusted", "external"},
 		},
 		{
-			path:          "Synchronizer.L2Synchronization.Enable",
+			path:          "Synchronizer.L1BlockCheck.Enabled",
+			expectedValue: true,
+		},
+		{
+			path:          "Synchronizer.L1BlockCheck.PreCheckEnabled",
+			expectedValue: true,
+		},
+		{
+			path:          "Synchronizer.L2Synchronization.Enabled",
 			expectedValue: true,
 		},
 		{
