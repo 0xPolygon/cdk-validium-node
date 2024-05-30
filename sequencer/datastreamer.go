@@ -9,7 +9,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
-func (f *finalizer) DSSendL2Block(ctx context.Context, batchNumber uint64, blockResponse *state.ProcessBlockResponse, l1InfoTreeIndex uint32, minTimestamp uint64) error {
+func (f *finalizer) DSSendL2Block(ctx context.Context, batchNumber uint64, blockResponse *state.ProcessBlockResponse, l1InfoTreeIndex uint32, minTimestamp uint64, blockHash common.Hash) error {
 	forkID := f.stateIntf.GetForkIDByBatchNumber(batchNumber)
 
 	// Send data to streamer
@@ -18,15 +18,19 @@ func (f *finalizer) DSSendL2Block(ctx context.Context, batchNumber uint64, block
 			BatchNumber:     batchNumber,
 			L2BlockNumber:   blockResponse.BlockNumber,
 			Timestamp:       blockResponse.Timestamp,
-			Min_timestamp:   minTimestamp,
+			MinTimestamp:    minTimestamp,
 			L1InfoTreeIndex: l1InfoTreeIndex,
 			L1BlockHash:     blockResponse.BlockHashL1,
 			GlobalExitRoot:  blockResponse.GlobalExitRoot,
 			Coinbase:        f.l2Coinbase,
 			ForkID:          forkID,
-			BlockHash:       blockResponse.BlockHash,
+			BlockHash:       blockHash,
 			StateRoot:       blockResponse.BlockHash, //From etrog, the blockhash is the block root
 			BlockInfoRoot:   blockResponse.BlockInfoRoot,
+		}
+
+		if l2Block.ForkID >= state.FORKID_ETROG && l2Block.L1InfoTreeIndex == 0 {
+			l2Block.MinTimestamp = 0
 		}
 
 		l2Transactions := []state.DSL2Transaction{}
