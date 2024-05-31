@@ -43,4 +43,6 @@ type Config struct {
 	GasOffset uint64 `mapstructure:"GasOffset"`
 	// MaxBatchesForL1 is the maximum amount of batches to be sequenced in a single L1 tx
 	MaxBatchesForL1 uint64 `mapstructure:"MaxBatchesForL1"`
+	// SequenceL1BlockConfirmations is number of blocks to consider a sequence sent to L1 as final
+	SequenceL1BlockConfirmations uint64 `mapstructure:"SequenceL1BlockConfirmations"`
 }

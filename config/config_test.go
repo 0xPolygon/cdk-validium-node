@@ -202,6 +202,10 @@ func Test_Defaults(t *testing.T) {
 			expectedValue: uint64(300),
 		},
 		{
+			path:          "SequenceSender.SequenceL1BlockConfirmations",
+			expectedValue: uint64(32),
+		},
+		{
 			path:          "Etherman.URL",
 			expectedValue: "http://localhost:8545",
 		},
