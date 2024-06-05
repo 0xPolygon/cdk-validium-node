@@ -64,18 +64,8 @@ func TestBlockNumber(t *testing.T) {
 			ExpectedError:  nil,
 			ExpectedResult: blockNumTen.Uint64(),
 			SetupMocks: func(m *mocksWrapper) {
-				m.DbTx.
-					On("Commit", context.Background()).
-					Return(nil).
-					Once()
-
 				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
-				m.State.
-					On("GetLastL2BlockNumber", context.Background(), m.DbTx).
+					On("GetLastL2BlockNumber", context.Background(), nil).
 					Return(blockNumTen.Uint64(), nil).
 					Once()
 			},
@@ -85,18 +75,8 @@ func TestBlockNumber(t *testing.T) {
 			ExpectedError:  types.NewRPCError(types.DefaultErrorCode, "failed to get the last block number from state"),
 			ExpectedResult: 0,
 			SetupMocks: func(m *mocksWrapper) {
-				m.DbTx.
-					On("Rollback", context.Background()).
-					Return(nil).
-					Once()
-
 				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
-				m.State.
-					On("GetLastL2BlockNumber", context.Background(), m.DbTx).
+					On("GetLastL2BlockNumber", context.Background(), nil).
 					Return(uint64(0), errors.New("failed to get last block number")).
 					Once()
 			},
@@ -156,8 +136,6 @@ func TestCall(t *testing.T) {
 			expectedError:  nil,
 			setupMocks: func(c Config, m *mocksWrapper, testCase *testCase) {
 				nonce := uint64(7)
-				m.DbTx.On("Commit", context.Background()).Return(nil).Once()
-				m.State.On("BeginStateTransaction", context.Background()).Return(m.DbTx, nil).Once()
 				txArgs := testCase.params[0].(types.TxArgs)
 				txMatchBy := mock.MatchedBy(func(tx *ethTypes.Transaction) bool {
 					gasPrice := big.NewInt(0).SetBytes(*txArgs.GasPrice)
@@ -172,10 +150,10 @@ func TestCall(t *testing.T) {
 					return match
 				})
 				block := state.NewL2BlockWithHeader(state.NewL2Header(&ethTypes.Header{Number: blockNumOne, Root: blockRoot}))
-				m.State.On("GetL2BlockByNumber", context.Background(), blockNumOneUint64, m.DbTx).Return(block, nil).Once()
+				m.State.On("GetL2BlockByNumber", context.Background(), blockNumOneUint64, nil).Return(block, nil).Once()
 				m.State.On("GetNonce", context.Background(), *txArgs.From, blockRoot).Return(nonce, nil).Once()
 				m.State.
-					On("ProcessUnsignedTransaction", context.Background(), txMatchBy, *txArgs.From, &blockNumOneUint64, true, m.DbTx).
+					On("ProcessUnsignedTransaction", context.Background(), txMatchBy, *txArgs.From, &blockNumOneUint64, true, nil).
 					Return(&runtime.ExecutionResult{ReturnValue: testCase.expectedResult}, nil).
 					Once()
 			},
@@ -199,11 +177,9 @@ func TestCall(t *testing.T) {
 			expectedError:  nil,
 			setupMocks: func(c Config, m *mocksWrapper, testCase *testCase) {
 				nonce := uint64(7)
-				m.DbTx.On("Commit", context.Background()).Return(nil).Once()
-				m.State.On("BeginStateTransaction", context.Background()).Return(m.DbTx, nil).Once()
 				block := state.NewL2BlockWithHeader(state.NewL2Header(&ethTypes.Header{Number: blockNumOne, Root: blockRoot}))
 				m.State.
-					On("GetL2BlockByHash", context.Background(), blockHash, m.DbTx).
+					On("GetL2BlockByHash", context.Background(), blockHash, nil).
 					Return(block, nil).Once()
 				txArgs := testCase.params[0].(types.TxArgs)
 				txMatchBy := mock.MatchedBy(func(tx *ethTypes.Transaction) bool {
@@ -219,7 +195,7 @@ func TestCall(t *testing.T) {
 				})
 				m.State.On("GetNonce", context.Background(), *txArgs.From, blockRoot).Return(nonce, nil).Once()
 				m.State.
-					On("ProcessUnsignedTransaction", context.Background(), txMatchBy, *txArgs.From, &blockNumOneUint64, true, m.DbTx).
+					On("ProcessUnsignedTransaction", context.Background(), txMatchBy, *txArgs.From, &blockNumOneUint64, true, nil).
 					Return(&runtime.ExecutionResult{ReturnValue: testCase.expectedResult}, nil).
 					Once()
 			},
@@ -241,9 +217,7 @@ func TestCall(t *testing.T) {
 			expectedError:  nil,
 			setupMocks: func(c Config, m *mocksWrapper, testCase *testCase) {
 				nonce := uint64(7)
-				m.DbTx.On("Commit", context.Background()).Return(nil).Once()
-				m.State.On("BeginStateTransaction", context.Background()).Return(m.DbTx, nil).Once()
-				m.State.On("GetLastL2BlockNumber", context.Background(), m.DbTx).Return(blockNumOne.Uint64(), nil).Once()
+				m.State.On("GetLastL2BlockNumber", context.Background(), nil).Return(blockNumOne.Uint64(), nil).Once()
 				txArgs := testCase.params[0].(types.TxArgs)
 				txMatchBy := mock.MatchedBy(func(tx *ethTypes.Transaction) bool {
 					gasPrice := big.NewInt(0).SetBytes(*txArgs.GasPrice)
@@ -258,10 +232,10 @@ func TestCall(t *testing.T) {
 					return match
 				})
 				block := state.NewL2BlockWithHeader(state.NewL2Header(&ethTypes.Header{Number: blockNumOne, Root: blockRoot}))
-				m.State.On("GetL2BlockByNumber", context.Background(), blockNumOneUint64, m.DbTx).Return(block, nil).Once()
+				m.State.On("GetL2BlockByNumber", context.Background(), blockNumOneUint64, nil).Return(block, nil).Once()
 				m.State.On("GetNonce", context.Background(), *txArgs.From, blockRoot).Return(nonce, nil).Once()
 				m.State.
-					On("ProcessUnsignedTransaction", context.Background(), txMatchBy, *txArgs.From, nilUint64, true, m.DbTx).
+					On("ProcessUnsignedTransaction", context.Background(), txMatchBy, *txArgs.From, nilUint64, true, nil).
 					Return(&runtime.ExecutionResult{ReturnValue: testCase.expectedResult}, nil).
 					Once()
 			},
@@ -283,11 +257,9 @@ func TestCall(t *testing.T) {
 			expectedError:  nil,
 			setupMocks: func(c Config, m *mocksWrapper, testCase *testCase) {
 				nonce := uint64(7)
-				m.DbTx.On("Commit", context.Background()).Return(nil).Once()
-				m.State.On("BeginStateTransaction", context.Background()).Return(m.DbTx, nil).Once()
 				block := state.NewL2BlockWithHeader(state.NewL2Header(&ethTypes.Header{Number: blockNumTen, Root: blockRoot}))
 				m.State.
-					On("GetL2BlockByHash", context.Background(), blockHash, m.DbTx).
+					On("GetL2BlockByHash", context.Background(), blockHash, nil).
 					Return(block, nil).Once()
 				txArgs := testCase.params[0].(types.TxArgs)
 				txMatchBy := mock.MatchedBy(func(tx *ethTypes.Transaction) bool {
@@ -303,7 +275,7 @@ func TestCall(t *testing.T) {
 				})
 				m.State.On("GetNonce", context.Background(), *txArgs.From, blockRoot).Return(nonce, nil).Once()
 				m.State.
-					On("ProcessUnsignedTransaction", context.Background(), txMatchBy, *txArgs.From, &blockNumTenUint64, true, m.DbTx).
+					On("ProcessUnsignedTransaction", context.Background(), txMatchBy, *txArgs.From, &blockNumTenUint64, true, nil).
 					Return(&runtime.ExecutionResult{ReturnValue: testCase.expectedResult}, nil).
 					Once()
 			},
@@ -325,8 +297,6 @@ func TestCall(t *testing.T) {
 			expectedError:  nil,
 			setupMocks: func(c Config, m *mocksWrapper, testCase *testCase) {
 				nonce := uint64(7)
-				m.DbTx.On("Commit", context.Background()).Return(nil).Once()
-				m.State.On("BeginStateTransaction", context.Background()).Return(m.DbTx, nil).Once()
 				txArgs := testCase.params[0].(types.TxArgs)
 				txMatchBy := mock.MatchedBy(func(tx *ethTypes.Transaction) bool {
 					gasPrice := big.NewInt(0).SetBytes(*txArgs.GasPrice)
@@ -340,10 +310,10 @@ func TestCall(t *testing.T) {
 						tx.Nonce() == nonce
 				})
 				block := state.NewL2BlockWithHeader(state.NewL2Header(&ethTypes.Header{Number: blockNumTen, Root: blockRoot}))
-				m.State.On("GetL2BlockByNumber", context.Background(), blockNumTenUint64, m.DbTx).Return(block, nil).Once()
+				m.State.On("GetL2BlockByNumber", context.Background(), blockNumTenUint64, nil).Return(block, nil).Once()
 				m.State.On("GetNonce", context.Background(), *txArgs.From, blockRoot).Return(nonce, nil).Once()
 				m.State.
-					On("ProcessUnsignedTransaction", context.Background(), txMatchBy, *txArgs.From, &blockNumTenUint64, true, m.DbTx).
+					On("ProcessUnsignedTransaction", context.Background(), txMatchBy, *txArgs.From, &blockNumTenUint64, true, nil).
 					Return(&runtime.ExecutionResult{ReturnValue: testCase.expectedResult}, nil).
 					Once()
 			},
@@ -363,10 +333,8 @@ func TestCall(t *testing.T) {
 			expectedError:  nil,
 			setupMocks: func(c Config, m *mocksWrapper, testCase *testCase) {
 				blockHeader := state.NewL2Header(&ethTypes.Header{GasLimit: s.Config.MaxCumulativeGasUsed})
-				m.DbTx.On("Commit", context.Background()).Return(nil).Once()
-				m.State.On("BeginStateTransaction", context.Background()).Return(m.DbTx, nil).Once()
-				m.State.On("GetLastL2BlockNumber", context.Background(), m.DbTx).Return(blockNumOne.Uint64(), nil).Once()
-				m.State.On("GetL2BlockHeaderByNumber", context.Background(), blockNumOne.Uint64(), m.DbTx).Return(blockHeader, nil).Once()
+				m.State.On("GetLastL2BlockNumber", context.Background(), nil).Return(blockNumOne.Uint64(), nil).Once()
+				m.State.On("GetL2BlockHeaderByNumber", context.Background(), blockNumOne.Uint64(), nil).Return(blockHeader, nil).Once()
 				txArgs := testCase.params[0].(types.TxArgs)
 				txMatchBy := mock.MatchedBy(func(tx *ethTypes.Transaction) bool {
 					gasPrice := big.NewInt(0).SetBytes(*txArgs.GasPrice)
@@ -380,9 +348,9 @@ func TestCall(t *testing.T) {
 					return hasTx && gasMatch && toMatch && gasPriceMatch && valueMatch && dataMatch
 				})
 				block := state.NewL2BlockWithHeader(state.NewL2Header(&ethTypes.Header{Number: blockNumOne, Root: blockRoot}))
-				m.State.On("GetL2BlockByNumber", context.Background(), blockNumOneUint64, m.DbTx).Return(block, nil).Once()
+				m.State.On("GetL2BlockByNumber", context.Background(), blockNumOneUint64, nil).Return(block, nil).Once()
 				m.State.
-					On("ProcessUnsignedTransaction", context.Background(), txMatchBy, common.HexToAddress(state.DefaultSenderAddress), nilUint64, true, m.DbTx).
+					On("ProcessUnsignedTransaction", context.Background(), txMatchBy, common.HexToAddress(state.DefaultSenderAddress), nilUint64, true, nil).
 					Return(&runtime.ExecutionResult{ReturnValue: testCase.expectedResult}, nil).
 					Once()
 			},
@@ -402,10 +370,8 @@ func TestCall(t *testing.T) {
 			expectedError:  nil,
 			setupMocks: func(c Config, m *mocksWrapper, testCase *testCase) {
 				blockHeader := state.NewL2Header(&ethTypes.Header{GasLimit: s.Config.MaxCumulativeGasUsed})
-				m.DbTx.On("Commit", context.Background()).Return(nil).Once()
-				m.State.On("BeginStateTransaction", context.Background()).Return(m.DbTx, nil).Once()
-				m.State.On("GetLastL2BlockNumber", context.Background(), m.DbTx).Return(blockNumOne.Uint64(), nil).Once()
-				m.State.On("GetL2BlockHeaderByNumber", context.Background(), blockNumOne.Uint64(), m.DbTx).Return(blockHeader, nil).Once()
+				m.State.On("GetLastL2BlockNumber", context.Background(), nil).Return(blockNumOne.Uint64(), nil).Once()
+				m.State.On("GetL2BlockHeaderByNumber", context.Background(), blockNumOne.Uint64(), nil).Return(blockHeader, nil).Once()
 				txArgs := testCase.params[0].(types.TxArgs)
 				txMatchBy := mock.MatchedBy(func(tx *ethTypes.Transaction) bool {
 					gasPrice := big.NewInt(0).SetBytes(*txArgs.GasPrice)
@@ -419,9 +385,9 @@ func TestCall(t *testing.T) {
 					return hasTx && gasMatch && toMatch && gasPriceMatch && valueMatch && dataMatch
 				})
 				block := state.NewL2BlockWithHeader(state.NewL2Header(&ethTypes.Header{Number: blockNumOne, Root: blockRoot}))
-				m.State.On("GetL2BlockByNumber", context.Background(), blockNumOneUint64, m.DbTx).Return(block, nil).Once()
+				m.State.On("GetL2BlockByNumber", context.Background(), blockNumOneUint64, nil).Return(block, nil).Once()
 				m.State.
-					On("ProcessUnsignedTransaction", context.Background(), txMatchBy, common.HexToAddress(state.DefaultSenderAddress), nilUint64, true, m.DbTx).
+					On("ProcessUnsignedTransaction", context.Background(), txMatchBy, common.HexToAddress(state.DefaultSenderAddress), nilUint64, true, nil).
 					Return(&runtime.ExecutionResult{ReturnValue: testCase.expectedResult}, nil).
 					Once()
 			},
@@ -440,12 +406,10 @@ func TestCall(t *testing.T) {
 			expectedResult: nil,
 			expectedError:  types.NewRPCError(types.DefaultErrorCode, "failed to get block header"),
 			setupMocks: func(c Config, m *mocksWrapper, testCase *testCase) {
-				m.DbTx.On("Rollback", context.Background()).Return(nil).Once()
-				m.State.On("BeginStateTransaction", context.Background()).Return(m.DbTx, nil).Once()
-				m.State.On("GetLastL2BlockNumber", context.Background(), m.DbTx).Return(blockNumOne.Uint64(), nil).Once()
+				m.State.On("GetLastL2BlockNumber", context.Background(), nil).Return(blockNumOne.Uint64(), nil).Once()
 				block := state.NewL2BlockWithHeader(state.NewL2Header(&ethTypes.Header{Number: blockNumOne, Root: blockRoot}))
-				m.State.On("GetL2BlockByNumber", context.Background(), blockNumOneUint64, m.DbTx).Return(block, nil).Once()
-				m.State.On("GetL2BlockHeaderByNumber", context.Background(), blockNumOne.Uint64(), m.DbTx).Return(nil, errors.New("failed to get block header")).Once()
+				m.State.On("GetL2BlockByNumber", context.Background(), blockNumOneUint64, nil).Return(block, nil).Once()
+				m.State.On("GetL2BlockHeaderByNumber", context.Background(), blockNumOne.Uint64(), nil).Return(nil, errors.New("failed to get block header")).Once()
 			},
 		},
 		{
@@ -465,9 +429,7 @@ func TestCall(t *testing.T) {
 			expectedError:  types.NewRPCError(types.DefaultErrorCode, "failed to process unsigned transaction"),
 			setupMocks: func(c Config, m *mocksWrapper, testCase *testCase) {
 				nonce := uint64(7)
-				m.DbTx.On("Rollback", context.Background()).Return(nil).Once()
-				m.State.On("BeginStateTransaction", context.Background()).Return(m.DbTx, nil).Once()
-				m.State.On("GetLastL2BlockNumber", context.Background(), m.DbTx).Return(blockNumOne.Uint64(), nil).Once()
+				m.State.On("GetLastL2BlockNumber", context.Background(), nil).Return(blockNumOne.Uint64(), nil).Once()
 				txArgs := testCase.params[0].(types.TxArgs)
 				txMatchBy := mock.MatchedBy(func(tx *ethTypes.Transaction) bool {
 					gasPrice := big.NewInt(0).SetBytes(*txArgs.GasPrice)
@@ -482,10 +444,10 @@ func TestCall(t *testing.T) {
 					return hasTx && gasMatch && toMatch && gasPriceMatch && valueMatch && dataMatch && nonceMatch
 				})
 				block := state.NewL2BlockWithHeader(state.NewL2Header(&ethTypes.Header{Number: blockNumOne, Root: blockRoot}))
-				m.State.On("GetL2BlockByNumber", context.Background(), blockNumOneUint64, m.DbTx).Return(block, nil).Once()
+				m.State.On("GetL2BlockByNumber", context.Background(), blockNumOneUint64, nil).Return(block, nil).Once()
 				m.State.On("GetNonce", context.Background(), *txArgs.From, blockRoot).Return(nonce, nil).Once()
 				m.State.
-					On("ProcessUnsignedTransaction", context.Background(), txMatchBy, *txArgs.From, nilUint64, true, m.DbTx).
+					On("ProcessUnsignedTransaction", context.Background(), txMatchBy, *txArgs.From, nilUint64, true, nil).
 					Return(&runtime.ExecutionResult{Err: errors.New("failed to process unsigned transaction")}, nil).
 					Once()
 			},
@@ -507,9 +469,7 @@ func TestCall(t *testing.T) {
 			expectedError:  types.NewRPCError(types.DefaultErrorCode, "execution reverted"),
 			setupMocks: func(c Config, m *mocksWrapper, testCase *testCase) {
 				nonce := uint64(7)
-				m.DbTx.On("Rollback", context.Background()).Return(nil).Once()
-				m.State.On("BeginStateTransaction", context.Background()).Return(m.DbTx, nil).Once()
-				m.State.On("GetLastL2BlockNumber", context.Background(), m.DbTx).Return(blockNumOne.Uint64(), nil).Once()
+				m.State.On("GetLastL2BlockNumber", context.Background(), nil).Return(blockNumOne.Uint64(), nil).Once()
 				txArgs := testCase.params[0].(types.TxArgs)
 				txMatchBy := mock.MatchedBy(func(tx *ethTypes.Transaction) bool {
 					gasPrice := big.NewInt(0).SetBytes(*txArgs.GasPrice)
@@ -524,10 +484,10 @@ func TestCall(t *testing.T) {
 					return hasTx && gasMatch && toMatch && gasPriceMatch && valueMatch && dataMatch && nonceMatch
 				})
 				block := state.NewL2BlockWithHeader(state.NewL2Header(&ethTypes.Header{Number: blockNumOne, Root: blockRoot}))
-				m.State.On("GetL2BlockByNumber", context.Background(), blockNumOneUint64, m.DbTx).Return(block, nil).Once()
+				m.State.On("GetL2BlockByNumber", context.Background(), blockNumOneUint64, nil).Return(block, nil).Once()
 				m.State.On("GetNonce", context.Background(), *txArgs.From, blockRoot).Return(nonce, nil).Once()
 				m.State.
-					On("ProcessUnsignedTransaction", context.Background(), txMatchBy, *txArgs.From, nilUint64, true, m.DbTx).
+					On("ProcessUnsignedTransaction", context.Background(), txMatchBy, *txArgs.From, nilUint64, true, nil).
 					Return(&runtime.ExecutionResult{Err: runtime.ErrExecutionReverted}, nil).
 					Once()
 			},
@@ -678,18 +638,15 @@ func TestEstimateGas(t *testing.T) {
 					return matchTo && matchGasPrice && matchValue && matchData && matchNonce
 				})
 
-				m.DbTx.On("Commit", context.Background()).Return(nil).Once()
-				m.State.On("BeginStateTransaction", context.Background()).Return(m.DbTx, nil).Once()
-
 				block := state.NewL2BlockWithHeader(state.NewL2Header(&ethTypes.Header{Number: blockNumTen, Root: blockRoot}))
-				m.State.On("GetLastL2Block", context.Background(), m.DbTx).Return(block, nil).Once()
+				m.State.On("GetLastL2Block", context.Background(), nil).Return(block, nil).Once()
 
 				m.State.
 					On("GetNonce", context.Background(), *txArgs.From, blockRoot).
 					Return(nonce, nil).
 					Once()
 				m.State.
-					On("EstimateGas", txMatchBy, *txArgs.From, nilUint64, m.DbTx).
+					On("EstimateGas", txMatchBy, *txArgs.From, nilUint64, nil).
 					Return(*testCase.expectedResult, nil, nil).
 					Once()
 			},
@@ -723,14 +680,11 @@ func TestEstimateGas(t *testing.T) {
 					return matchTo && matchGasPrice && matchValue && matchData && matchNonce
 				})
 
-				m.DbTx.On("Commit", context.Background()).Return(nil).Once()
-				m.State.On("BeginStateTransaction", context.Background()).Return(m.DbTx, nil).Once()
-
 				block := state.NewL2BlockWithHeader(state.NewL2Header(&ethTypes.Header{Number: blockNumTen, Root: blockRoot}))
-				m.State.On("GetLastL2Block", context.Background(), m.DbTx).Return(block, nil).Once()
+				m.State.On("GetLastL2Block", context.Background(), nil).Return(block, nil).Once()
 
 				m.State.
-					On("EstimateGas", txMatchBy, common.HexToAddress(state.DefaultSenderAddress), nilUint64, m.DbTx).
+					On("EstimateGas", txMatchBy, common.HexToAddress(state.DefaultSenderAddress), nilUint64, nil).
 					Return(*testCase.expectedResult, nil, nil).
 					Once()
 			},
@@ -823,18 +777,8 @@ func TestGetBalance(t *testing.T) {
 			expectedBalance: 0,
 			expectedError:   types.NewRPCError(types.DefaultErrorCode, "failed to get the last block number from state"),
 			setupMocks: func(m *mocksWrapper, t *testCase) {
-				m.DbTx.
-					On("Rollback", context.Background()).
-					Return(nil).
-					Once()
-
 				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
-				m.State.
-					On("GetLastL2Block", context.Background(), m.DbTx).
+					On("GetLastL2Block", context.Background(), nil).
 					Return(nil, errors.New("failed to get last block number")).Once()
 			},
 		},
@@ -847,19 +791,9 @@ func TestGetBalance(t *testing.T) {
 			expectedBalance: 1000,
 			expectedError:   nil,
 			setupMocks: func(m *mocksWrapper, t *testCase) {
-				m.DbTx.
-					On("Commit", context.Background()).
-					Return(nil).
-					Once()
-
-				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
 				block := state.NewL2BlockWithHeader(state.NewL2Header(&ethTypes.Header{Number: blockNumTen, Root: blockRoot}))
 				m.State.
-					On("GetLastL2Block", context.Background(), m.DbTx).
+					On("GetLastL2Block", context.Background(), nil).
 					Return(block, nil).Once()
 
 				m.State.
@@ -880,19 +814,9 @@ func TestGetBalance(t *testing.T) {
 			expectedBalance: 1000,
 			expectedError:   nil,
 			setupMocks: func(m *mocksWrapper, t *testCase) {
-				m.DbTx.
-					On("Commit", context.Background()).
-					Return(nil).
-					Once()
-
-				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
 				block := state.NewL2BlockWithHeader(state.NewL2Header(&ethTypes.Header{Number: blockNumTen, Root: blockRoot}))
 				m.State.
-					On("GetL2BlockByHash", context.Background(), blockHash, m.DbTx).
+					On("GetL2BlockByHash", context.Background(), blockHash, nil).
 					Return(block, nil).
 					Once()
 
@@ -911,18 +835,8 @@ func TestGetBalance(t *testing.T) {
 			expectedBalance: 0,
 			expectedError:   nil,
 			setupMocks: func(m *mocksWrapper, t *testCase) {
-				m.DbTx.
-					On("Commit", context.Background()).
-					Return(nil).
-					Once()
-
-				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
 				block := state.NewL2BlockWithHeader(state.NewL2Header(&ethTypes.Header{Number: blockNumTen, Root: blockRoot}))
-				m.State.On("GetLastL2Block", context.Background(), m.DbTx).Return(block, nil).Once()
+				m.State.On("GetLastL2Block", context.Background(), nil).Return(block, nil).Once()
 
 				m.State.
 					On("GetBalance", context.Background(), addressArg, blockRoot).
@@ -939,18 +853,8 @@ func TestGetBalance(t *testing.T) {
 			expectedBalance: 0,
 			expectedError:   types.NewRPCError(types.DefaultErrorCode, "failed to get balance from state"),
 			setupMocks: func(m *mocksWrapper, t *testCase) {
-				m.DbTx.
-					On("Rollback", context.Background()).
-					Return(nil).
-					Once()
-
-				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
 				block := state.NewL2BlockWithHeader(state.NewL2Header(&ethTypes.Header{Number: blockNumTen, Root: blockRoot}))
-				m.State.On("GetLastL2Block", context.Background(), m.DbTx).Return(block, nil).Once()
+				m.State.On("GetLastL2Block", context.Background(), nil).Return(block, nil).Once()
 
 				m.State.
 					On("GetBalance", context.Background(), addressArg, blockRoot).
@@ -1005,18 +909,8 @@ func TestGetL2BlockByHash(t *testing.T) {
 			ExpectedResult: nil,
 			ExpectedError:  ethereum.NotFound,
 			SetupMocks: func(m *mocksWrapper, tc *testCase) {
-				m.DbTx.
-					On("Commit", context.Background()).
-					Return(nil).
-					Once()
-
 				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
-				m.State.
-					On("GetL2BlockByHash", context.Background(), tc.Hash, m.DbTx).
+					On("GetL2BlockByHash", context.Background(), tc.Hash, nil).
 					Return(nil, state.ErrNotFound)
 			},
 		},
@@ -1026,18 +920,8 @@ func TestGetL2BlockByHash(t *testing.T) {
 			ExpectedResult: nil,
 			ExpectedError:  types.NewRPCError(types.DefaultErrorCode, "failed to get block by hash from state"),
 			SetupMocks: func(m *mocksWrapper, tc *testCase) {
-				m.DbTx.
-					On("Rollback", context.Background()).
-					Return(nil).
-					Once()
-
 				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
-				m.State.
-					On("GetL2BlockByHash", context.Background(), tc.Hash, m.DbTx).
+					On("GetL2BlockByHash", context.Background(), tc.Hash, nil).
 					Return(nil, errors.New("failed to get block from state")).
 					Once()
 			},
@@ -1060,24 +944,14 @@ func TestGetL2BlockByHash(t *testing.T) {
 				}
 				block := state.NewL2Block(state.NewL2Header(tc.ExpectedResult.Header()), tc.ExpectedResult.Transactions(), uncles, []*ethTypes.Receipt{ethTypes.NewReceipt([]byte{}, false, uint64(0))}, st)
 
-				m.DbTx.
-					On("Commit", context.Background()).
-					Return(nil).
-					Once()
-
 				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
-				m.State.
-					On("GetL2BlockByHash", context.Background(), tc.Hash, m.DbTx).
+					On("GetL2BlockByHash", context.Background(), tc.Hash, nil).
 					Return(block, nil).
 					Once()
 
 				for _, tx := range tc.ExpectedResult.Transactions() {
 					m.State.
-						On("GetTransactionReceipt", context.Background(), tx.Hash(), m.DbTx).
+						On("GetTransactionReceipt", context.Background(), tx.Hash(), nil).
 						Return(ethTypes.NewReceipt([]byte{}, false, uint64(0)), nil).
 						Once()
 				}
@@ -1265,18 +1139,8 @@ func TestGetL2BlockByNumber(t *testing.T) {
 			ExpectedResult: nil,
 			ExpectedError:  nil,
 			SetupMocks: func(m *mocksWrapper, tc *testCase) {
-				m.DbTx.
-					On("Commit", context.Background()).
-					Return(nil).
-					Once()
-
 				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
-				m.State.
-					On("GetL2BlockByNumber", context.Background(), tc.Number.Uint64(), m.DbTx).
+					On("GetL2BlockByNumber", context.Background(), tc.Number.Uint64(), nil).
 					Return(nil, state.ErrNotFound)
 			},
 		},
@@ -1286,30 +1150,20 @@ func TestGetL2BlockByNumber(t *testing.T) {
 			ExpectedResult: rpcBlock,
 			ExpectedError:  nil,
 			SetupMocks: func(m *mocksWrapper, tc *testCase) {
-				m.DbTx.
-					On("Commit", context.Background()).
-					Return(nil).
-					Once()
-
 				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
-				m.State.
-					On("GetL2BlockByNumber", context.Background(), tc.Number.Uint64(), m.DbTx).
+					On("GetL2BlockByNumber", context.Background(), tc.Number.Uint64(), nil).
 					Return(l2Block, nil).
 					Once()
 
 				for _, receipt := range receipts {
 					m.State.
-						On("GetTransactionReceipt", context.Background(), receipt.TxHash, m.DbTx).
+						On("GetTransactionReceipt", context.Background(), receipt.TxHash, nil).
 						Return(receipt, nil).
 						Once()
 				}
 				for _, signedTx := range signedTransactions {
 					m.State.
-						On("GetL2TxHashByTxHash", context.Background(), signedTx.Hash(), m.DbTx).
+						On("GetL2TxHashByTxHash", context.Background(), signedTx.Hash(), nil).
 						Return(state.Ptr(signedTx.Hash()), nil).
 						Once()
 				}
@@ -1321,35 +1175,25 @@ func TestGetL2BlockByNumber(t *testing.T) {
 			ExpectedResult: rpcBlock,
 			ExpectedError:  nil,
 			SetupMocks: func(m *mocksWrapper, tc *testCase) {
-				m.DbTx.
-					On("Commit", context.Background()).
-					Return(nil).
-					Once()
-
 				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
-				m.State.
-					On("GetLastL2BlockNumber", context.Background(), m.DbTx).
+					On("GetLastL2BlockNumber", context.Background(), nil).
 					Return(uint64(tc.ExpectedResult.Number), nil).
 					Once()
 
 				m.State.
-					On("GetL2BlockByNumber", context.Background(), uint64(tc.ExpectedResult.Number), m.DbTx).
+					On("GetL2BlockByNumber", context.Background(), uint64(tc.ExpectedResult.Number), nil).
 					Return(l2Block, nil).
 					Once()
 
 				for _, receipt := range receipts {
 					m.State.
-						On("GetTransactionReceipt", context.Background(), receipt.TxHash, m.DbTx).
+						On("GetTransactionReceipt", context.Background(), receipt.TxHash, nil).
 						Return(receipt, nil).
 						Once()
 				}
 				for _, signedTx := range signedTransactions {
 					m.State.
-						On("GetL2TxHashByTxHash", context.Background(), signedTx.Hash(), m.DbTx).
+						On("GetL2TxHashByTxHash", context.Background(), signedTx.Hash(), nil).
 						Return(state.Ptr(signedTx.Hash()), nil).
 						Once()
 				}
@@ -1361,18 +1205,8 @@ func TestGetL2BlockByNumber(t *testing.T) {
 			ExpectedResult: nil,
 			ExpectedError:  types.NewRPCError(types.DefaultErrorCode, "failed to get the last block number from state"),
 			SetupMocks: func(m *mocksWrapper, tc *testCase) {
-				m.DbTx.
-					On("Rollback", context.Background()).
-					Return(nil).
-					Once()
-
 				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
-				m.State.
-					On("GetLastL2BlockNumber", context.Background(), m.DbTx).
+					On("GetLastL2BlockNumber", context.Background(), nil).
 					Return(uint64(0), errors.New("failed to get last block number")).
 					Once()
 			},
@@ -1383,23 +1217,13 @@ func TestGetL2BlockByNumber(t *testing.T) {
 			ExpectedResult: nil,
 			ExpectedError:  types.NewRPCError(types.DefaultErrorCode, "couldn't load block from state by number 1"),
 			SetupMocks: func(m *mocksWrapper, tc *testCase) {
-				m.DbTx.
-					On("Rollback", context.Background()).
-					Return(nil).
-					Once()
-
 				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
-				m.State.
-					On("GetLastL2BlockNumber", context.Background(), m.DbTx).
+					On("GetLastL2BlockNumber", context.Background(), nil).
 					Return(uint64(1), nil).
 					Once()
 
 				m.State.
-					On("GetL2BlockByNumber", context.Background(), uint64(1), m.DbTx).
+					On("GetL2BlockByNumber", context.Background(), uint64(1), nil).
 					Return(nil, errors.New("failed to load block by number")).
 					Once()
 			},
@@ -1428,18 +1252,8 @@ func TestGetL2BlockByNumber(t *testing.T) {
 				tc.ExpectedResult.Nonce = nil
 				tc.ExpectedResult.TotalDifficulty = nil
 
-				m.DbTx.
-					On("Commit", context.Background()).
-					Return(nil).
-					Once()
-
 				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
-				m.State.
-					On("GetLastL2Block", context.Background(), m.DbTx).
+					On("GetLastL2Block", context.Background(), nil).
 					Return(lastBlock, nil).
 					Once()
 			},
@@ -1450,18 +1264,8 @@ func TestGetL2BlockByNumber(t *testing.T) {
 			ExpectedResult: nil,
 			ExpectedError:  types.NewRPCError(types.DefaultErrorCode, "couldn't load last block from state to compute the pending block"),
 			SetupMocks: func(m *mocksWrapper, tc *testCase) {
-				m.DbTx.
-					On("Rollback", context.Background()).
-					Return(nil).
-					Once()
-
 				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
-				m.State.
-					On("GetLastL2Block", context.Background(), m.DbTx).
+					On("GetLastL2Block", context.Background(), nil).
 					Return(nil, errors.New("failed to load last block")).
 					Once()
 			},
@@ -1627,18 +1431,8 @@ func TestGetCode(t *testing.T) {
 			ExpectedError:  types.NewRPCError(types.DefaultErrorCode, "failed to get the last block number from state"),
 
 			SetupMocks: func(m *mocksWrapper, tc *testCase) {
-				m.DbTx.
-					On("Rollback", context.Background()).
-					Return(nil).
-					Once()
-
 				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
-				m.State.
-					On("GetLastL2Block", context.Background(), m.DbTx).
+					On("GetLastL2Block", context.Background(), nil).
 					Return(nil, errors.New("failed to get last block number")).
 					Once()
 			},
@@ -1653,18 +1447,8 @@ func TestGetCode(t *testing.T) {
 			ExpectedError:  types.NewRPCError(types.DefaultErrorCode, "failed to get code"),
 
 			SetupMocks: func(m *mocksWrapper, tc *testCase) {
-				m.DbTx.
-					On("Rollback", context.Background()).
-					Return(nil).
-					Once()
-
-				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
 				block := state.NewL2BlockWithHeader(state.NewL2Header(&ethTypes.Header{Number: blockNumOne, Root: blockRoot}))
-				m.State.On("GetL2BlockByNumber", context.Background(), blockNumOne.Uint64(), m.DbTx).Return(block, nil).Once()
+				m.State.On("GetL2BlockByNumber", context.Background(), blockNumOne.Uint64(), nil).Return(block, nil).Once()
 
 				m.State.
 					On("GetCode", context.Background(), addressArg, blockRoot).
@@ -1682,18 +1466,8 @@ func TestGetCode(t *testing.T) {
 			ExpectedError:  nil,
 
 			SetupMocks: func(m *mocksWrapper, tc *testCase) {
-				m.DbTx.
-					On("Commit", context.Background()).
-					Return(nil).
-					Once()
-
-				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
 				block := state.NewL2BlockWithHeader(state.NewL2Header(&ethTypes.Header{Number: blockNumOne, Root: blockRoot}))
-				m.State.On("GetL2BlockByNumber", context.Background(), blockNumOne.Uint64(), m.DbTx).Return(block, nil).Once()
+				m.State.On("GetL2BlockByNumber", context.Background(), blockNumOne.Uint64(), nil).Return(block, nil).Once()
 
 				m.State.
 					On("GetCode", context.Background(), addressArg, blockRoot).
@@ -1711,18 +1485,8 @@ func TestGetCode(t *testing.T) {
 			ExpectedError:  nil,
 
 			SetupMocks: func(m *mocksWrapper, tc *testCase) {
-				m.DbTx.
-					On("Commit", context.Background()).
-					Return(nil).
-					Once()
-
-				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
 				block := state.NewL2BlockWithHeader(state.NewL2Header(&ethTypes.Header{Number: blockNumOne, Root: blockRoot}))
-				m.State.On("GetL2BlockByNumber", context.Background(), blockNumOne.Uint64(), m.DbTx).Return(block, nil).Once()
+				m.State.On("GetL2BlockByNumber", context.Background(), blockNumOne.Uint64(), nil).Return(block, nil).Once()
 
 				m.State.
 					On("GetCode", context.Background(), addressArg, blockRoot).
@@ -1739,19 +1503,9 @@ func TestGetCode(t *testing.T) {
 			ExpectedResult: []byte{1, 2, 3},
 			ExpectedError:  nil,
 			SetupMocks: func(m *mocksWrapper, tc *testCase) {
-				m.DbTx.
-					On("Commit", context.Background()).
-					Return(nil).
-					Once()
-
-				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
 				block := state.NewL2BlockWithHeader(state.NewL2Header(&ethTypes.Header{Number: blockNumTen, Root: blockRoot}))
 				m.State.
-					On("GetL2BlockByHash", context.Background(), blockHash, m.DbTx).
+					On("GetL2BlockByHash", context.Background(), blockHash, nil).
 					Return(block, nil).
 					Once()
 
@@ -1820,18 +1574,8 @@ func TestGetStorageAt(t *testing.T) {
 			ExpectedError:  types.NewRPCError(types.DefaultErrorCode, "failed to get the last block number from state"),
 
 			SetupMocks: func(m *mocksWrapper, tc *testCase) {
-				m.DbTx.
-					On("Rollback", context.Background()).
-					Return(nil).
-					Once()
-
 				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
-				m.State.
-					On("GetLastL2Block", context.Background(), m.DbTx).
+					On("GetLastL2Block", context.Background(), nil).
 					Return(nil, errors.New("failed to get last block number")).
 					Once()
 			},
@@ -1849,19 +1593,9 @@ func TestGetStorageAt(t *testing.T) {
 			ExpectedError:  types.NewRPCError(types.DefaultErrorCode, "failed to get storage value from state"),
 
 			SetupMocks: func(m *mocksWrapper, tc *testCase) {
-				m.DbTx.
-					On("Rollback", context.Background()).
-					Return(nil).
-					Once()
-
-				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
 				blockNumber := big.NewInt(1)
 				block := state.NewL2BlockWithHeader(state.NewL2Header(&ethTypes.Header{Number: blockNumber, Root: blockRoot}))
-				m.State.On("GetL2BlockByNumber", context.Background(), blockNumber.Uint64(), m.DbTx).Return(block, nil).Once()
+				m.State.On("GetL2BlockByNumber", context.Background(), blockNumber.Uint64(), nil).Return(block, nil).Once()
 
 				m.State.
 					On("GetStorageAt", context.Background(), addressArg, keyArg.Big(), blockRoot).
@@ -1882,19 +1616,9 @@ func TestGetStorageAt(t *testing.T) {
 			ExpectedError:  nil,
 
 			SetupMocks: func(m *mocksWrapper, tc *testCase) {
-				m.DbTx.
-					On("Commit", context.Background()).
-					Return(nil).
-					Once()
-
-				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
 				blockNumber := big.NewInt(1)
 				block := state.NewL2BlockWithHeader(state.NewL2Header(&ethTypes.Header{Number: blockNumber, Root: blockRoot}))
-				m.State.On("GetL2BlockByNumber", context.Background(), blockNumber.Uint64(), m.DbTx).Return(block, nil).Once()
+				m.State.On("GetL2BlockByNumber", context.Background(), blockNumber.Uint64(), nil).Return(block, nil).Once()
 
 				m.State.
 					On("GetStorageAt", context.Background(), addressArg, keyArg.Big(), blockRoot).
@@ -1915,19 +1639,9 @@ func TestGetStorageAt(t *testing.T) {
 			ExpectedError:  nil,
 
 			SetupMocks: func(m *mocksWrapper, tc *testCase) {
-				m.DbTx.
-					On("Commit", context.Background()).
-					Return(nil).
-					Once()
-
-				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
 				blockNumber := big.NewInt(1)
 				block := state.NewL2BlockWithHeader(state.NewL2Header(&ethTypes.Header{Number: blockNumber, Root: blockRoot}))
-				m.State.On("GetL2BlockByNumber", context.Background(), blockNumber.Uint64(), m.DbTx).Return(block, nil).Once()
+				m.State.On("GetL2BlockByNumber", context.Background(), blockNumber.Uint64(), nil).Return(block, nil).Once()
 
 				m.State.
 					On("GetStorageAt", context.Background(), addressArg, keyArg.Big(), blockRoot).
@@ -1948,19 +1662,9 @@ func TestGetStorageAt(t *testing.T) {
 			ExpectedError:  nil,
 
 			SetupMocks: func(m *mocksWrapper, tc *testCase) {
-				m.DbTx.
-					On("Commit", context.Background()).
-					Return(nil).
-					Once()
-
-				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
 				block := state.NewL2BlockWithHeader(state.NewL2Header(&ethTypes.Header{Number: blockNumTen, Root: blockRoot}))
 				m.State.
-					On("GetL2BlockByHash", context.Background(), blockHash, m.DbTx).
+					On("GetL2BlockByHash", context.Background(), blockHash, nil).
 					Return(block, nil).
 					Once()
 
@@ -2031,18 +1735,8 @@ func TestSyncing(t *testing.T) {
 			ExpectedResult: nil,
 			ExpectedError:  types.NewRPCError(types.DefaultErrorCode, "failed to get last block number from state"),
 			SetupMocks: func(m *mocksWrapper, tc testCase) {
-				m.DbTx.
-					On("Rollback", context.Background()).
-					Return(nil).
-					Once()
-
 				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
-				m.State.
-					On("GetLastL2BlockNumber", context.Background(), m.DbTx).
+					On("GetLastL2BlockNumber", context.Background(), nil).
 					Return(uint64(0), errors.New("failed to get last l2 block number from state")).
 					Once()
 			},
@@ -2052,23 +1746,13 @@ func TestSyncing(t *testing.T) {
 			ExpectedResult: nil,
 			ExpectedError:  types.NewRPCError(types.DefaultErrorCode, "failed to get syncing info from state"),
 			SetupMocks: func(m *mocksWrapper, tc testCase) {
-				m.DbTx.
-					On("Rollback", context.Background()).
-					Return(nil).
-					Once()
-
 				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
-				m.State.
-					On("GetLastL2BlockNumber", context.Background(), m.DbTx).
+					On("GetLastL2BlockNumber", context.Background(), nil).
 					Return(uint64(10), nil).
 					Once()
 
 				m.State.
-					On("GetSyncingInfo", context.Background(), m.DbTx).
+					On("GetSyncingInfo", context.Background(), nil).
 					Return(state.SyncingInfo{}, errors.New("failed to get syncing info from state")).
 					Once()
 			},
@@ -2078,23 +1762,13 @@ func TestSyncing(t *testing.T) {
 			ExpectedResult: &ethereum.SyncProgress{StartingBlock: 1, CurrentBlock: 2, HighestBlock: 3},
 			ExpectedError:  nil,
 			SetupMocks: func(m *mocksWrapper, tc testCase) {
-				m.DbTx.
-					On("Commit", context.Background()).
-					Return(nil).
-					Once()
-
 				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
-				m.State.
-					On("GetLastL2BlockNumber", context.Background(), m.DbTx).
+					On("GetLastL2BlockNumber", context.Background(), nil).
 					Return(uint64(10), nil).
 					Once()
 
 				m.State.
-					On("GetSyncingInfo", context.Background(), m.DbTx).
+					On("GetSyncingInfo", context.Background(), nil).
 					Return(state.SyncingInfo{InitialSyncingBlock: 1, CurrentBlockNumber: 2, EstimatedHighestBlock: 3, IsSynchronizing: true}, nil).
 					Once()
 			},
@@ -2104,23 +1778,13 @@ func TestSyncing(t *testing.T) {
 			ExpectedResult: nil,
 			ExpectedError:  nil,
 			SetupMocks: func(m *mocksWrapper, tc testCase) {
-				m.DbTx.
-					On("Commit", context.Background()).
-					Return(nil).
-					Once()
-
 				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
-				m.State.
-					On("GetLastL2BlockNumber", context.Background(), m.DbTx).
+					On("GetLastL2BlockNumber", context.Background(), nil).
 					Return(uint64(10), nil).
 					Once()
 
 				m.State.
-					On("GetSyncingInfo", context.Background(), m.DbTx).
+					On("GetSyncingInfo", context.Background(), nil).
 					Return(state.SyncingInfo{InitialSyncingBlock: 1, CurrentBlockNumber: 1, EstimatedHighestBlock: 3, IsSynchronizing: false}, nil).
 					Once()
 			},
@@ -2130,23 +1794,13 @@ func TestSyncing(t *testing.T) {
 			ExpectedResult: nil,
 			ExpectedError:  nil,
 			SetupMocks: func(m *mocksWrapper, tc testCase) {
-				m.DbTx.
-					On("Commit", context.Background()).
-					Return(nil).
-					Once()
-
 				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
-				m.State.
-					On("GetLastL2BlockNumber", context.Background(), m.DbTx).
+					On("GetLastL2BlockNumber", context.Background(), nil).
 					Return(uint64(10), nil).
 					Once()
 
 				m.State.
-					On("GetSyncingInfo", context.Background(), m.DbTx).
+					On("GetSyncingInfo", context.Background(), nil).
 					Return(state.SyncingInfo{InitialSyncingBlock: 1, CurrentBlockNumber: 2, EstimatedHighestBlock: 3, IsSynchronizing: false}, nil).
 					Once()
 			},
@@ -2208,18 +1862,9 @@ func TestGetTransactionL2onByBlockHashAndIndex(t *testing.T) {
 			ExpectedError:  nil,
 			SetupMocks: func(m *mocksWrapper, tc testCase) {
 				tx := tc.ExpectedResult
-				m.DbTx.
-					On("Commit", context.Background()).
-					Return(nil).
-					Once()
 
 				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
-				m.State.
-					On("GetTransactionByL2BlockHashAndIndex", context.Background(), tc.Hash, uint64(tc.Index), m.DbTx).
+					On("GetTransactionByL2BlockHashAndIndex", context.Background(), tc.Hash, uint64(tc.Index), nil).
 					Return(tx, nil).
 					Once()
 
@@ -2229,7 +1874,7 @@ func TestGetTransactionL2onByBlockHashAndIndex(t *testing.T) {
 				receipt.TransactionIndex = tc.Index
 
 				m.State.
-					On("GetTransactionReceipt", context.Background(), tx.Hash(), m.DbTx).
+					On("GetTransactionReceipt", context.Background(), tx.Hash(), nil).
 					Return(receipt, nil).
 					Once()
 			},
@@ -2241,18 +1886,8 @@ func TestGetTransactionL2onByBlockHashAndIndex(t *testing.T) {
 			ExpectedResult: nil,
 			ExpectedError:  ethereum.NotFound,
 			SetupMocks: func(m *mocksWrapper, tc testCase) {
-				m.DbTx.
-					On("Commit", context.Background()).
-					Return(nil).
-					Once()
-
 				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
-				m.State.
-					On("GetTransactionByL2BlockHashAndIndex", context.Background(), tc.Hash, uint64(tc.Index), m.DbTx).
+					On("GetTransactionByL2BlockHashAndIndex", context.Background(), tc.Hash, uint64(tc.Index), nil).
 					Return(nil, state.ErrNotFound).
 					Once()
 			},
@@ -2264,18 +1899,8 @@ func TestGetTransactionL2onByBlockHashAndIndex(t *testing.T) {
 			ExpectedResult: nil,
 			ExpectedError:  types.NewRPCError(types.DefaultErrorCode, "failed to get transaction"),
 			SetupMocks: func(m *mocksWrapper, tc testCase) {
-				m.DbTx.
-					On("Rollback", context.Background()).
-					Return(nil).
-					Once()
-
 				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
-				m.State.
-					On("GetTransactionByL2BlockHashAndIndex", context.Background(), tc.Hash, uint64(tc.Index), m.DbTx).
+					On("GetTransactionByL2BlockHashAndIndex", context.Background(), tc.Hash, uint64(tc.Index), nil).
 					Return(nil, errors.New("failed to get transaction by block and index from state")).
 					Once()
 			},
@@ -2288,23 +1913,14 @@ func TestGetTransactionL2onByBlockHashAndIndex(t *testing.T) {
 			ExpectedError:  ethereum.NotFound,
 			SetupMocks: func(m *mocksWrapper, tc testCase) {
 				tx := ethTypes.NewTransaction(0, common.Address{}, big.NewInt(0), 0, big.NewInt(0), []byte{})
-				m.DbTx.
-					On("Commit", context.Background()).
-					Return(nil).
-					Once()
 
 				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
-				m.State.
-					On("GetTransactionByL2BlockHashAndIndex", context.Background(), tc.Hash, uint64(tc.Index), m.DbTx).
+					On("GetTransactionByL2BlockHashAndIndex", context.Background(), tc.Hash, uint64(tc.Index), nil).
 					Return(tx, nil).
 					Once()
 
 				m.State.
-					On("GetTransactionReceipt", context.Background(), tx.Hash(), m.DbTx).
+					On("GetTransactionReceipt", context.Background(), tx.Hash(), nil).
 					Return(nil, state.ErrNotFound).
 					Once()
 			},
@@ -2317,23 +1933,14 @@ func TestGetTransactionL2onByBlockHashAndIndex(t *testing.T) {
 			ExpectedError:  types.NewRPCError(types.DefaultErrorCode, "failed to get transaction receipt"),
 			SetupMocks: func(m *mocksWrapper, tc testCase) {
 				tx := ethTypes.NewTransaction(0, common.Address{}, big.NewInt(0), 0, big.NewInt(0), []byte{})
-				m.DbTx.
-					On("Rollback", context.Background()).
-					Return(nil).
-					Once()
 
 				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
-				m.State.
-					On("GetTransactionByL2BlockHashAndIndex", context.Background(), tc.Hash, uint64(tc.Index), m.DbTx).
+					On("GetTransactionByL2BlockHashAndIndex", context.Background(), tc.Hash, uint64(tc.Index), nil).
 					Return(tx, nil).
 					Once()
 
 				m.State.
-					On("GetTransactionReceipt", context.Background(), tx.Hash(), m.DbTx).
+					On("GetTransactionReceipt", context.Background(), tx.Hash(), nil).
 					Return(nil, errors.New("failed to get transaction receipt from state")).
 					Once()
 			},
@@ -2396,18 +2003,9 @@ func TestGetTransactionByBlockNumberAndIndex(t *testing.T) {
 			SetupMocks: func(m *mocksWrapper, tc testCase) {
 				tx := tc.ExpectedResult
 				blockNumber, _ := encoding.DecodeUint64orHex(&tc.BlockNumber)
-				m.DbTx.
-					On("Commit", context.Background()).
-					Return(nil).
-					Once()
 
 				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
-				m.State.
-					On("GetTransactionByL2BlockNumberAndIndex", context.Background(), blockNumber, uint64(tc.Index), m.DbTx).
+					On("GetTransactionByL2BlockNumberAndIndex", context.Background(), blockNumber, uint64(tc.Index), nil).
 					Return(tx, nil).
 					Once()
 
@@ -2416,7 +2014,7 @@ func TestGetTransactionByBlockNumberAndIndex(t *testing.T) {
 				receipt.BlockNumber = big.NewInt(1)
 				receipt.TransactionIndex = tc.Index
 				m.State.
-					On("GetTransactionReceipt", context.Background(), tx.Hash(), m.DbTx).
+					On("GetTransactionReceipt", context.Background(), tx.Hash(), nil).
 					Return(receipt, nil).
 					Once()
 			},
@@ -2428,18 +2026,8 @@ func TestGetTransactionByBlockNumberAndIndex(t *testing.T) {
 			ExpectedResult: nil,
 			ExpectedError:  types.NewRPCError(types.DefaultErrorCode, "failed to get the last block number from state"),
 			SetupMocks: func(m *mocksWrapper, tc testCase) {
-				m.DbTx.
-					On("Rollback", context.Background()).
-					Return(nil).
-					Once()
-
 				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
-				m.State.
-					On("GetLastL2BlockNumber", context.Background(), m.DbTx).
+					On("GetLastL2BlockNumber", context.Background(), nil).
 					Return(uint64(0), errors.New("failed to get last block number")).
 					Once()
 			},
@@ -2452,18 +2040,8 @@ func TestGetTransactionByBlockNumberAndIndex(t *testing.T) {
 			ExpectedError:  nil,
 			SetupMocks: func(m *mocksWrapper, tc testCase) {
 				blockNumber, _ := encoding.DecodeUint64orHex(&tc.BlockNumber)
-				m.DbTx.
-					On("Commit", context.Background()).
-					Return(nil).
-					Once()
-
 				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
-				m.State.
-					On("GetTransactionByL2BlockNumberAndIndex", context.Background(), blockNumber, uint64(tc.Index), m.DbTx).
+					On("GetTransactionByL2BlockNumberAndIndex", context.Background(), blockNumber, uint64(tc.Index), nil).
 					Return(nil, state.ErrNotFound).
 					Once()
 			},
@@ -2476,18 +2054,8 @@ func TestGetTransactionByBlockNumberAndIndex(t *testing.T) {
 			ExpectedError:  types.NewRPCError(types.DefaultErrorCode, "failed to get transaction"),
 			SetupMocks: func(m *mocksWrapper, tc testCase) {
 				blockNumber, _ := encoding.DecodeUint64orHex(&tc.BlockNumber)
-				m.DbTx.
-					On("Rollback", context.Background()).
-					Return(nil).
-					Once()
-
 				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
-				m.State.
-					On("GetTransactionByL2BlockNumberAndIndex", context.Background(), blockNumber, uint64(tc.Index), m.DbTx).
+					On("GetTransactionByL2BlockNumberAndIndex", context.Background(), blockNumber, uint64(tc.Index), nil).
 					Return(nil, errors.New("failed to get transaction by block and index from state")).
 					Once()
 			},
@@ -2502,23 +2070,13 @@ func TestGetTransactionByBlockNumberAndIndex(t *testing.T) {
 				tx := ethTypes.NewTransaction(0, common.Address{}, big.NewInt(0), 0, big.NewInt(0), []byte{})
 
 				blockNumber, _ := encoding.DecodeUint64orHex(&tc.BlockNumber)
-				m.DbTx.
-					On("Commit", context.Background()).
-					Return(nil).
-					Once()
-
 				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
-				m.State.
-					On("GetTransactionByL2BlockNumberAndIndex", context.Background(), blockNumber, uint64(tc.Index), m.DbTx).
+					On("GetTransactionByL2BlockNumberAndIndex", context.Background(), blockNumber, uint64(tc.Index), nil).
 					Return(tx, nil).
 					Once()
 
 				m.State.
-					On("GetTransactionReceipt", context.Background(), tx.Hash(), m.DbTx).
+					On("GetTransactionReceipt", context.Background(), tx.Hash(), nil).
 					Return(nil, state.ErrNotFound).
 					Once()
 			},
@@ -2533,23 +2091,13 @@ func TestGetTransactionByBlockNumberAndIndex(t *testing.T) {
 				tx := ethTypes.NewTransaction(0, common.Address{}, big.NewInt(0), 0, big.NewInt(0), []byte{})
 
 				blockNumber, _ := encoding.DecodeUint64orHex(&tc.BlockNumber)
-				m.DbTx.
-					On("Rollback", context.Background()).
-					Return(nil).
-					Once()
-
 				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
-				m.State.
-					On("GetTransactionByL2BlockNumberAndIndex", context.Background(), blockNumber, uint64(tc.Index), m.DbTx).
+					On("GetTransactionByL2BlockNumberAndIndex", context.Background(), blockNumber, uint64(tc.Index), nil).
 					Return(tx, nil).
 					Once()
 
 				m.State.
-					On("GetTransactionReceipt", context.Background(), tx.Hash(), m.DbTx).
+					On("GetTransactionReceipt", context.Background(), tx.Hash(), nil).
 					Return(nil, errors.New("failed to get transaction receipt from state")).
 					Once()
 			},
@@ -2616,18 +2164,8 @@ func TestGetTransactionByHash(t *testing.T) {
 			ExpectedResult:  signedTx,
 			ExpectedError:   nil,
 			SetupMocks: func(m *mocksWrapper, tc testCase) {
-				m.DbTx.
-					On("Commit", context.Background()).
-					Return(nil).
-					Once()
-
 				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
-				m.State.
-					On("GetTransactionByHash", context.Background(), tc.Hash, m.DbTx).
+					On("GetTransactionByHash", context.Background(), tc.Hash, nil).
 					Return(tc.ExpectedResult, nil).
 					Once()
 
@@ -2636,7 +2174,7 @@ func TestGetTransactionByHash(t *testing.T) {
 				receipt.BlockNumber = big.NewInt(1)
 
 				m.State.
-					On("GetTransactionReceipt", context.Background(), tc.Hash, m.DbTx).
+					On("GetTransactionReceipt", context.Background(), tc.Hash, nil).
 					Return(receipt, nil).
 					Once()
 			},
@@ -2648,18 +2186,8 @@ func TestGetTransactionByHash(t *testing.T) {
 			ExpectedResult:  ethTypes.NewTransaction(1, common.Address{}, big.NewInt(1), 1, big.NewInt(1), []byte{}),
 			ExpectedError:   nil,
 			SetupMocks: func(m *mocksWrapper, tc testCase) {
-				m.DbTx.
-					On("Commit", context.Background()).
-					Return(nil).
-					Once()
-
 				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
-				m.State.
-					On("GetTransactionByHash", context.Background(), tc.Hash, m.DbTx).
+					On("GetTransactionByHash", context.Background(), tc.Hash, nil).
 					Return(nil, state.ErrNotFound).
 					Once()
 
@@ -2676,18 +2204,8 @@ func TestGetTransactionByHash(t *testing.T) {
 			ExpectedResult:  nil,
 			ExpectedError:   ethereum.NotFound,
 			SetupMocks: func(m *mocksWrapper, tc testCase) {
-				m.DbTx.
-					On("Commit", context.Background()).
-					Return(nil).
-					Once()
-
 				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
-				m.State.
-					On("GetTransactionByHash", context.Background(), tc.Hash, m.DbTx).
+					On("GetTransactionByHash", context.Background(), tc.Hash, nil).
 					Return(nil, state.ErrNotFound).
 					Once()
 
@@ -2704,18 +2222,8 @@ func TestGetTransactionByHash(t *testing.T) {
 			ExpectedResult:  nil,
 			ExpectedError:   types.NewRPCError(types.DefaultErrorCode, "failed to load transaction by hash from state"),
 			SetupMocks: func(m *mocksWrapper, tc testCase) {
-				m.DbTx.
-					On("Rollback", context.Background()).
-					Return(nil).
-					Once()
-
 				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
-				m.State.
-					On("GetTransactionByHash", context.Background(), tc.Hash, m.DbTx).
+					On("GetTransactionByHash", context.Background(), tc.Hash, nil).
 					Return(nil, errors.New("failed to load transaction by hash from state")).
 					Once()
 			},
@@ -2727,18 +2235,8 @@ func TestGetTransactionByHash(t *testing.T) {
 			ExpectedResult:  nil,
 			ExpectedError:   types.NewRPCError(types.DefaultErrorCode, "failed to load transaction by hash from pool"),
 			SetupMocks: func(m *mocksWrapper, tc testCase) {
-				m.DbTx.
-					On("Rollback", context.Background()).
-					Return(nil).
-					Once()
-
 				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
-				m.State.
-					On("GetTransactionByHash", context.Background(), tc.Hash, m.DbTx).
+					On("GetTransactionByHash", context.Background(), tc.Hash, nil).
 					Return(nil, state.ErrNotFound).
 					Once()
 
@@ -2756,23 +2254,14 @@ func TestGetTransactionByHash(t *testing.T) {
 			ExpectedError:   types.NewRPCError(types.DefaultErrorCode, "transaction receipt not found"),
 			SetupMocks: func(m *mocksWrapper, tc testCase) {
 				tx := &ethTypes.Transaction{}
-				m.DbTx.
-					On("Rollback", context.Background()).
-					Return(nil).
-					Once()
 
 				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
-				m.State.
-					On("GetTransactionByHash", context.Background(), tc.Hash, m.DbTx).
+					On("GetTransactionByHash", context.Background(), tc.Hash, nil).
 					Return(tx, nil).
 					Once()
 
 				m.State.
-					On("GetTransactionReceipt", context.Background(), tc.Hash, m.DbTx).
+					On("GetTransactionReceipt", context.Background(), tc.Hash, nil).
 					Return(nil, state.ErrNotFound).
 					Once()
 			},
@@ -2785,23 +2274,14 @@ func TestGetTransactionByHash(t *testing.T) {
 			ExpectedError:   types.NewRPCError(types.DefaultErrorCode, "failed to load transaction receipt from state"),
 			SetupMocks: func(m *mocksWrapper, tc testCase) {
 				tx := &ethTypes.Transaction{}
-				m.DbTx.
-					On("Rollback", context.Background()).
-					Return(nil).
-					Once()
 
 				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
-				m.State.
-					On("GetTransactionByHash", context.Background(), tc.Hash, m.DbTx).
+					On("GetTransactionByHash", context.Background(), tc.Hash, nil).
 					Return(tx, nil).
 					Once()
 
 				m.State.
-					On("GetTransactionReceipt", context.Background(), tc.Hash, m.DbTx).
+					On("GetTransactionReceipt", context.Background(), tc.Hash, nil).
 					Return(nil, errors.New("failed to load transaction receipt from state")).
 					Once()
 			},
@@ -2852,18 +2332,8 @@ func TestGetBlockTransactionCountByHash(t *testing.T) {
 			ExpectedResult: uint(10),
 			ExpectedError:  nil,
 			SetupMocks: func(m *mocksWrapper, tc testCase) {
-				m.DbTx.
-					On("Commit", context.Background()).
-					Return(nil).
-					Once()
-
 				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
-				m.State.
-					On("GetL2BlockTransactionCountByHash", context.Background(), tc.BlockHash, m.DbTx).
+					On("GetL2BlockTransactionCountByHash", context.Background(), tc.BlockHash, nil).
 					Return(uint64(10), nil).
 					Once()
 			},
@@ -2874,18 +2344,8 @@ func TestGetBlockTransactionCountByHash(t *testing.T) {
 			ExpectedResult: 0,
 			ExpectedError:  types.NewRPCError(types.DefaultErrorCode, "failed to count transactions"),
 			SetupMocks: func(m *mocksWrapper, tc testCase) {
-				m.DbTx.
-					On("Rollback", context.Background()).
-					Return(nil).
-					Once()
-
 				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
-				m.State.
-					On("GetL2BlockTransactionCountByHash", context.Background(), tc.BlockHash, m.DbTx).
+					On("GetL2BlockTransactionCountByHash", context.Background(), tc.BlockHash, nil).
 					Return(uint64(0), errors.New("failed to count txs")).
 					Once()
 			},
@@ -2933,23 +2393,14 @@ func TestGetBlockTransactionCountByNumber(t *testing.T) {
 			ExpectedError:  nil,
 			SetupMocks: func(m *mocksWrapper, tc testCase) {
 				blockNumber := uint64(10)
-				m.DbTx.
-					On("Commit", context.Background()).
-					Return(nil).
-					Once()
 
 				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
-				m.State.
-					On("GetLastL2BlockNumber", context.Background(), m.DbTx).
+					On("GetLastL2BlockNumber", context.Background(), nil).
 					Return(blockNumber, nil).
 					Once()
 
 				m.State.
-					On("GetL2BlockTransactionCountByNumber", context.Background(), blockNumber, m.DbTx).
+					On("GetL2BlockTransactionCountByNumber", context.Background(), blockNumber, nil).
 					Return(uint64(10), nil).
 					Once()
 			},
@@ -2960,16 +2411,6 @@ func TestGetBlockTransactionCountByNumber(t *testing.T) {
 			ExpectedResult: uint(10),
 			ExpectedError:  nil,
 			SetupMocks: func(m *mocksWrapper, tc testCase) {
-				m.DbTx.
-					On("Commit", context.Background()).
-					Return(nil).
-					Once()
-
-				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
 				m.Pool.
 					On("CountPendingTransactions", context.Background()).
 					Return(uint64(10), nil).
@@ -2982,18 +2423,8 @@ func TestGetBlockTransactionCountByNumber(t *testing.T) {
 			ExpectedResult: 0,
 			ExpectedError:  types.NewRPCError(types.DefaultErrorCode, "failed to get the last block number from state"),
 			SetupMocks: func(m *mocksWrapper, tc testCase) {
-				m.DbTx.
-					On("Rollback", context.Background()).
-					Return(nil).
-					Once()
-
 				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
-				m.State.
-					On("GetLastL2BlockNumber", context.Background(), m.DbTx).
+					On("GetLastL2BlockNumber", context.Background(), nil).
 					Return(uint64(0), errors.New("failed to get last block number")).
 					Once()
 			},
@@ -3005,23 +2436,14 @@ func TestGetBlockTransactionCountByNumber(t *testing.T) {
 			ExpectedError:  types.NewRPCError(types.DefaultErrorCode, "failed to count transactions"),
 			SetupMocks: func(m *mocksWrapper, tc testCase) {
 				blockNumber := uint64(10)
-				m.DbTx.
-					On("Rollback", context.Background()).
-					Return(nil).
-					Once()
 
 				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
-				m.State.
-					On("GetLastL2BlockNumber", context.Background(), m.DbTx).
+					On("GetLastL2BlockNumber", context.Background(), nil).
 					Return(blockNumber, nil).
 					Once()
 
 				m.State.
-					On("GetL2BlockTransactionCountByNumber", context.Background(), blockNumber, m.DbTx).
+					On("GetL2BlockTransactionCountByNumber", context.Background(), blockNumber, nil).
 					Return(uint64(0), errors.New("failed to count")).
 					Once()
 			},
@@ -3032,16 +2454,6 @@ func TestGetBlockTransactionCountByNumber(t *testing.T) {
 			ExpectedResult: 0,
 			ExpectedError:  types.NewRPCError(types.DefaultErrorCode, "failed to count pending transactions"),
 			SetupMocks: func(m *mocksWrapper, tc testCase) {
-				m.DbTx.
-					On("Rollback", context.Background()).
-					Return(nil).
-					Once()
-
-				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
 				m.Pool.
 					On("CountPendingTransactions", context.Background()).
 					Return(uint64(0), errors.New("failed to count")).
@@ -3094,18 +2506,8 @@ func TestGetTransactionCount(t *testing.T) {
 			ExpectedResult: uint(10),
 			ExpectedError:  nil,
 			SetupMocks: func(m *mocksWrapper, tc testCase) {
-				m.DbTx.
-					On("Commit", context.Background()).
-					Return(nil).
-					Once()
-
-				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
 				block := state.NewL2BlockWithHeader(state.NewL2Header(&ethTypes.Header{Number: blockNumTen, Root: blockRoot}))
-				m.State.On("GetLastL2Block", context.Background(), m.DbTx).Return(block, nil).Once()
+				m.State.On("GetLastL2Block", context.Background(), nil).Return(block, nil).Once()
 
 				m.State.
 					On("GetNonce", context.Background(), addressArg, blockRoot).
@@ -3122,19 +2524,9 @@ func TestGetTransactionCount(t *testing.T) {
 			ExpectedResult: uint(10),
 			ExpectedError:  nil,
 			SetupMocks: func(m *mocksWrapper, tc testCase) {
-				m.DbTx.
-					On("Commit", context.Background()).
-					Return(nil).
-					Once()
-
-				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
 				block := state.NewL2BlockWithHeader(state.NewL2Header(&ethTypes.Header{Number: blockNumTen, Root: blockRoot}))
 				m.State.
-					On("GetL2BlockByHash", context.Background(), blockHash, m.DbTx).
+					On("GetL2BlockByHash", context.Background(), blockHash, nil).
 					Return(block, nil).
 					Once()
 
@@ -3153,23 +2545,13 @@ func TestGetTransactionCount(t *testing.T) {
 			ExpectedResult: 0,
 			ExpectedError:  nil,
 			SetupMocks: func(m *mocksWrapper, tc testCase) {
-				m.DbTx.
-					On("Commit", context.Background()).
-					Return(nil).
-					Once()
-
 				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
-				m.State.
-					On("GetLastL2BlockNumber", context.Background(), m.DbTx).
+					On("GetLastL2BlockNumber", context.Background(), nil).
 					Return(blockNumTen.Uint64(), nil).
 					Once()
 
 				block := state.NewL2BlockWithHeader(state.NewL2Header(&ethTypes.Header{Number: blockNumTen, Root: blockRoot}))
-				m.State.On("GetL2BlockByNumber", context.Background(), blockNumTenUint64, m.DbTx).Return(block, nil).Once()
+				m.State.On("GetL2BlockByNumber", context.Background(), blockNumTenUint64, nil).Return(block, nil).Once()
 
 				m.State.
 					On("GetNonce", context.Background(), addressArg, blockRoot).
@@ -3186,18 +2568,8 @@ func TestGetTransactionCount(t *testing.T) {
 			ExpectedResult: 0,
 			ExpectedError:  types.NewRPCError(types.DefaultErrorCode, "failed to get the last block number from state"),
 			SetupMocks: func(m *mocksWrapper, tc testCase) {
-				m.DbTx.
-					On("Rollback", context.Background()).
-					Return(nil).
-					Once()
-
 				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
-				m.State.
-					On("GetLastL2BlockNumber", context.Background(), m.DbTx).
+					On("GetLastL2BlockNumber", context.Background(), nil).
 					Return(uint64(0), errors.New("failed to get last block number")).
 					Once()
 			},
@@ -3211,23 +2583,13 @@ func TestGetTransactionCount(t *testing.T) {
 			ExpectedResult: 0,
 			ExpectedError:  types.NewRPCError(types.DefaultErrorCode, "failed to count transactions"),
 			SetupMocks: func(m *mocksWrapper, tc testCase) {
-				m.DbTx.
-					On("Rollback", context.Background()).
-					Return(nil).
-					Once()
-
 				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
-				m.State.
-					On("GetLastL2BlockNumber", context.Background(), m.DbTx).
+					On("GetLastL2BlockNumber", context.Background(), nil).
 					Return(blockNumTen.Uint64(), nil).
 					Once()
 
 				block := state.NewL2BlockWithHeader(state.NewL2Header(&ethTypes.Header{Number: blockNumTen, Root: blockRoot}))
-				m.State.On("GetL2BlockByNumber", context.Background(), blockNumTenUint64, m.DbTx).Return(block, nil).Once()
+				m.State.On("GetL2BlockByNumber", context.Background(), blockNumTenUint64, nil).Return(block, nil).Once()
 
 				m.State.
 					On("GetNonce", context.Background(), addressArg, blockRoot).
@@ -3337,23 +2699,13 @@ func TestGetTransactionReceipt(t *testing.T) {
 			ExpectedResult: &rpcReceipt,
 			ExpectedError:  nil,
 			SetupMocks: func(m *mocksWrapper, tc testCase) {
-				m.DbTx.
-					On("Commit", context.Background()).
-					Return(nil).
-					Once()
-
 				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
-				m.State.
-					On("GetTransactionByHash", context.Background(), tc.Hash, m.DbTx).
+					On("GetTransactionByHash", context.Background(), tc.Hash, nil).
 					Return(signedTx, nil).
 					Once()
 
 				m.State.
-					On("GetTransactionReceipt", context.Background(), tc.Hash, m.DbTx).
+					On("GetTransactionReceipt", context.Background(), tc.Hash, nil).
 					Return(receipt, nil).
 					Once()
 			},
@@ -3364,18 +2716,8 @@ func TestGetTransactionReceipt(t *testing.T) {
 			ExpectedResult: nil,
 			ExpectedError:  nil,
 			SetupMocks: func(m *mocksWrapper, tc testCase) {
-				m.DbTx.
-					On("Commit", context.Background()).
-					Return(nil).
-					Once()
-
 				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
-				m.State.
-					On("GetTransactionByHash", context.Background(), tc.Hash, m.DbTx).
+					On("GetTransactionByHash", context.Background(), tc.Hash, nil).
 					Return(nil, state.ErrNotFound).
 					Once()
 			},
@@ -3386,18 +2728,8 @@ func TestGetTransactionReceipt(t *testing.T) {
 			ExpectedResult: nil,
 			ExpectedError:  types.NewRPCError(types.DefaultErrorCode, "failed to get tx from state"),
 			SetupMocks: func(m *mocksWrapper, tc testCase) {
-				m.DbTx.
-					On("Rollback", context.Background()).
-					Return(nil).
-					Once()
-
 				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
-				m.State.
-					On("GetTransactionByHash", context.Background(), tc.Hash, m.DbTx).
+					On("GetTransactionByHash", context.Background(), tc.Hash, nil).
 					Return(nil, errors.New("failed to get tx")).
 					Once()
 			},
@@ -3408,23 +2740,13 @@ func TestGetTransactionReceipt(t *testing.T) {
 			ExpectedResult: nil,
 			ExpectedError:  nil,
 			SetupMocks: func(m *mocksWrapper, tc testCase) {
-				m.DbTx.
-					On("Commit", context.Background()).
-					Return(nil).
-					Once()
-
 				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
-				m.State.
-					On("GetTransactionByHash", context.Background(), tc.Hash, m.DbTx).
+					On("GetTransactionByHash", context.Background(), tc.Hash, nil).
 					Return(signedTx, nil).
 					Once()
 
 				m.State.
-					On("GetTransactionReceipt", context.Background(), tc.Hash, m.DbTx).
+					On("GetTransactionReceipt", context.Background(), tc.Hash, nil).
 					Return(nil, state.ErrNotFound).
 					Once()
 			},
@@ -3435,23 +2757,13 @@ func TestGetTransactionReceipt(t *testing.T) {
 			ExpectedResult: nil,
 			ExpectedError:  types.NewRPCError(types.DefaultErrorCode, "failed to get tx receipt from state"),
 			SetupMocks: func(m *mocksWrapper, tc testCase) {
-				m.DbTx.
-					On("Rollback", context.Background()).
-					Return(nil).
-					Once()
-
 				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
-				m.State.
-					On("GetTransactionByHash", context.Background(), tc.Hash, m.DbTx).
+					On("GetTransactionByHash", context.Background(), tc.Hash, nil).
 					Return(signedTx, nil).
 					Once()
 
 				m.State.
-					On("GetTransactionReceipt", context.Background(), tc.Hash, m.DbTx).
+					On("GetTransactionReceipt", context.Background(), tc.Hash, nil).
 					Return(nil, errors.New("failed to get tx receipt from state")).
 					Once()
 			},
@@ -3462,23 +2774,13 @@ func TestGetTransactionReceipt(t *testing.T) {
 			ExpectedResult: nil,
 			ExpectedError:  types.NewRPCError(types.DefaultErrorCode, "failed to build the receipt response"),
 			SetupMocks: func(m *mocksWrapper, tc testCase) {
-				m.DbTx.
-					On("Rollback", context.Background()).
-					Return(nil).
-					Once()
-
 				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
-				m.State.
-					On("GetTransactionByHash", context.Background(), tc.Hash, m.DbTx).
+					On("GetTransactionByHash", context.Background(), tc.Hash, nil).
 					Return(tx, nil).
 					Once()
 
 				m.State.
-					On("GetTransactionReceipt", context.Background(), tc.Hash, m.DbTx).
+					On("GetTransactionReceipt", context.Background(), tc.Hash, nil).
 					Return(receipt, nil).
 					Once()
 			},
@@ -3853,16 +3155,6 @@ func TestNewFilter(t *testing.T) {
 			ExpectedResult: "1",
 			ExpectedError:  nil,
 			SetupMocks: func(m *mocksWrapper, tc testCase) {
-				m.DbTx.
-					On("Commit", context.Background()).
-					Return(nil).
-					Once()
-
-				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
 				m.Storage.
 					On("NewLogFilter", mock.IsType(&concurrentWsConn{}), mock.IsType(LogFilter{})).
 					Return("1", nil).
@@ -3877,16 +3169,6 @@ func TestNewFilter(t *testing.T) {
 			ExpectedResult: "1",
 			ExpectedError:  nil,
 			SetupMocks: func(m *mocksWrapper, tc testCase) {
-				m.DbTx.
-					On("Commit", context.Background()).
-					Return(nil).
-					Once()
-
-				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
 				m.Storage.
 					On("NewLogFilter", mock.IsType(&concurrentWsConn{}), mock.IsType(LogFilter{})).
 					Return("1", nil).
@@ -3902,15 +3184,6 @@ func TestNewFilter(t *testing.T) {
 			ExpectedResult: "",
 			ExpectedError:  types.NewRPCError(types.InvalidParamsErrorCode, "invalid block range"),
 			SetupMocks: func(m *mocksWrapper, tc testCase) {
-				m.DbTx.
-					On("Rollback", context.Background()).
-					Return(nil).
-					Once()
-
-				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
 			},
 		},
 		{
@@ -3922,15 +3195,6 @@ func TestNewFilter(t *testing.T) {
 			ExpectedResult: "",
 			ExpectedError:  types.NewRPCError(types.InvalidParamsErrorCode, "logs are limited to a 10000 block range"),
 			SetupMocks: func(m *mocksWrapper, tc testCase) {
-				m.DbTx.
-					On("Rollback", context.Background()).
-					Return(nil).
-					Once()
-
-				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
 			},
 		},
 		{
@@ -3941,15 +3205,6 @@ func TestNewFilter(t *testing.T) {
 			ExpectedResult: "",
 			ExpectedError:  types.NewRPCError(types.DefaultErrorCode, "failed to create new log filter"),
 			SetupMocks: func(m *mocksWrapper, tc testCase) {
-				m.DbTx.
-					On("Rollback", context.Background()).
-					Return(nil).
-					Once()
-
-				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
 				m.Storage.
 					On("NewLogFilter", mock.IsType(&concurrentWsConn{}), mock.IsType(LogFilter{})).
 					Return("", errors.New("failed to add new filter")).
@@ -4216,18 +3471,8 @@ func TestGetLogs(t *testing.T) {
 					logs = append(logs, &l)
 				}
 
-				m.DbTx.
-					On("Commit", context.Background()).
-					Return(nil).
-					Once()
-
 				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
-				m.State.
-					On("GetLogs", context.Background(), tc.Filter.FromBlock.Uint64(), tc.Filter.ToBlock.Uint64(), tc.Filter.Addresses, tc.Filter.Topics, tc.Filter.BlockHash, since, m.DbTx).
+					On("GetLogs", context.Background(), tc.Filter.FromBlock.Uint64(), tc.Filter.ToBlock.Uint64(), tc.Filter.Addresses, tc.Filter.Topics, tc.Filter.BlockHash, since, nil).
 					Return(logs, nil).
 					Once()
 			},
@@ -4245,18 +3490,8 @@ func TestGetLogs(t *testing.T) {
 			},
 			SetupMocks: func(m *mocksWrapper, tc testCase) {
 				var since *time.Time
-				m.DbTx.
-					On("Rollback", context.Background()).
-					Return(nil).
-					Once()
-
 				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
-				m.State.
-					On("GetLogs", context.Background(), tc.Filter.FromBlock.Uint64(), tc.Filter.ToBlock.Uint64(), tc.Filter.Addresses, tc.Filter.Topics, tc.Filter.BlockHash, since, m.DbTx).
+					On("GetLogs", context.Background(), tc.Filter.FromBlock.Uint64(), tc.Filter.ToBlock.Uint64(), tc.Filter.Addresses, tc.Filter.Topics, tc.Filter.BlockHash, since, nil).
 					Return(nil, errors.New("failed to get logs from state")).
 					Once()
 			},
@@ -4273,18 +3508,8 @@ func TestGetLogs(t *testing.T) {
 				tc.ExpectedError = types.NewRPCError(types.DefaultErrorCode, "failed to get the last block number from state")
 			},
 			SetupMocks: func(m *mocksWrapper, tc testCase) {
-				m.DbTx.
-					On("Rollback", context.Background()).
-					Return(nil).
-					Once()
-
 				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
-				m.State.
-					On("GetLastL2BlockNumber", context.Background(), m.DbTx).
+					On("GetLastL2BlockNumber", context.Background(), nil).
 					Return(uint64(0), errors.New("failed to get last block number from state")).
 					Once()
 			},
@@ -4301,18 +3526,8 @@ func TestGetLogs(t *testing.T) {
 				tc.ExpectedError = types.NewRPCError(types.DefaultErrorCode, "failed to get the last block number from state")
 			},
 			SetupMocks: func(m *mocksWrapper, tc testCase) {
-				m.DbTx.
-					On("Rollback", context.Background()).
-					Return(nil).
-					Once()
-
 				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
-				m.State.
-					On("GetLastL2BlockNumber", context.Background(), m.DbTx).
+					On("GetLastL2BlockNumber", context.Background(), nil).
 					Return(uint64(0), errors.New("failed to get last block number from state")).
 					Once()
 			},
@@ -4329,15 +3544,6 @@ func TestGetLogs(t *testing.T) {
 				tc.ExpectedError = types.NewRPCError(types.InvalidParamsErrorCode, "logs are limited to a 10000 block range")
 			},
 			SetupMocks: func(m *mocksWrapper, tc testCase) {
-				m.DbTx.
-					On("Rollback", context.Background()).
-					Return(nil).
-					Once()
-
-				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
 			},
 		},
 		{
@@ -4353,18 +3559,9 @@ func TestGetLogs(t *testing.T) {
 			},
 			SetupMocks: func(m *mocksWrapper, tc testCase) {
 				var since *time.Time
-				m.DbTx.
-					On("Rollback", context.Background()).
-					Return(nil).
-					Once()
 
 				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
-				m.State.
-					On("GetLogs", context.Background(), tc.Filter.FromBlock.Uint64(), tc.Filter.ToBlock.Uint64(), tc.Filter.Addresses, tc.Filter.Topics, tc.Filter.BlockHash, since, m.DbTx).
+					On("GetLogs", context.Background(), tc.Filter.FromBlock.Uint64(), tc.Filter.ToBlock.Uint64(), tc.Filter.Addresses, tc.Filter.Topics, tc.Filter.BlockHash, since, nil).
 					Return(nil, state.ErrMaxLogsCountLimitExceeded).
 					Once()
 			},
@@ -4445,23 +3642,13 @@ func TestGetFilterLogs(t *testing.T) {
 					Parameters: logFilter,
 				}
 
-				m.DbTx.
-					On("Commit", context.Background()).
-					Return(nil).
-					Once()
-
-				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
 				m.Storage.
 					On("GetFilter", tc.FilterID).
 					Return(filter, nil).
 					Once()
 
 				m.State.
-					On("GetLogs", context.Background(), uint64(*logFilter.FromBlock), uint64(*logFilter.ToBlock), logFilter.Addresses, logFilter.Topics, logFilter.BlockHash, since, m.DbTx).
+					On("GetLogs", context.Background(), uint64(*logFilter.FromBlock), uint64(*logFilter.ToBlock), logFilter.Addresses, logFilter.Topics, logFilter.BlockHash, since, nil).
 					Return(logs, nil).
 					Once()
 			},
@@ -5199,16 +4386,6 @@ func TestSubscribeNewLogs(t *testing.T) {
 				}
 			},
 			SetupMocks: func(m *mocksWrapper, tc testCase) {
-				m.DbTx.
-					On("Commit", context.Background()).
-					Return(nil).
-					Once()
-
-				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
 				m.Storage.
 					On("NewLogFilter", mock.IsType(&concurrentWsConn{}), mock.IsType(LogFilter{})).
 					Return("0x1", nil).
@@ -5224,16 +4401,6 @@ func TestSubscribeNewLogs(t *testing.T) {
 				}
 			},
 			SetupMocks: func(m *mocksWrapper, tc testCase) {
-				m.DbTx.
-					On("Rollback", context.Background()).
-					Return(nil).
-					Once()
-
-				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
-
 				m.Storage.
 					On("NewLogFilter", mock.IsType(&concurrentWsConn{}), mock.IsType(LogFilter{})).
 					Return("", fmt.Errorf("failed to add filter to storage")).
@@ -5249,15 +4416,6 @@ func TestSubscribeNewLogs(t *testing.T) {
 				}
 			},
 			SetupMocks: func(m *mocksWrapper, tc testCase) {
-				m.DbTx.
-					On("Rollback", context.Background()).
-					Return(nil).
-					Once()
-
-				m.State.
-					On("BeginStateTransaction", context.Background()).
-					Return(m.DbTx, nil).
-					Once()
 			},
 		},
 	}
