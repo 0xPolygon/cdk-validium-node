@@ -710,17 +710,14 @@
 						},
 						"DataSourcePriority": {
 							"items": {
-								"type": "string",
-								"enum": [
-									"local",
-									"trusted",
-									"external"
-								]
+								"type": "string"
 							},
 							"type": "array",
 							"description": "DataSourcePriority defines the order in which L2 batch should be retrieved: local, trusted, external",
 							"default": [
-								"local,trusted,external"
+								"local",
+								"trusted",
+								"external"
 							]
 						}
 					},
