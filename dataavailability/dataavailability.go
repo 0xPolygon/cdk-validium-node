@@ -40,7 +40,7 @@ type DataAvailability struct {
 	state              stateInterface
 	zkEVMClient        ZKEVMClientTrustedBatchesGetter
 	backend            DABackender
-	DataSourcePriority []DataSourcePriority
+	dataSourcePriority []DataSourcePriority
 	ctx                context.Context
 }
 
@@ -58,10 +58,10 @@ func New(
 		state:              state,
 		zkEVMClient:        zkEVMClient,
 		ctx:                context.Background(),
-		DataSourcePriority: priority,
+		dataSourcePriority: priority,
 	}
-	if da.DataSourcePriority == nil {
-		da.DataSourcePriority = DefaultPriority
+	if len(da.dataSourcePriority) == 0 {
+		da.dataSourcePriority = DefaultPriority
 	}
 	err := da.backend.Init()
 	return da, err
@@ -88,13 +88,14 @@ func (d *DataAvailability) GetBatchL2Data(batchNums []uint64, batchHashes []comm
 	if len(batchNums) != len(batchHashes) {
 		return nil, fmt.Errorf(invalidBatchRetrievalArgs, len(batchNums), len(batchHashes))
 	}
-	for _, p := range d.DataSourcePriority {
+	for _, p := range d.dataSourcePriority {
 		switch p {
 		case Local:
 			localData, err := d.state.GetBatchL2DataByNumbers(d.ctx, batchNums, nil)
 			if err != nil {
 				return nil, err
 			}
+
 			data, err := checkBatches(batchNums, batchHashes, localData)
 			if err != nil {
 				log.Warnf(failedDataRetrievalTemplate, batchNums, err.Error())

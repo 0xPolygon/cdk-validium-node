@@ -323,7 +323,7 @@ func newDataAvailability(c config.Config, st *state.State, etherman *etherman.Cl
 	zkEVMClient := client.NewClient(trustedSequencerURL)
 
 	dataSourcePriority = c.Synchronizer.L2Synchronization.DataSourcePriority
-	if dataSourcePriority == nil {
+	if len(dataSourcePriority) == 0 {
 		dataSourcePriority = dataavailability.DefaultPriority
 	}
 
