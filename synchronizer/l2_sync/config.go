@@ -15,5 +15,5 @@ type Config struct {
 	CheckLastL2BlockHashOnCloseBatch bool `mapstructure:"CheckLastL2BlockHashOnCloseBatch"`
 
 	// DataSourcePriority defines the order in which L2 batch should be retrieved: local, trusted, external
-	DataSourcePriority []dataavailability.DataSourcePriority `mapstructure:"DataSourcePriority"`
+	DataSourcePriority []dataavailability.DataSourcePriority `mapstructure:"DataSourcePriority" jsonschema:"enum=local,enum=trusted,enum=external"`
 }
