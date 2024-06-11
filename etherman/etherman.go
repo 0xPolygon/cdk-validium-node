@@ -1479,6 +1479,7 @@ func getBatchL2Data(da dataavailability.BatchDataProvider, batchInfos []batchInf
 	if len(batchNums) == 0 {
 		return nil, nil
 	}
+
 	batchL2Data, err := da.GetBatchL2Data(batchNums, batchHashes, daMessage)
 	if err != nil {
 		return nil, err
