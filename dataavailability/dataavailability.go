@@ -2,6 +2,7 @@ package dataavailability
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"math/big"
 
@@ -18,15 +19,29 @@ const (
 	invalidBatchRetrievalArgs   = "invalid L2 batch data retrieval arguments, %d != %d"
 )
 
+// DataSourcePriority defines where data is retrieved from
+type DataSourcePriority string
+
+const (
+	// Local indicates data stored in this nodes DB
+	Local DataSourcePriority = "local"
+	// Trusted indicates data stored in the Trusted Sequencer
+	Trusted DataSourcePriority = "trusted"
+	// External indicates data stored in the Data Availability layer
+	External DataSourcePriority = "external"
+)
+
+// DefaultPriority is the default order in which data is retrieved
+var DefaultPriority = []DataSourcePriority{Local, Trusted, External}
+
 // DataAvailability implements an abstract data availability integration
 type DataAvailability struct {
 	isTrustedSequencer bool
-
-	state       stateInterface
-	zkEVMClient ZKEVMClientTrustedBatchesGetter
-	backend     DABackender
-
-	ctx context.Context
+	state              stateInterface
+	zkEVMClient        ZKEVMClientTrustedBatchesGetter
+	backend            DABackender
+	dataSourcePriority []DataSourcePriority
+	ctx                context.Context
 }
 
 // New creates a DataAvailability instance
@@ -35,6 +50,7 @@ func New(
 	backend DABackender,
 	state stateInterface,
 	zkEVMClient ZKEVMClientTrustedBatchesGetter,
+	priority []DataSourcePriority,
 ) (*DataAvailability, error) {
 	da := &DataAvailability{
 		isTrustedSequencer: isTrustedSequencer,
@@ -42,6 +58,10 @@ func New(
 		state:              state,
 		zkEVMClient:        zkEVMClient,
 		ctx:                context.Background(),
+		dataSourcePriority: priority,
+	}
+	if len(da.dataSourcePriority) == 0 {
+		da.dataSourcePriority = DefaultPriority
 	}
 	err := da.backend.Init()
 	return da, err
@@ -68,27 +88,38 @@ func (d *DataAvailability) GetBatchL2Data(batchNums []uint64, batchHashes []comm
 	if len(batchNums) != len(batchHashes) {
 		return nil, fmt.Errorf(invalidBatchRetrievalArgs, len(batchNums), len(batchHashes))
 	}
-	localData, err := d.state.GetBatchL2DataByNumbers(d.ctx, batchNums, nil)
-	if err != nil {
-		return nil, err
-	}
 
-	data, err := checkBatches(batchNums, batchHashes, localData)
-	if err != nil {
-		log.Warnf(failedDataRetrievalTemplate, batchNums, err.Error())
-	} else {
-		return data, nil
-	}
+	for _, p := range d.dataSourcePriority {
+		switch p {
+		case Local:
+			localData, err := d.state.GetBatchL2DataByNumbers(d.ctx, batchNums, nil)
+			if err != nil {
+				return nil, err
+			}
 
-	if !d.isTrustedSequencer {
-		data, err = d.rpcData(batchNums, batchHashes, d.zkEVMClient.BatchesByNumbers)
-		if err != nil {
-			log.Warnf(failedDataRetrievalTemplate, batchNums, err.Error())
-		} else {
-			return data, nil
+			data, err := checkBatches(batchNums, batchHashes, localData)
+			if err != nil {
+				log.Warnf(failedDataRetrievalTemplate, batchNums, err.Error())
+			} else {
+				return data, nil
+			}
+		case Trusted:
+			if !d.isTrustedSequencer {
+				data, err := d.rpcData(batchNums, batchHashes, d.zkEVMClient.BatchesByNumbers)
+				if err != nil {
+					log.Warnf(failedDataRetrievalTemplate, batchNums, err.Error())
+				} else {
+					return data, nil
+				}
+			}
+		case External:
+			return d.backend.GetSequence(d.ctx, batchHashes, dataAvailabilityMessage)
+		default:
+			log.Warnf("invalid data retrieval priority: %s", p)
 		}
 	}
-	return d.backend.GetSequence(d.ctx, batchHashes, dataAvailabilityMessage)
+
+	return nil, errors.New("failed to retrieve l2 batch data")
 }
 
 func checkBatches(batchNumbers []uint64, expectedHashes []common.Hash, batchData map[uint64][]byte) ([][]byte, error) {

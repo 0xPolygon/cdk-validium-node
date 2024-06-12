@@ -305,6 +305,7 @@ func newEtherman(c config.Config, st *state.State) (*etherman.Client, error) {
 func newDataAvailability(c config.Config, st *state.State, etherman *etherman.Client, isSequenceSender bool) (*dataavailability.DataAvailability, error) {
 	var (
 		trustedSequencerURL string
+		dataSourcePriority  []dataavailability.DataSourcePriority
 		err                 error
 	)
 	if !c.IsTrustedSequencer {
@@ -320,6 +321,11 @@ func newDataAvailability(c config.Config, st *state.State, etherman *etherman.Cl
 		log.Debug("trustedSequencerURL ", trustedSequencerURL)
 	}
 	zkEVMClient := client.NewClient(trustedSequencerURL)
+
+	dataSourcePriority = c.Synchronizer.L2Synchronization.DataSourcePriority
+	if len(dataSourcePriority) == 0 {
+		dataSourcePriority = dataavailability.DefaultPriority
+	}
 
 	// Backend specific config
 	daProtocolName, err := etherman.GetDAProtocolName()
@@ -362,6 +368,7 @@ func newDataAvailability(c config.Config, st *state.State, etherman *etherman.Cl
 		daBackend,
 		st,
 		zkEVMClient,
+		dataSourcePriority,
 	)
 }
 

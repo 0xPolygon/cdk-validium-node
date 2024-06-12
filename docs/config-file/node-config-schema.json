@@ -707,6 +707,18 @@
 							"type": "boolean",
 							"description": "CheckLastL2BlockHashOnCloseBatch if is true when a batch is closed is force to check the last L2Block hash",
 							"default": true
+						},
+						"DataSourcePriority": {
+							"items": {
+								"type": "string"
+							},
+							"type": "array",
+							"description": "DataSourcePriority defines the order in which L2 batch should be retrieved: local, trusted, external",
+							"default": [
+								"local",
+								"trusted",
+								"external"
+							]
 						}
 					},
 					"additionalProperties": false,

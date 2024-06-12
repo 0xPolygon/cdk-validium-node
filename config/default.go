@@ -131,6 +131,7 @@ L1SyncCheckL2BlockNumberhModulus = 600
 		AcceptEmptyClosedBatches = false
 		ReprocessFullBatchOnClose = false
 		CheckLastL2BlockHashOnCloseBatch = true
+		DataSourcePriority = ["local","trusted","external"]
 
 [Sequencer]
 DeletePoolTxsL1BlockConfirmations = 100
