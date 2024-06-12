@@ -89,8 +89,6 @@ func (d *DataAvailability) GetBatchL2Data(batchNums []uint64, batchHashes []comm
 		return nil, fmt.Errorf(invalidBatchRetrievalArgs, len(batchNums), len(batchHashes))
 	}
 
-	fmt.Println("d.dataSourcePriority:", d.dataSourcePriority)
-
 	for _, p := range d.dataSourcePriority {
 		switch p {
 		case Local:
