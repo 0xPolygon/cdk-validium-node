@@ -7,9 +7,8 @@ on:
       - develop
 
 jobs:
-  deploy_devnet:
+  kurtosis-cdk:
     runs-on: ubuntu-latest
-    
     steps:
       - name: Checkout cdk-validium-node
         uses: actions/checkout@v4
