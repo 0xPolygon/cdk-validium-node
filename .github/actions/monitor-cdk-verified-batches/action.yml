@@ -1,0 +1,21 @@
+---
+name: monitor-cdk-verified-batches
+description: Check that batches are being verified in a CDK environment
+
+inputs:
+  verified_batches_target:
+    description: The minimum number of batches to be verified
+    required: false
+    default: '30'
+  timeout:
+    description: The script timeout in seconds
+    required: false
+    default: '600' # 10 minutes
+
+runs:
+  using: "composite"
+  steps:
+    - name: Check that batches are being verified
+      working-directory: .github/actions/monitor-cdk-verified-batches
+      shell: bash
+      run: ./batch_verification_monitor.sh ${{ inputs.verified_batches_target }} ${{ inputs.timeout }}
