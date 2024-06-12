@@ -33,7 +33,7 @@ jobs:
       - name: Configure Kurtosis CDK
         working-directory: ./kurtosis-cdk
         run: |
-          yq -Y --in-place '.args.data_availability_mode = "validium"' params.yml
+          yq -Y --in-place '.args.data_availability_mode = "cdk-validium"' params.yml
           yq -Y --in-place '.args.zkevm_node_image = "cdk-validium-node:local"' params.yml
 
       - name: Deploy Kurtosis CDK package
