@@ -14,8 +14,8 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: 0xPolygon/cdk-validium-node
-          #ref: d8e6026f84709e63e0d59a52a456de4b2e6e3778
-          ref: 1937eaf00dfa999c0322602f292f2789ef7b2b89
+          ref: d8e6026f84709e63e0d59a52a456de4b2e6e3778
+          #ref: 1937eaf00dfa999c0322602f292f2789ef7b2b89
           #ref: 8032cb1e4b7b961817fd8bd096923032ea440b11
           #ref: 33e1b0f1852b6bf827c3aacfcd8f2949b8f71457
           #ref: 404088f92bbf21c443984414d0d50a5de0db2837
