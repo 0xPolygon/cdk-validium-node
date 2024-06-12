@@ -401,19 +401,23 @@ func (s *Sequencer) isSynced(ctx context.Context) bool {
 		log.Errorf("failed to get last isSynced batch, error: %v", err)
 		return false
 	}
+
 	lastTrustedBatchNum, err := s.stateIntf.GetLastBatchNumber(ctx, nil)
 	if err != nil && err != state.ErrNotFound {
 		log.Errorf("failed to get last batch num, error: %v", err)
 		return false
 	}
+
 	if lastTrustedBatchNum > lastVirtualBatchNum {
 		return true
 	}
+
 	lastEthBatchNum, err := s.etherman.GetLatestBatchNumber()
 	if err != nil {
 		log.Errorf("failed to get last eth batch, error: %v", err)
 		return false
 	}
+
 	if lastVirtualBatchNum < lastEthBatchNum {
 		log.Infof("waiting for the state to be synced, lastVirtualBatchNum: %d, lastEthBatchNum: %d", lastVirtualBatchNum, lastEthBatchNum)
 		return false
