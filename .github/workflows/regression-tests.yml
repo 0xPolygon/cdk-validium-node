@@ -24,7 +24,7 @@ jobs:
           fi
 
       - name: Set up Docker
-        uses: docker/setup-buildx-action@v1
+        uses: docker/setup-buildx-action@v3
 
       - name: Run regression tests against JIT container image
         uses: 0xPolygon/kurtosis-cdk@v0.2.2
