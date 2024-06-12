@@ -11,24 +11,36 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      - name: Checkout
+      - name: Checkout cdk-validium-node
         uses: actions/checkout@v4
-
-      - name: Build image (with proposed code changes) locally
-        id: build
-        run: |
-          if [ "$GITHUB_EVENT_NAME" == "pull_request" ]; then
-              GITHUB_SHA_SHORT=$(jq -r .pull_request.head.sha "$GITHUB_EVENT_PATH" | cut -c 1-7)
-              echo $GITHUB_SHA_SHORT
-              echo "::set-output name=GITHUB_SHA_SHORT::$GITHUB_SHA_SHORT"
-          fi
-
-      - name: Set up Docker
-        uses: docker/setup-buildx-action@v1
-
-      - name: Run regression tests against JIT container image
-        uses: 0xPolygon/kurtosis-cdk@v0.1.9
         with:
-          zkevm_node: ${{ steps.build.outputs.GITHUB_SHA_SHORT }}
-          kurtosis_cli: 0.89.3
-          #kurtosis_cdk: v0.2.0
+          path: cdk-validium-node
+
+      - name: Checkout kurtosis-cdk
+        uses: actions/checkout@v4
+        with:
+          repository: 0xPolygon/kurtosis-cdk
+          ref: v0.2.2
+          path: kurtosis-cdk
+
+      - name: Install Kurtosis CDK tools
+        uses: ./kurtosis-cdk/.github/actions/setup-kurtosis-cdk
+
+      - name: Build docker image
+        working-directory: ./cdk-validium-node
+        run: docker build -t cdk-validium-node:local --file Dockerfile .
+
+      - name: Configure Kurtosis CDK
+        working-directory: ./kurtosis-cdk
+        run: |
+          yq -Y --in-place '.args.data_availability_mode = "rollup"' params.yml
+          yq -Y --in-place '.args.zkevm_node_image = "cdk-validium-node:local"' params.yml
+
+      - name: Deploy Kurtosis CDK package
+        working-directory: ./kurtosis-cdk
+        run: kurtosis run --enclave cdk-v1 --args-file params.yml --image-download always .
+
+      - name: Monitor verified batches
+        working-directory: ./kurtosis-cdk
+        shell: bash
+        run: .github/actions/monitor-cdk-verified-batches/batch_verification_monitor.sh 20 600
