@@ -1484,14 +1484,17 @@ func getBatchL2Data(da dataavailability.BatchDataProvider, batchInfos []batchInf
 	if err != nil {
 		return nil, err
 	}
+
 	if len(batchL2Data) != len(batchNums) {
 		return nil,
 			fmt.Errorf("failed to retrieve all batch data. Expected %d, got %d", len(batchNums), len(batchL2Data))
 	}
+
 	data := make(map[uint64][]byte)
 	for i, bn := range batchNums {
 		data[bn] = batchL2Data[i]
 	}
+
 	return data, nil
 }
 

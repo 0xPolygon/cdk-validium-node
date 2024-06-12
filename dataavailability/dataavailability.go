@@ -88,6 +88,9 @@ func (d *DataAvailability) GetBatchL2Data(batchNums []uint64, batchHashes []comm
 	if len(batchNums) != len(batchHashes) {
 		return nil, fmt.Errorf(invalidBatchRetrievalArgs, len(batchNums), len(batchHashes))
 	}
+
+	fmt.Println("d.dataSourcePriority:", d.dataSourcePriority)
+
 	for _, p := range d.dataSourcePriority {
 		switch p {
 		case Local:
@@ -117,6 +120,7 @@ func (d *DataAvailability) GetBatchL2Data(batchNums []uint64, batchHashes []comm
 			log.Warnf("invalid data retrieval priority: %s", p)
 		}
 	}
+
 	return nil, errors.New("failed to retrieve l2 batch data")
 }
 
