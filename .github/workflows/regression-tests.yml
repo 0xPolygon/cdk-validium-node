@@ -31,4 +31,4 @@ jobs:
         with:
           zkevm_node: ${{ steps.build.outputs.GITHUB_SHA_SHORT }}
           kurtosis_cli: 0.90.0
-          kurtosis_cdk: v0.2.2
+          kurtosis_cdk: v0.2.0
