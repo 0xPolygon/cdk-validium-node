@@ -162,6 +162,7 @@ StateConsistencyCheckInterval = "5s"
 		Filename = ""
 		Version = 0
 		Enabled = false
+LoadPendingTxsLimit = 0
 
 [SequenceSender]
 WaitPeriodSendSequence = "5s"
