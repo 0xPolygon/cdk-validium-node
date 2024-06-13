@@ -331,6 +331,36 @@ func (_m *StateMock) GetExitRootByGlobalExitRoot(ctx context.Context, ger common
 	return r0, r1
 }
 
+// GetForcedBatchDataByNumbers provides a mock function with given fields: ctx, batchNumbers, dbTx
+func (_m *StateMock) GetForcedBatchDataByNumbers(ctx context.Context, batchNumbers []uint64, dbTx pgx.Tx) (map[uint64][]byte, error) {
+	ret := _m.Called(ctx, batchNumbers, dbTx)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetForcedBatchDataByNumbers")
+	}
+
+	var r0 map[uint64][]byte
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, []uint64, pgx.Tx) (map[uint64][]byte, error)); ok {
+		return rf(ctx, batchNumbers, dbTx)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, []uint64, pgx.Tx) map[uint64][]byte); ok {
+		r0 = rf(ctx, batchNumbers, dbTx)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[uint64][]byte)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, []uint64, pgx.Tx) error); ok {
+		r1 = rf(ctx, batchNumbers, dbTx)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetL2BlockByHash provides a mock function with given fields: ctx, hash, dbTx
 func (_m *StateMock) GetL2BlockByHash(ctx context.Context, hash common.Hash, dbTx pgx.Tx) (*state.L2Block, error) {
 	ret := _m.Called(ctx, hash, dbTx)

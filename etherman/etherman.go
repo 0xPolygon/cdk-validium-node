@@ -208,11 +208,12 @@ type Client struct {
 	cfg   Config
 	auth  map[common.Address]bind.TransactOpts // empty in case of read-only client
 
-	da dataavailability.BatchDataProvider
+	da    dataavailability.BatchDataProvider
+	state stateProvider
 }
 
 // NewClient creates a new etherman.
-func NewClient(cfg Config, l1Config L1Config, da dataavailability.BatchDataProvider) (*Client, error) {
+func NewClient(cfg Config, l1Config L1Config, da dataavailability.BatchDataProvider, st stateProvider) (*Client, error) {
 	// Connect to ethereum node
 	ethClient, err := ethclient.Dial(cfg.URL)
 	if err != nil {
@@ -281,7 +282,7 @@ func NewClient(cfg Config, l1Config L1Config, da dataavailability.BatchDataProvi
 	rollupID, err := rollupManager.RollupAddressToID(&bind.CallOpts{Pending: false}, l1Config.ZkEVMAddr)
 	if err != nil {
 		log.Debugf("error rollupManager.RollupAddressToID(%s). Error: %w", l1Config.RollupManagerAddr, err)
-		// TODO return error after the upgrade
+		return nil, err
 	}
 	log.Debug("rollupID: ", rollupID)
 
@@ -305,6 +306,7 @@ func NewClient(cfg Config, l1Config L1Config, da dataavailability.BatchDataProvi
 		cfg:   cfg,
 		auth:  map[common.Address]bind.TransactOpts{},
 		da:    da,
+		state: st,
 	}, nil
 }
 
@@ -1159,7 +1161,6 @@ func (etherMan *Client) forcedBatchEvent(ctx context.Context, vLog types.Log, bl
 
 func (etherMan *Client) sequencedBatchesEvent(ctx context.Context, vLog types.Log, blocks *[]Block, blocksOrder *map[common.Hash][]Order) error {
 	log.Debugf("SequenceBatches event detected: txHash: %s", common.Bytes2Hex(vLog.TxHash[:]))
-	//tx,isPending, err:=etherMan.EthClient.TransactionByHash(ctx, vLog.TxHash)
 
 	sb, err := etherMan.ZkEVM.ParseSequenceBatches(vLog)
 	if err != nil {
@@ -1185,13 +1186,13 @@ func (etherMan *Client) sequencedBatchesEvent(ctx context.Context, vLog types.Lo
 		log.Debugf("MethodId: %s", common.Bytes2Hex(methodId))
 		if bytes.Equal(methodId, methodIDSequenceBatchesEtrog) ||
 			bytes.Equal(methodId, methodIDSequenceBatchesValidiumEtrog) {
-			sequences, err = decodeSequencesEtrog(tx.Data(), sb.NumBatch, msg.From, vLog.TxHash, msg.Nonce, sb.L1InfoRoot, etherMan.da)
+			sequences, err = decodeSequencesEtrog(tx.Data(), sb.NumBatch, msg.From, vLog.TxHash, msg.Nonce, sb.L1InfoRoot, etherMan.da, etherMan.state)
 			if err != nil {
 				return fmt.Errorf("error decoding the sequences (etrog): %v", err)
 			}
 		} else if bytes.Equal(methodId, methodIDSequenceBatchesElderberry) ||
 			bytes.Equal(methodId, methodIDSequenceBatchesValidiumElderberry) {
-			sequences, err = decodeSequencesElderberry(tx.Data(), sb.NumBatch, msg.From, vLog.TxHash, msg.Nonce, sb.L1InfoRoot, etherMan.da)
+			sequences, err = decodeSequencesElderberry(tx.Data(), sb.NumBatch, msg.From, vLog.TxHash, msg.Nonce, sb.L1InfoRoot, etherMan.da, etherMan.state)
 			if err != nil {
 				return fmt.Errorf("error decoding the sequences (elderberry): %v", err)
 			}
@@ -1277,7 +1278,8 @@ func (etherMan *Client) sequencedBatchesPreEtrogEvent(ctx context.Context, vLog 
 	return nil
 }
 
-func decodeSequencesElderberry(txData []byte, lastBatchNumber uint64, sequencer common.Address, txHash common.Hash, nonce uint64, l1InfoRoot common.Hash, da dataavailability.BatchDataProvider) ([]SequencedBatch, error) {
+func decodeSequencesElderberry(txData []byte, lastBatchNumber uint64, sequencer common.Address, txHash common.Hash, nonce uint64,
+	l1InfoRoot common.Hash, da dataavailability.BatchDataProvider, st stateProvider) ([]SequencedBatch, error) {
 	// Extract coded txs.
 	// Load contract ABI
 	smcAbi, err := abi.JSON(strings.NewReader(polygonzkevm.PolygonzkevmABI))
@@ -1285,11 +1287,11 @@ func decodeSequencesElderberry(txData []byte, lastBatchNumber uint64, sequencer 
 		return nil, err
 	}
 
-	return decodeSequencedBatches(smcAbi, txData, state.FORKID_ELDERBERRY, lastBatchNumber, sequencer, txHash, nonce, l1InfoRoot, da)
+	return decodeSequencedBatches(smcAbi, txData, state.FORKID_ELDERBERRY, lastBatchNumber, sequencer, txHash, nonce, l1InfoRoot, da, st)
 }
 
 func decodeSequencesEtrog(txData []byte, lastBatchNumber uint64, sequencer common.Address, txHash common.Hash, nonce uint64, l1InfoRoot common.Hash,
-	da dataavailability.BatchDataProvider) ([]SequencedBatch, error) {
+	da dataavailability.BatchDataProvider, st stateProvider) ([]SequencedBatch, error) {
 	// Extract coded txs.
 	// Load contract ABI
 	smcAbi, err := abi.JSON(strings.NewReader(etrogpolygonzkevm.EtrogpolygonzkevmABI))
@@ -1297,13 +1299,13 @@ func decodeSequencesEtrog(txData []byte, lastBatchNumber uint64, sequencer commo
 		return nil, err
 	}
 
-	return decodeSequencedBatches(smcAbi, txData, state.FORKID_ETROG, lastBatchNumber, sequencer, txHash, nonce, l1InfoRoot, da)
+	return decodeSequencedBatches(smcAbi, txData, state.FORKID_ETROG, lastBatchNumber, sequencer, txHash, nonce, l1InfoRoot, da, st)
 }
 
 // decodeSequencedBatches decodes provided data, based on the funcName, whether it is rollup or validium data and returns sequenced batches
 func decodeSequencedBatches(smcAbi abi.ABI, txData []byte, forkID uint64, lastBatchNumber uint64,
 	sequencer common.Address, txHash common.Hash, nonce uint64, l1InfoRoot common.Hash,
-	da dataavailability.BatchDataProvider) ([]SequencedBatch, error) {
+	da dataavailability.BatchDataProvider, st stateProvider) ([]SequencedBatch, error) {
 	// Recover Method from signature and ABI
 	method, err := smcAbi.MethodById(txData[:4])
 	if err != nil {
@@ -1324,7 +1326,6 @@ func decodeSequencedBatches(smcAbi abi.ABI, txData []byte, forkID uint64, lastBa
 		maxSequenceTimestamp     uint64
 		initSequencedBatchNumber uint64
 		coinbase                 common.Address
-		dataAvailabilityMsg      []byte
 	)
 
 	switch method.Name {
@@ -1369,7 +1370,10 @@ func decodeSequencedBatches(smcAbi abi.ABI, txData []byte, forkID uint64, lastBa
 
 		return sequencedBatches, nil
 	case "sequenceBatchesValidium":
-		var sequencesValidium []polygonzkevm.PolygonValidiumEtrogValidiumBatchData
+		var (
+			sequencesValidium   []polygonzkevm.PolygonValidiumEtrogValidiumBatchData
+			dataAvailabilityMsg []byte
+		)
 		err := json.Unmarshal(bytedata, &sequencesValidium)
 		if err != nil {
 			return nil, err
@@ -1387,25 +1391,26 @@ func decodeSequencedBatches(smcAbi abi.ABI, txData []byte, forkID uint64, lastBa
 			dataAvailabilityMsg = data[4].([]byte)
 		}
 
-		sequencedBatches := make([]SequencedBatch, len(sequencesValidium))
-
-		var (
-			batchNums []uint64
-			hashes    []common.Hash
-		)
-
-		for i, validiumData := range sequencesValidium {
+		// Pair the batch number, hash, and if it is forced. This will allow
+		// retrieval from different sources, and keep them in original order.
+		var batchInfos []batchInfo
+		for i, d := range sequencesValidium {
 			bn := lastBatchNumber - uint64(len(sequencesValidium)-(i+1))
-			batchNums = append(batchNums, bn)
-			hashes = append(hashes, validiumData.TransactionsHash)
+			forced := d.ForcedTimestamp > 0
+			h := d.TransactionsHash
+			batchInfos = append(batchInfos, batchInfo{num: bn, hash: h, isForced: forced})
 		}
-		batchL2Data, err := da.GetBatchL2Data(batchNums, hashes, dataAvailabilityMsg)
+
+		batchData, err := retrieveBatchData(da, st, batchInfos, dataAvailabilityMsg)
 		if err != nil {
 			return nil, err
 		}
-		for i, bn := range batchNums {
+
+		sequencedBatches := make([]SequencedBatch, len(sequencesValidium))
+		for i, info := range batchInfos {
+			bn := info.num
 			s := polygonzkevm.PolygonRollupBaseEtrogBatchData{
-				Transactions:         batchL2Data[i],
+				Transactions:         batchData[i],
 				ForcedGlobalExitRoot: sequencesValidium[i].ForcedGlobalExitRoot,
 				ForcedTimestamp:      sequencesValidium[i].ForcedTimestamp,
 				ForcedBlockHashL1:    sequencesValidium[i].ForcedBlockHashL1,
@@ -1428,10 +1433,100 @@ func decodeSequencedBatches(smcAbi abi.ABI, txData []byte, forkID uint64, lastBa
 			}
 			sequencedBatches[i] = batch
 		}
+
 		return sequencedBatches, nil
 	}
 
 	return nil, fmt.Errorf("unexpected method called in sequence batches transaction: %s", method.RawName)
+}
+
+type batchInfo struct {
+	num      uint64
+	hash     common.Hash
+	isForced bool
+}
+
+func retrieveBatchData(da dataavailability.BatchDataProvider, st stateProvider, batchInfos []batchInfo, daMessage []byte) ([][]byte, error) {
+	validiumData, err := getBatchL2Data(da, batchInfos, daMessage)
+	if err != nil {
+		return nil, err
+	}
+	forcedData, err := getForcedBatchData(st, batchInfos)
+	if err != nil {
+		return nil, err
+	}
+	data := make([][]byte, len(batchInfos))
+	for i, info := range batchInfos {
+		bn := info.num
+		if info.isForced {
+			data[i] = forcedData[bn]
+		} else {
+			data[i] = validiumData[bn]
+		}
+	}
+	return data, nil
+}
+
+func getBatchL2Data(da dataavailability.BatchDataProvider, batchInfos []batchInfo, daMessage []byte) (map[uint64][]byte, error) {
+	var batchNums []uint64
+	var batchHashes []common.Hash
+	for _, info := range batchInfos {
+		if !info.isForced {
+			batchNums = append(batchNums, info.num)
+			batchHashes = append(batchHashes, info.hash)
+		}
+	}
+	if len(batchNums) == 0 {
+		return nil, nil
+	}
+
+	batchL2Data, err := da.GetBatchL2Data(batchNums, batchHashes, daMessage)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(batchL2Data) != len(batchNums) {
+		return nil,
+			fmt.Errorf("failed to retrieve all batch data. Expected %d, got %d", len(batchNums), len(batchL2Data))
+	}
+
+	data := make(map[uint64][]byte)
+	for i, bn := range batchNums {
+		data[bn] = batchL2Data[i]
+	}
+
+	return data, nil
+}
+
+func getForcedBatchData(st stateProvider, batchInfos []batchInfo) (map[uint64][]byte, error) {
+	var batchNums []uint64
+	var batchHashes []common.Hash
+	for _, info := range batchInfos {
+		if info.isForced {
+			batchNums = append(batchNums, info.num)
+			batchHashes = append(batchHashes, info.hash)
+		}
+	}
+	if len(batchNums) == 0 {
+		return nil, nil
+	}
+	data, err := st.GetForcedBatchDataByNumbers(context.Background(), batchNums, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	for i, bn := range batchNums {
+		expectedHash := batchHashes[i]
+		d, ok := data[bn]
+		if !ok {
+			return nil, fmt.Errorf("missing forced batch data for number %d", bn)
+		}
+		actualHash := crypto.Keccak256Hash(d)
+		if actualHash != expectedHash {
+			return nil, fmt.Errorf("got wrong hash for forced batch data number %d", bn)
+		}
+	}
+	return data, nil
 }
 
 func decodeSequencesPreEtrog(txData []byte, lastBatchNumber uint64, sequencer common.Address, txHash common.Hash, nonce uint64) ([]SequencedBatch, error) {
@@ -1544,7 +1639,7 @@ func (etherMan *Client) forceSequencedBatchesEvent(ctx context.Context, vLog typ
 	if err != nil {
 		return err
 	}
-	// TODO completar los datos de forcedBlockHas, forcedGer y forcedTimestamp
+	// TODO complete data forcedBlockHash, forcedGer y forcedTimestamp
 
 	// Read the tx for this batch.
 	tx, err := etherMan.EthClient.TransactionInBlock(ctx, vLog.BlockHash, vLog.TxIndex)
@@ -1847,6 +1942,17 @@ func (etherMan *Client) EstimateGas(ctx context.Context, from common.Address, to
 		Value: value,
 		Data:  data,
 	})
+}
+
+// DepositCount returns deposits count
+func (etherman *Client) DepositCount(ctx context.Context, blockNumber *uint64) (*big.Int, error) {
+	var opts *bind.CallOpts
+	if blockNumber != nil {
+		opts = new(bind.CallOpts)
+		opts.BlockNumber = new(big.Int).SetUint64(*blockNumber)
+	}
+
+	return etherman.GlobalExitRootManager.DepositCount(opts)
 }
 
 // CheckTxWasMined check if a tx was already mined

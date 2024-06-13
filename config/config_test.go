@@ -12,6 +12,7 @@ import (
 	"github.com/0xPolygonHermez/zkevm-node/aggregator"
 	"github.com/0xPolygonHermez/zkevm-node/config"
 	"github.com/0xPolygonHermez/zkevm-node/config/types"
+	"github.com/0xPolygonHermez/zkevm-node/dataavailability"
 	"github.com/0xPolygonHermez/zkevm-node/log"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/assert"
@@ -64,7 +65,10 @@ func Test_Defaults(t *testing.T) {
 			path:          "Synchronizer.L2Synchronization.CheckLastL2BlockHashOnCloseBatch",
 			expectedValue: true,
 		},
-
+		{
+			path:          "Synchronizer.L2Synchronization.DataSourcePriority",
+			expectedValue: []dataavailability.DataSourcePriority{"local", "trusted", "external"},
+		},
 		{
 			path:          "Sequencer.DeletePoolTxsL1BlockConfirmations",
 			expectedValue: uint64(100),
@@ -102,6 +106,10 @@ func Test_Defaults(t *testing.T) {
 			expectedValue: uint32(10),
 		},
 		{
+			path:          "Sequencer.Finalizer.StateRootSyncInterval",
+			expectedValue: types.NewDuration(3600 * time.Second),
+		},
+		{
 			path:          "Sequencer.Finalizer.ForcedBatchesL1BlockConfirmations",
 			expectedValue: uint64(64),
 		},
@@ -127,7 +135,7 @@ func Test_Defaults(t *testing.T) {
 		},
 		{
 			path:          "Sequencer.Finalizer.BatchMaxDeltaTimestamp",
-			expectedValue: types.NewDuration(10 * time.Second),
+			expectedValue: types.NewDuration(1800 * time.Second),
 		},
 		{
 			path:          "Sequencer.Finalizer.Metrics.Interval",

@@ -119,7 +119,7 @@ func (p *PostgresStorage) GetStateRootByBatchNumber(ctx context.Context, batchNu
 	return common.HexToHash(stateRootStr), nil
 }
 
-// GetLogsByBlockNumber get all the logs from a specific block ordered by log index
+// GetLogsByBlockNumber get all the logs from a specific block ordered by tx index and log index
 func (p *PostgresStorage) GetLogsByBlockNumber(ctx context.Context, blockNumber uint64, dbTx pgx.Tx) ([]*types.Log, error) {
 	const query = `
       SELECT t.l2_block_num, b.block_hash, l.tx_hash, r.tx_index, l.log_index, l.address, l.data, l.topic0, l.topic1, l.topic2, l.topic3
@@ -128,7 +128,7 @@ func (p *PostgresStorage) GetLogsByBlockNumber(ctx context.Context, blockNumber 
        INNER JOIN state.l2block b ON b.block_num = t.l2_block_num
        INNER JOIN state.receipt r ON r.tx_hash = t.hash
        WHERE b.block_num = $1
-       ORDER BY l.log_index ASC`
+       ORDER BY r.tx_index ASC, l.log_index ASC`
 
 	q := p.getExecQuerier(dbTx)
 	rows, err := q.Query(ctx, query, blockNumber)
@@ -159,7 +159,7 @@ func (p *PostgresStorage) GetLogs(ctx context.Context, fromBlock uint64, toBlock
 	const queryFilterByBlockHash = `AND b.block_hash = $7 `
 	const queryFilterByBlockNumbers = `AND b.block_num BETWEEN $7 AND $8 `
 
-	const queryOrder = `ORDER BY b.block_num ASC, l.log_index ASC`
+	const queryOrder = `ORDER BY b.block_num ASC, r.tx_index ASC, l.log_index ASC`
 
 	// count queries
 	const queryToCountLogsByBlockHash = "" +
@@ -371,33 +371,71 @@ func (p *PostgresStorage) GetBatchL2DataByNumber(ctx context.Context, batchNumbe
 
 // GetBatchL2DataByNumbers returns the batch L2 data of the given batch numbers. The data is a union of state.batch and state.forced_batch tables.
 func (p *PostgresStorage) GetBatchL2DataByNumbers(ctx context.Context, batchNumbers []uint64, dbTx pgx.Tx) (map[uint64][]byte, error) {
-	const getBatchL2DataByBatchNumber = `
-	SELECT batch_num, raw_txs_data FROM state.batch WHERE batch_num = ANY($1)  
-	UNION
-	SELECT forced_batch_num, convert_from(decode(raw_txs_data, 'hex'), 'UTF8')::bytea FROM state.forced_batch WHERE forced_batch_num = ANY($2)
-`
+	const sql = "SELECT batch_num, raw_txs_data FROM state.batch WHERE batch_num = ANY($1)"
+	return p.getBatchData(ctx, sql, batchNumbers, dbTx)
+}
+
+// GetForcedBatchDataByNumbers returns the forced batch data of the given batch numbers
+func (p *PostgresStorage) GetForcedBatchDataByNumbers(ctx context.Context, batchNumbers []uint64, dbTx pgx.Tx) (map[uint64][]byte, error) {
+	const sql = "SELECT forced_batch_num, convert_from(decode(raw_txs_data, 'hex'), 'UTF8')::bytea FROM state.forced_batch WHERE forced_batch_num = ANY($1)"
+	return p.getBatchData(ctx, sql, batchNumbers, dbTx)
+}
+
+func (p *PostgresStorage) getBatchData(ctx context.Context, sql string, batchNumbers []uint64, dbTx pgx.Tx) (map[uint64][]byte, error) {
 	q := p.getExecQuerier(dbTx)
-	rows, err := q.Query(ctx, getBatchL2DataByBatchNumber, batchNumbers, batchNumbers)
+	rows, err := q.Query(ctx, sql, batchNumbers)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return p.GetBatchL2DataByNumbersFromBackup(ctx, batchNumbers, dbTx)
+	} else if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	batchL2DataMap, err := readBatchDataResults(rows, batchNumbers)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(batchL2DataMap) == 0 {
+		return p.GetBatchL2DataByNumbersFromBackup(ctx, batchNumbers, dbTx)
+	}
+
+	return batchL2DataMap, nil
+}
+
+// GetBatchL2DataByNumbersFromBackup returns the batch L2 data of the given batch number from the backup table
+func (p *PostgresStorage) GetBatchL2DataByNumbersFromBackup(ctx context.Context, batchNumbers []uint64, dbTx pgx.Tx) (map[uint64][]byte, error) {
+	getBatchL2DataByBatchNumber := `
+		SELECT batch_num, data FROM state.batch_data_backup
+		WHERE batch_num = ANY($1) 
+		ORDER BY created_at DESC
+	`
+	q := p.getExecQuerier(dbTx)
+	rows, err := q.Query(ctx, getBatchL2DataByBatchNumber, batchNumbers)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return nil, state.ErrNotFound
 	} else if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	batchL2DataMap := make(map[uint64][]byte)
-	for rows.Next() {
+
+	return readBatchDataResults(rows, batchNumbers)
+}
+
+// readBatchDataResults retrieves batch data from the provided result set
+func readBatchDataResults(results pgx.Rows, batchNumbers []uint64) (map[uint64][]byte, error) {
+	batchL2DataMap := make(map[uint64][]byte, len(batchNumbers))
+	for results.Next() {
 		var (
 			batchNum    uint64
 			batchL2Data []byte
 		)
-		err := rows.Scan(&batchNum, &batchL2Data)
-		if err != nil {
+
+		if err := results.Scan(&batchNum, &batchL2Data); err != nil {
 			return nil, err
 		}
 		batchL2DataMap[batchNum] = batchL2Data
 	}
-	if len(batchL2DataMap) == 0 {
-		return nil, state.ErrNotFound
-	}
+
 	return batchL2DataMap, nil
 }

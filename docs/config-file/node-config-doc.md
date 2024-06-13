@@ -1339,8 +1339,10 @@ because depending of this values is going to ask to a trusted node for trusted t
 | - [SyncInterval](#Synchronizer_SyncInterval )                                         | No      | string           | No         | -          | Duration                                                                                                                                                                                                                                                |
 | - [SyncChunkSize](#Synchronizer_SyncChunkSize )                                       | No      | integer          | No         | -          | SyncChunkSize is the number of blocks to sync on each chunk                                                                                                                                                                                             |
 | - [TrustedSequencerURL](#Synchronizer_TrustedSequencerURL )                           | No      | string           | No         | -          | TrustedSequencerURL is the rpc url to connect and sync the trusted state                                                                                                                                                                                |
+| - [SyncBlockProtection](#Synchronizer_SyncBlockProtection )                           | No      | string           | No         | -          | SyncBlockProtection specify the state to sync (lastest, finalized or safe)                                                                                                                                                                              |
 | - [L1SyncCheckL2BlockHash](#Synchronizer_L1SyncCheckL2BlockHash )                     | No      | boolean          | No         | -          | L1SyncCheckL2BlockHash if is true when a batch is closed is force to check  L2Block hash against trustedNode (only apply for permissionless)                                                                                                            |
 | - [L1SyncCheckL2BlockNumberhModulus](#Synchronizer_L1SyncCheckL2BlockNumberhModulus ) | No      | integer          | No         | -          | L1SyncCheckL2BlockNumberhModulus is the modulus used to choose the l2block to check<br />a modules 5, for instance, means check all l2block multiples of 5 (10,15,20,...)                                                                               |
+| - [L1BlockCheck](#Synchronizer_L1BlockCheck )                                         | No      | object           | No         | -          | -                                                                                                                                                                                                                                                       |
 | - [L1SynchronizationMode](#Synchronizer_L1SynchronizationMode )                       | No      | enum (of string) | No         | -          | L1SynchronizationMode define how to synchronize with L1:<br />- parallel: Request data to L1 in parallel, and process sequentially. The advantage is that executor is not blocked waiting for L1 data<br />- sequential: Request data to L1 and execute |
 | - [L1ParallelSynchronization](#Synchronizer_L1ParallelSynchronization )               | No      | object           | No         | -          | L1ParallelSynchronization Configuration for parallel mode (if L1SynchronizationMode equal to 'parallel')                                                                                                                                                |
 | - [L2Synchronization](#Synchronizer_L2Synchronization )                               | No      | object           | No         | -          | L2Synchronization Configuration for L2 synchronization                                                                                                                                                                                                  |
@@ -1399,7 +1401,21 @@ SyncChunkSize=100
 TrustedSequencerURL=""
 ```
 
-### <a name="Synchronizer_L1SyncCheckL2BlockHash"></a>9.4. `Synchronizer.L1SyncCheckL2BlockHash`
+### <a name="Synchronizer_SyncBlockProtection"></a>9.4. `Synchronizer.SyncBlockProtection`
+
+**Type:** : `string`
+
+**Default:** `"safe"`
+
+**Description:** SyncBlockProtection specify the state to sync (lastest, finalized or safe)
+
+**Example setting the default value** ("safe"):
+```
+[Synchronizer]
+SyncBlockProtection="safe"
+```
+
+### <a name="Synchronizer_L1SyncCheckL2BlockHash"></a>9.5. `Synchronizer.L1SyncCheckL2BlockHash`
 
 **Type:** : `boolean`
 
@@ -1413,22 +1429,150 @@ TrustedSequencerURL=""
 L1SyncCheckL2BlockHash=true
 ```
 
-### <a name="Synchronizer_L1SyncCheckL2BlockNumberhModulus"></a>9.5. `Synchronizer.L1SyncCheckL2BlockNumberhModulus`
+### <a name="Synchronizer_L1SyncCheckL2BlockNumberhModulus"></a>9.6. `Synchronizer.L1SyncCheckL2BlockNumberhModulus`
 
 **Type:** : `integer`
 
-**Default:** `30`
+**Default:** `600`
 
 **Description:** L1SyncCheckL2BlockNumberhModulus is the modulus used to choose the l2block to check
 a modules 5, for instance, means check all l2block multiples of 5 (10,15,20,...)
 
-**Example setting the default value** (30):
+**Example setting the default value** (600):
 ```
 [Synchronizer]
-L1SyncCheckL2BlockNumberhModulus=30
+L1SyncCheckL2BlockNumberhModulus=600
 ```
 
-### <a name="Synchronizer_L1SynchronizationMode"></a>9.6. `Synchronizer.L1SynchronizationMode`
+### <a name="Synchronizer_L1BlockCheck"></a>9.7. `[Synchronizer.L1BlockCheck]`
+
+**Type:** : `object`
+
+| Property                                                                     | Pattern | Type             | Deprecated | Definition | Title/Description                                                                                                                                                                                                                                       |
+| ---------------------------------------------------------------------------- | ------- | ---------------- | ---------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| - [Enable](#Synchronizer_L1BlockCheck_Enable )                               | No      | boolean          | No         | -          | Enable if is true then the check l1 Block Hash is active                                                                                                                                                                                                |
+| - [L1SafeBlockPoint](#Synchronizer_L1BlockCheck_L1SafeBlockPoint )           | No      | enum (of string) | No         | -          | L1SafeBlockPoint is the point that a block is considered safe enough to be checked<br />it can be: finalized, safe,pending or latest                                                                                                                    |
+| - [L1SafeBlockOffset](#Synchronizer_L1BlockCheck_L1SafeBlockOffset )         | No      | integer          | No         | -          | L1SafeBlockOffset is the offset to add to L1SafeBlockPoint as a safe point<br />it can be positive or negative<br />Example: L1SafeBlockPoint= finalized, L1SafeBlockOffset= -10, then the safe block ten blocks before the finalized block             |
+| - [ForceCheckBeforeStart](#Synchronizer_L1BlockCheck_ForceCheckBeforeStart ) | No      | boolean          | No         | -          | ForceCheckBeforeStart if is true then the first time the system is started it will force to check all pending blocks                                                                                                                                    |
+| - [PreCheckEnable](#Synchronizer_L1BlockCheck_PreCheckEnable )               | No      | boolean          | No         | -          | PreCheckEnable if is true then the pre-check is active, will check blocks between L1SafeBlock and L1PreSafeBlock                                                                                                                                        |
+| - [L1PreSafeBlockPoint](#Synchronizer_L1BlockCheck_L1PreSafeBlockPoint )     | No      | enum (of string) | No         | -          | L1PreSafeBlockPoint is the point that a block is considered safe enough to be checked<br />it can be: finalized, safe,pending or latest                                                                                                                 |
+| - [L1PreSafeBlockOffset](#Synchronizer_L1BlockCheck_L1PreSafeBlockOffset )   | No      | integer          | No         | -          | L1PreSafeBlockOffset is the offset to add to L1PreSafeBlockPoint as a safe point<br />it can be positive or negative<br />Example: L1PreSafeBlockPoint= finalized, L1PreSafeBlockOffset= -10, then the safe block ten blocks before the finalized block |
+
+#### <a name="Synchronizer_L1BlockCheck_Enable"></a>9.7.1. `Synchronizer.L1BlockCheck.Enable`
+
+**Type:** : `boolean`
+
+**Default:** `true`
+
+**Description:** Enable if is true then the check l1 Block Hash is active
+
+**Example setting the default value** (true):
+```
+[Synchronizer.L1BlockCheck]
+Enable=true
+```
+
+#### <a name="Synchronizer_L1BlockCheck_L1SafeBlockPoint"></a>9.7.2. `Synchronizer.L1BlockCheck.L1SafeBlockPoint`
+
+**Type:** : `enum (of string)`
+
+**Default:** `"finalized"`
+
+**Description:** L1SafeBlockPoint is the point that a block is considered safe enough to be checked
+it can be: finalized, safe,pending or latest
+
+**Example setting the default value** ("finalized"):
+```
+[Synchronizer.L1BlockCheck]
+L1SafeBlockPoint="finalized"
+```
+
+Must be one of:
+* "finalized"
+* "safe"
+* "latest"
+
+#### <a name="Synchronizer_L1BlockCheck_L1SafeBlockOffset"></a>9.7.3. `Synchronizer.L1BlockCheck.L1SafeBlockOffset`
+
+**Type:** : `integer`
+
+**Default:** `0`
+
+**Description:** L1SafeBlockOffset is the offset to add to L1SafeBlockPoint as a safe point
+it can be positive or negative
+Example: L1SafeBlockPoint= finalized, L1SafeBlockOffset= -10, then the safe block ten blocks before the finalized block
+
+**Example setting the default value** (0):
+```
+[Synchronizer.L1BlockCheck]
+L1SafeBlockOffset=0
+```
+
+#### <a name="Synchronizer_L1BlockCheck_ForceCheckBeforeStart"></a>9.7.4. `Synchronizer.L1BlockCheck.ForceCheckBeforeStart`
+
+**Type:** : `boolean`
+
+**Default:** `true`
+
+**Description:** ForceCheckBeforeStart if is true then the first time the system is started it will force to check all pending blocks
+
+**Example setting the default value** (true):
+```
+[Synchronizer.L1BlockCheck]
+ForceCheckBeforeStart=true
+```
+
+#### <a name="Synchronizer_L1BlockCheck_PreCheckEnable"></a>9.7.5. `Synchronizer.L1BlockCheck.PreCheckEnable`
+
+**Type:** : `boolean`
+
+**Default:** `true`
+
+**Description:** PreCheckEnable if is true then the pre-check is active, will check blocks between L1SafeBlock and L1PreSafeBlock
+
+**Example setting the default value** (true):
+```
+[Synchronizer.L1BlockCheck]
+PreCheckEnable=true
+```
+
+#### <a name="Synchronizer_L1BlockCheck_L1PreSafeBlockPoint"></a>9.7.6. `Synchronizer.L1BlockCheck.L1PreSafeBlockPoint`
+
+**Type:** : `enum (of string)`
+
+**Default:** `"safe"`
+
+**Description:** L1PreSafeBlockPoint is the point that a block is considered safe enough to be checked
+it can be: finalized, safe,pending or latest
+
+**Example setting the default value** ("safe"):
+```
+[Synchronizer.L1BlockCheck]
+L1PreSafeBlockPoint="safe"
+```
+
+Must be one of:
+* "finalized"
+* "safe"
+* "latest"
+
+#### <a name="Synchronizer_L1BlockCheck_L1PreSafeBlockOffset"></a>9.7.7. `Synchronizer.L1BlockCheck.L1PreSafeBlockOffset`
+
+**Type:** : `integer`
+
+**Default:** `0`
+
+**Description:** L1PreSafeBlockOffset is the offset to add to L1PreSafeBlockPoint as a safe point
+it can be positive or negative
+Example: L1PreSafeBlockPoint= finalized, L1PreSafeBlockOffset= -10, then the safe block ten blocks before the finalized block
+
+**Example setting the default value** (0):
+```
+[Synchronizer.L1BlockCheck]
+L1PreSafeBlockOffset=0
+```
+
+### <a name="Synchronizer_L1SynchronizationMode"></a>9.8. `Synchronizer.L1SynchronizationMode`
 
 **Type:** : `enum (of string)`
 
@@ -1448,7 +1592,7 @@ Must be one of:
 * "sequential"
 * "parallel"
 
-### <a name="Synchronizer_L1ParallelSynchronization"></a>9.7. `[Synchronizer.L1ParallelSynchronization]`
+### <a name="Synchronizer_L1ParallelSynchronization"></a>9.9. `[Synchronizer.L1ParallelSynchronization]`
 
 **Type:** : `object`
 **Description:** L1ParallelSynchronization Configuration for parallel mode (if L1SynchronizationMode equal to 'parallel')
@@ -1466,7 +1610,7 @@ Must be one of:
 | - [RollupInfoRetriesSpacing](#Synchronizer_L1ParallelSynchronization_RollupInfoRetriesSpacing )                             | No      | string  | No         | -          | Duration                                                                                                                                                                                      |
 | - [FallbackToSequentialModeOnSynchronized](#Synchronizer_L1ParallelSynchronization_FallbackToSequentialModeOnSynchronized ) | No      | boolean | No         | -          | FallbackToSequentialModeOnSynchronized if true switch to sequential mode if the system is synchronized                                                                                        |
 
-#### <a name="Synchronizer_L1ParallelSynchronization_MaxClients"></a>9.7.1. `Synchronizer.L1ParallelSynchronization.MaxClients`
+#### <a name="Synchronizer_L1ParallelSynchronization_MaxClients"></a>9.9.1. `Synchronizer.L1ParallelSynchronization.MaxClients`
 
 **Type:** : `integer`
 
@@ -1480,7 +1624,7 @@ Must be one of:
 MaxClients=10
 ```
 
-#### <a name="Synchronizer_L1ParallelSynchronization_MaxPendingNoProcessedBlocks"></a>9.7.2. `Synchronizer.L1ParallelSynchronization.MaxPendingNoProcessedBlocks`
+#### <a name="Synchronizer_L1ParallelSynchronization_MaxPendingNoProcessedBlocks"></a>9.9.2. `Synchronizer.L1ParallelSynchronization.MaxPendingNoProcessedBlocks`
 
 **Type:** : `integer`
 
@@ -1495,7 +1639,7 @@ sugested twice of NumberOfParallelOfEthereumClients
 MaxPendingNoProcessedBlocks=25
 ```
 
-#### <a name="Synchronizer_L1ParallelSynchronization_RequestLastBlockPeriod"></a>9.7.3. `Synchronizer.L1ParallelSynchronization.RequestLastBlockPeriod`
+#### <a name="Synchronizer_L1ParallelSynchronization_RequestLastBlockPeriod"></a>9.9.3. `Synchronizer.L1ParallelSynchronization.RequestLastBlockPeriod`
 
 **Title:** Duration
 
@@ -1523,7 +1667,7 @@ This value only apply when the system is synchronized
 RequestLastBlockPeriod="5s"
 ```
 
-#### <a name="Synchronizer_L1ParallelSynchronization_PerformanceWarning"></a>9.7.4. `[Synchronizer.L1ParallelSynchronization.PerformanceWarning]`
+#### <a name="Synchronizer_L1ParallelSynchronization_PerformanceWarning"></a>9.9.4. `[Synchronizer.L1ParallelSynchronization.PerformanceWarning]`
 
 **Type:** : `object`
 **Description:** Consumer Configuration for the consumer of rollup information from L1
@@ -1533,7 +1677,7 @@ RequestLastBlockPeriod="5s"
 | - [AceptableInacctivityTime](#Synchronizer_L1ParallelSynchronization_PerformanceWarning_AceptableInacctivityTime )       | No      | string  | No         | -          | Duration                                                                                                                 |
 | - [ApplyAfterNumRollupReceived](#Synchronizer_L1ParallelSynchronization_PerformanceWarning_ApplyAfterNumRollupReceived ) | No      | integer | No         | -          | ApplyAfterNumRollupReceived is the number of iterations to<br />start checking the time waiting for new rollup info data |
 
-##### <a name="Synchronizer_L1ParallelSynchronization_PerformanceWarning_AceptableInacctivityTime"></a>9.7.4.1. `Synchronizer.L1ParallelSynchronization.PerformanceWarning.AceptableInacctivityTime`
+##### <a name="Synchronizer_L1ParallelSynchronization_PerformanceWarning_AceptableInacctivityTime"></a>9.9.4.1. `Synchronizer.L1ParallelSynchronization.PerformanceWarning.AceptableInacctivityTime`
 
 **Title:** Duration
 
@@ -1562,7 +1706,7 @@ fast enought then you could increse the number of parallel clients to sync with 
 AceptableInacctivityTime="5s"
 ```
 
-##### <a name="Synchronizer_L1ParallelSynchronization_PerformanceWarning_ApplyAfterNumRollupReceived"></a>9.7.4.2. `Synchronizer.L1ParallelSynchronization.PerformanceWarning.ApplyAfterNumRollupReceived`
+##### <a name="Synchronizer_L1ParallelSynchronization_PerformanceWarning_ApplyAfterNumRollupReceived"></a>9.9.4.2. `Synchronizer.L1ParallelSynchronization.PerformanceWarning.ApplyAfterNumRollupReceived`
 
 **Type:** : `integer`
 
@@ -1577,7 +1721,7 @@ start checking the time waiting for new rollup info data
 ApplyAfterNumRollupReceived=10
 ```
 
-#### <a name="Synchronizer_L1ParallelSynchronization_RequestLastBlockTimeout"></a>9.7.5. `Synchronizer.L1ParallelSynchronization.RequestLastBlockTimeout`
+#### <a name="Synchronizer_L1ParallelSynchronization_RequestLastBlockTimeout"></a>9.9.5. `Synchronizer.L1ParallelSynchronization.RequestLastBlockTimeout`
 
 **Title:** Duration
 
@@ -1603,7 +1747,7 @@ ApplyAfterNumRollupReceived=10
 RequestLastBlockTimeout="5s"
 ```
 
-#### <a name="Synchronizer_L1ParallelSynchronization_RequestLastBlockMaxRetries"></a>9.7.6. `Synchronizer.L1ParallelSynchronization.RequestLastBlockMaxRetries`
+#### <a name="Synchronizer_L1ParallelSynchronization_RequestLastBlockMaxRetries"></a>9.9.6. `Synchronizer.L1ParallelSynchronization.RequestLastBlockMaxRetries`
 
 **Type:** : `integer`
 
@@ -1617,7 +1761,7 @@ RequestLastBlockTimeout="5s"
 RequestLastBlockMaxRetries=3
 ```
 
-#### <a name="Synchronizer_L1ParallelSynchronization_StatisticsPeriod"></a>9.7.7. `Synchronizer.L1ParallelSynchronization.StatisticsPeriod`
+#### <a name="Synchronizer_L1ParallelSynchronization_StatisticsPeriod"></a>9.9.7. `Synchronizer.L1ParallelSynchronization.StatisticsPeriod`
 
 **Title:** Duration
 
@@ -1643,7 +1787,7 @@ RequestLastBlockMaxRetries=3
 StatisticsPeriod="5m0s"
 ```
 
-#### <a name="Synchronizer_L1ParallelSynchronization_TimeOutMainLoop"></a>9.7.8. `Synchronizer.L1ParallelSynchronization.TimeOutMainLoop`
+#### <a name="Synchronizer_L1ParallelSynchronization_TimeOutMainLoop"></a>9.9.8. `Synchronizer.L1ParallelSynchronization.TimeOutMainLoop`
 
 **Title:** Duration
 
@@ -1669,7 +1813,7 @@ StatisticsPeriod="5m0s"
 TimeOutMainLoop="5m0s"
 ```
 
-#### <a name="Synchronizer_L1ParallelSynchronization_RollupInfoRetriesSpacing"></a>9.7.9. `Synchronizer.L1ParallelSynchronization.RollupInfoRetriesSpacing`
+#### <a name="Synchronizer_L1ParallelSynchronization_RollupInfoRetriesSpacing"></a>9.9.9. `Synchronizer.L1ParallelSynchronization.RollupInfoRetriesSpacing`
 
 **Title:** Duration
 
@@ -1695,7 +1839,7 @@ TimeOutMainLoop="5m0s"
 RollupInfoRetriesSpacing="5s"
 ```
 
-#### <a name="Synchronizer_L1ParallelSynchronization_FallbackToSequentialModeOnSynchronized"></a>9.7.10. `Synchronizer.L1ParallelSynchronization.FallbackToSequentialModeOnSynchronized`
+#### <a name="Synchronizer_L1ParallelSynchronization_FallbackToSequentialModeOnSynchronized"></a>9.9.10. `Synchronizer.L1ParallelSynchronization.FallbackToSequentialModeOnSynchronized`
 
 **Type:** : `boolean`
 
@@ -1709,18 +1853,19 @@ RollupInfoRetriesSpacing="5s"
 FallbackToSequentialModeOnSynchronized=false
 ```
 
-### <a name="Synchronizer_L2Synchronization"></a>9.8. `[Synchronizer.L2Synchronization]`
+### <a name="Synchronizer_L2Synchronization"></a>9.10. `[Synchronizer.L2Synchronization]`
 
 **Type:** : `object`
 **Description:** L2Synchronization Configuration for L2 synchronization
 
-| Property                                                                                                | Pattern | Type    | Deprecated | Definition | Title/Description                                                                                                                                                   |
-| ------------------------------------------------------------------------------------------------------- | ------- | ------- | ---------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| - [AcceptEmptyClosedBatches](#Synchronizer_L2Synchronization_AcceptEmptyClosedBatches )                 | No      | boolean | No         | -          | AcceptEmptyClosedBatches is a flag to enable or disable the acceptance of empty batches.<br />if true, the synchronizer will accept empty batches and process them. |
-| - [ReprocessFullBatchOnClose](#Synchronizer_L2Synchronization_ReprocessFullBatchOnClose )               | No      | boolean | No         | -          | ReprocessFullBatchOnClose if is true when a batch is closed is force to reprocess again                                                                             |
-| - [CheckLastL2BlockHashOnCloseBatch](#Synchronizer_L2Synchronization_CheckLastL2BlockHashOnCloseBatch ) | No      | boolean | No         | -          | CheckLastL2BlockHashOnCloseBatch if is true when a batch is closed is force to check the last L2Block hash                                                          |
+| Property                                                                                                | Pattern | Type            | Deprecated | Definition | Title/Description                                                                                                                                                   |
+| ------------------------------------------------------------------------------------------------------- | ------- | --------------- | ---------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| - [AcceptEmptyClosedBatches](#Synchronizer_L2Synchronization_AcceptEmptyClosedBatches )                 | No      | boolean         | No         | -          | AcceptEmptyClosedBatches is a flag to enable or disable the acceptance of empty batches.<br />if true, the synchronizer will accept empty batches and process them. |
+| - [ReprocessFullBatchOnClose](#Synchronizer_L2Synchronization_ReprocessFullBatchOnClose )               | No      | boolean         | No         | -          | ReprocessFullBatchOnClose if is true when a batch is closed is force to reprocess again                                                                             |
+| - [CheckLastL2BlockHashOnCloseBatch](#Synchronizer_L2Synchronization_CheckLastL2BlockHashOnCloseBatch ) | No      | boolean         | No         | -          | CheckLastL2BlockHashOnCloseBatch if is true when a batch is closed is force to check the last L2Block hash                                                          |
+| - [DataSourcePriority](#Synchronizer_L2Synchronization_DataSourcePriority )                             | No      | array of string | No         | -          | DataSourcePriority defines the order in which L2 batch should be retrieved: local, trusted, external                                                                |
 
-#### <a name="Synchronizer_L2Synchronization_AcceptEmptyClosedBatches"></a>9.8.1. `Synchronizer.L2Synchronization.AcceptEmptyClosedBatches`
+#### <a name="Synchronizer_L2Synchronization_AcceptEmptyClosedBatches"></a>9.10.1. `Synchronizer.L2Synchronization.AcceptEmptyClosedBatches`
 
 **Type:** : `boolean`
 
@@ -1735,7 +1880,7 @@ if true, the synchronizer will accept empty batches and process them.
 AcceptEmptyClosedBatches=false
 ```
 
-#### <a name="Synchronizer_L2Synchronization_ReprocessFullBatchOnClose"></a>9.8.2. `Synchronizer.L2Synchronization.ReprocessFullBatchOnClose`
+#### <a name="Synchronizer_L2Synchronization_ReprocessFullBatchOnClose"></a>9.10.2. `Synchronizer.L2Synchronization.ReprocessFullBatchOnClose`
 
 **Type:** : `boolean`
 
@@ -1749,7 +1894,7 @@ AcceptEmptyClosedBatches=false
 ReprocessFullBatchOnClose=false
 ```
 
-#### <a name="Synchronizer_L2Synchronization_CheckLastL2BlockHashOnCloseBatch"></a>9.8.3. `Synchronizer.L2Synchronization.CheckLastL2BlockHashOnCloseBatch`
+#### <a name="Synchronizer_L2Synchronization_CheckLastL2BlockHashOnCloseBatch"></a>9.10.3. `Synchronizer.L2Synchronization.CheckLastL2BlockHashOnCloseBatch`
 
 **Type:** : `boolean`
 
@@ -1761,6 +1906,20 @@ ReprocessFullBatchOnClose=false
 ```
 [Synchronizer.L2Synchronization]
 CheckLastL2BlockHashOnCloseBatch=true
+```
+
+#### <a name="Synchronizer_L2Synchronization_DataSourcePriority"></a>9.10.4. `Synchronizer.L2Synchronization.DataSourcePriority`
+
+**Type:** : `array of string`
+
+**Default:** `["local", "trusted", "external"]`
+
+**Description:** DataSourcePriority defines the order in which L2 batch should be retrieved: local, trusted, external
+
+**Example setting the default value** (["local", "trusted", "external"]):
+```
+[Synchronizer.L2Synchronization]
+DataSourcePriority=["local", "trusted", "external"]
 ```
 
 ## <a name="Sequencer"></a>10. `[Sequencer]`
@@ -1940,6 +2099,7 @@ StateConsistencyCheckInterval="5s"
 | - [L1InfoTreeCheckInterval](#Sequencer_Finalizer_L1InfoTreeCheckInterval )                     | No      | string  | No         | -          | Duration                                                                                                                                                                                                      |
 | - [BatchMaxDeltaTimestamp](#Sequencer_Finalizer_BatchMaxDeltaTimestamp )                       | No      | string  | No         | -          | Duration                                                                                                                                                                                                      |
 | - [L2BlockMaxDeltaTimestamp](#Sequencer_Finalizer_L2BlockMaxDeltaTimestamp )                   | No      | string  | No         | -          | Duration                                                                                                                                                                                                      |
+| - [StateRootSyncInterval](#Sequencer_Finalizer_StateRootSyncInterval )                         | No      | string  | No         | -          | Duration                                                                                                                                                                                                      |
 | - [HaltOnBatchNumber](#Sequencer_Finalizer_HaltOnBatchNumber )                                 | No      | integer | No         | -          | HaltOnBatchNumber specifies the batch number where the Sequencer will stop to process more transactions and generate new batches.<br />The Sequencer will halt after it closes the batch equal to this number |
 | - [SequentialBatchSanityCheck](#Sequencer_Finalizer_SequentialBatchSanityCheck )               | No      | boolean | No         | -          | SequentialBatchSanityCheck indicates if the reprocess of a closed batch (sanity check) must be done in a<br />sequential way (instead than in parallel)                                                       |
 | - [SequentialProcessL2Block](#Sequencer_Finalizer_SequentialProcessL2Block )                   | No      | boolean | No         | -          | SequentialProcessL2Block indicates if the processing of a L2 Block must be done in the same finalizer go func instead<br />in the processPendingL2Blocks go func                                              |
@@ -2073,7 +2233,7 @@ ForcedBatchesCheckInterval="10s"
 
 **Default:** `"10s"`
 
-**Description:** L1InfoTreeCheckInterval is the wait time to check if the L1InfoRoot has been updated
+**Description:** L1InfoTreeCheckInterval is the time interval to check if the L1InfoRoot has been updated
 
 **Examples:** 
 
@@ -2097,7 +2257,7 @@ L1InfoTreeCheckInterval="10s"
 
 **Type:** : `string`
 
-**Default:** `"10s"`
+**Default:** `"30m0s"`
 
 **Description:** BatchMaxDeltaTimestamp is the resolution of the timestamp used to close a batch
 
@@ -2111,10 +2271,10 @@ L1InfoTreeCheckInterval="10s"
 "300ms"
 ```
 
-**Example setting the default value** ("10s"):
+**Example setting the default value** ("30m0s"):
 ```
 [Sequencer.Finalizer]
-BatchMaxDeltaTimestamp="10s"
+BatchMaxDeltaTimestamp="30m0s"
 ```
 
 #### <a name="Sequencer_Finalizer_L2BlockMaxDeltaTimestamp"></a>10.7.9. `Sequencer.Finalizer.L2BlockMaxDeltaTimestamp`
@@ -2143,7 +2303,34 @@ BatchMaxDeltaTimestamp="10s"
 L2BlockMaxDeltaTimestamp="3s"
 ```
 
-#### <a name="Sequencer_Finalizer_HaltOnBatchNumber"></a>10.7.10. `Sequencer.Finalizer.HaltOnBatchNumber`
+#### <a name="Sequencer_Finalizer_StateRootSyncInterval"></a>10.7.10. `Sequencer.Finalizer.StateRootSyncInterval`
+
+**Title:** Duration
+
+**Type:** : `string`
+
+**Default:** `"1h0m0s"`
+
+**Description:** StateRootSyncInterval indicates how often the stateroot generated by the L2 block process will be synchronized with
+the stateroot used in the tx-by-tx execution
+
+**Examples:** 
+
+```json
+"1m"
+```
+
+```json
+"300ms"
+```
+
+**Example setting the default value** ("1h0m0s"):
+```
+[Sequencer.Finalizer]
+StateRootSyncInterval="1h0m0s"
+```
+
+#### <a name="Sequencer_Finalizer_HaltOnBatchNumber"></a>10.7.11. `Sequencer.Finalizer.HaltOnBatchNumber`
 
 **Type:** : `integer`
 
@@ -2158,7 +2345,7 @@ The Sequencer will halt after it closes the batch equal to this number
 HaltOnBatchNumber=0
 ```
 
-#### <a name="Sequencer_Finalizer_SequentialBatchSanityCheck"></a>10.7.11. `Sequencer.Finalizer.SequentialBatchSanityCheck`
+#### <a name="Sequencer_Finalizer_SequentialBatchSanityCheck"></a>10.7.12. `Sequencer.Finalizer.SequentialBatchSanityCheck`
 
 **Type:** : `boolean`
 
@@ -2173,22 +2360,22 @@ sequential way (instead than in parallel)
 SequentialBatchSanityCheck=false
 ```
 
-#### <a name="Sequencer_Finalizer_SequentialProcessL2Block"></a>10.7.12. `Sequencer.Finalizer.SequentialProcessL2Block`
+#### <a name="Sequencer_Finalizer_SequentialProcessL2Block"></a>10.7.13. `Sequencer.Finalizer.SequentialProcessL2Block`
 
 **Type:** : `boolean`
 
-**Default:** `true`
+**Default:** `false`
 
 **Description:** SequentialProcessL2Block indicates if the processing of a L2 Block must be done in the same finalizer go func instead
 in the processPendingL2Blocks go func
 
-**Example setting the default value** (true):
+**Example setting the default value** (false):
 ```
 [Sequencer.Finalizer]
-SequentialProcessL2Block=true
+SequentialProcessL2Block=false
 ```
 
-#### <a name="Sequencer_Finalizer_Metrics"></a>10.7.13. `[Sequencer.Finalizer.Metrics]`
+#### <a name="Sequencer_Finalizer_Metrics"></a>10.7.14. `[Sequencer.Finalizer.Metrics]`
 
 **Type:** : `object`
 **Description:** Metrics is the config for the sequencer metrics
@@ -2198,7 +2385,7 @@ SequentialProcessL2Block=true
 | - [Interval](#Sequencer_Finalizer_Metrics_Interval )   | No      | string  | No         | -          | Duration                                           |
 | - [EnableLog](#Sequencer_Finalizer_Metrics_EnableLog ) | No      | boolean | No         | -          | EnableLog is a flag to enable/disable metrics logs |
 
-##### <a name="Sequencer_Finalizer_Metrics_Interval"></a>10.7.13.1. `Sequencer.Finalizer.Metrics.Interval`
+##### <a name="Sequencer_Finalizer_Metrics_Interval"></a>10.7.14.1. `Sequencer.Finalizer.Metrics.Interval`
 
 **Title:** Duration
 
@@ -2224,7 +2411,7 @@ SequentialProcessL2Block=true
 Interval="1h0m0s"
 ```
 
-##### <a name="Sequencer_Finalizer_Metrics_EnableLog"></a>10.7.13.2. `Sequencer.Finalizer.Metrics.EnableLog`
+##### <a name="Sequencer_Finalizer_Metrics_EnableLog"></a>10.7.14.2. `Sequencer.Finalizer.Metrics.EnableLog`
 
 **Type:** : `boolean`
 

@@ -102,9 +102,18 @@ EnableHttpLog = true
 SyncInterval = "1s"
 SyncChunkSize = 100
 TrustedSequencerURL = "" # If it is empty or not specified, then the value is read from the smc
+SyncBlockProtection = "safe" # latest, finalized, safe
 L1SynchronizationMode = "sequential"
 L1SyncCheckL2BlockHash = true
-L1SyncCheckL2BlockNumberhModulus = 30
+L1SyncCheckL2BlockNumberhModulus = 600
+	[Synchronizer.L1BlockCheck]
+		Enable = true
+		L1SafeBlockPoint = "finalized"
+		L1SafeBlockOffset = 0
+		ForceCheckBeforeStart = true
+		PreCheckEnable = true
+		L1PreSafeBlockPoint = "safe"
+		L1PreSafeBlockOffset = 0
 	[Synchronizer.L1ParallelSynchronization]
 		MaxClients = 10
 		MaxPendingNoProcessedBlocks = 25
@@ -122,6 +131,7 @@ L1SyncCheckL2BlockNumberhModulus = 30
 		AcceptEmptyClosedBatches = false
 		ReprocessFullBatchOnClose = false
 		CheckLastL2BlockHashOnCloseBatch = true
+		DataSourcePriority = ["local","trusted","external"]
 
 [Sequencer]
 DeletePoolTxsL1BlockConfirmations = 100
@@ -137,12 +147,13 @@ StateConsistencyCheckInterval = "5s"
 		ForcedBatchesCheckInterval = "10s"
 		L1InfoTreeL1BlockConfirmations = 64
 		L1InfoTreeCheckInterval = "10s"
-		BatchMaxDeltaTimestamp = "10s"
+		BatchMaxDeltaTimestamp = "1800s"
 		L2BlockMaxDeltaTimestamp = "3s"
 		ResourceExhaustedMarginPct = 10
+		StateRootSyncInterval = "3600s"
 		HaltOnBatchNumber = 0
 		SequentialBatchSanityCheck = false
-		SequentialProcessL2Block = true
+		SequentialProcessL2Block = false
 	[Sequencer.Finalizer.Metrics]
 		Interval = "60m"
 		EnableLog = true

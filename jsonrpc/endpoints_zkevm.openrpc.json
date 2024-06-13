@@ -179,6 +179,18 @@
       }
     },
     {
+      "name": "zkevm_getForcedBatchDataByNumbers",
+      "summary": "Gets forced batch data for a given list of batch numbers",
+      "params": [
+        {
+          "$ref": "#/components/contentDescriptors/BatchFilter"
+        }
+      ],
+      "result": {
+        "$ref": "#/components/contentDescriptors/BatchDataResult"
+      }
+    },
+    {
       "name": "zkevm_getBatchByNumber",
       "summary": "Gets a batch for a given number",
       "params": [

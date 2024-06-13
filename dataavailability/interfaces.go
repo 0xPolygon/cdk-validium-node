@@ -37,6 +37,7 @@ type stateInterface interface {
 	GetBatchL2DataByNumber(ctx context.Context, batchNumber uint64, dbTx pgx.Tx) ([]byte, error)
 	GetBatchL2DataByNumbers(ctx context.Context, batchNumbers []uint64, dbTx pgx.Tx) (map[uint64][]byte, error)
 	GetBatchByNumber(ctx context.Context, batchNumber uint64, dbTx pgx.Tx) (*state.Batch, error)
+	GetForcedBatchDataByNumbers(ctx context.Context, batchNumbers []uint64, dbTx pgx.Tx) (map[uint64][]byte, error)
 }
 
 // BatchDataProvider is used to retrieve batch data
@@ -55,4 +56,5 @@ type DataManager interface {
 type ZKEVMClientTrustedBatchesGetter interface {
 	BatchByNumber(ctx context.Context, number *big.Int) (*types.Batch, error)
 	BatchesByNumbers(ctx context.Context, numbers []*big.Int) ([]*types.BatchData, error)
+	ForcedBatchesByNumbers(ctx context.Context, numbers []*big.Int) ([]*types.BatchData, error)
 }

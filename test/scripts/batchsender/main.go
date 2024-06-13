@@ -111,7 +111,7 @@ func sendBatches(cliCtx *cli.Context) error {
 		return err
 	}
 
-	ethMan, err := etherman.NewClient(cfg.Etherman, cfg.NetworkConfig.L1Config, nil)
+	ethMan, err := etherman.NewClient(cfg.Etherman, cfg.NetworkConfig.L1Config, nil, nil)
 	if err != nil {
 		return err
 	}

@@ -77,7 +77,7 @@ func getUpdateHashDB(cliCtx *cli.Context) bool {
 }
 
 func newEtherman(c config.Config) (*etherman.Client, error) {
-	etherman, err := etherman.NewClient(c.Etherman, c.NetworkConfig.L1Config, nil)
+	etherman, err := etherman.NewClient(c.Etherman, c.NetworkConfig.L1Config, nil, nil)
 	if err != nil {
 		return nil, err
 	}

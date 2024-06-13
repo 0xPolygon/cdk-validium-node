@@ -1,0 +1,32 @@
+name: Regression Tests
+
+on:
+  pull_request:
+    types: [opened, synchronize]  # Trigger on new PR and existing with new commits
+    branches:
+      - develop
+
+jobs:
+  deploy_devnet:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build image (with proposed code changes) locally
+        id: build
+        run: |
+          if [ "$GITHUB_EVENT_NAME" == "pull_request" ]; then
+              GITHUB_SHA_SHORT=$(jq -r .pull_request.head.sha "$GITHUB_EVENT_PATH" | cut -c 1-7)
+              echo $GITHUB_SHA_SHORT
+              echo "::set-output name=GITHUB_SHA_SHORT::$GITHUB_SHA_SHORT"
+          fi
+
+      - name: Set up Docker
+        uses: docker/setup-buildx-action@v3
+
+      - name: Run regression tests against JIT container image
+        uses: 0xPolygon/kurtosis-cdk@v0.1.9
+        with:
+          zkevm_node: ${{ steps.build.outputs.GITHUB_SHA_SHORT }}

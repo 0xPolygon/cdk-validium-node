@@ -78,7 +78,7 @@ func TestDataCommittee(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	// Register committe with N / M signatures
+	// Register committee with N / M signatures
 	membs := members{}
 	addrsBytes := []byte{}
 	urls := []string{}
