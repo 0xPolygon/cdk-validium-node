@@ -1876,6 +1876,7 @@ FallbackToSequentialModeOnSynchronized=false
 
 | Property                                                                                                | Pattern | Type            | Deprecated | Definition | Title/Description                                                                                                                                                   |
 | ------------------------------------------------------------------------------------------------------- | ------- | --------------- | ---------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| - [Enabled](#Synchronizer_L2Synchronization_Enabled )                                                   | No      | boolean         | No         | -          | If enabled then the L2 sync process is permitted (only for permissionless)                                                                                          |
 | - [AcceptEmptyClosedBatches](#Synchronizer_L2Synchronization_AcceptEmptyClosedBatches )                 | No      | boolean         | No         | -          | AcceptEmptyClosedBatches is a flag to enable or disable the acceptance of empty batches.<br />if true, the synchronizer will accept empty batches and process them. |
 | - [ReprocessFullBatchOnClose](#Synchronizer_L2Synchronization_ReprocessFullBatchOnClose )               | No      | boolean         | No         | -          | ReprocessFullBatchOnClose if is true when a batch is closed is force to reprocess again                                                                             |
 | - [CheckLastL2BlockHashOnCloseBatch](#Synchronizer_L2Synchronization_CheckLastL2BlockHashOnCloseBatch ) | No      | boolean         | No         | -          | CheckLastL2BlockHashOnCloseBatch if is true when a batch is closed is force to check the last L2Block hash                                                          |
@@ -1938,7 +1939,7 @@ ReprocessFullBatchOnClose=false
 CheckLastL2BlockHashOnCloseBatch=true
 ```
 
-#### <a name="Synchronizer_L2Synchronization_DataSourcePriority"></a>9.10.4. `Synchronizer.L2Synchronization.DataSourcePriority`
+#### <a name="Synchronizer_L2Synchronization_DataSourcePriority"></a>9.10.5. `Synchronizer.L2Synchronization.DataSourcePriority`
 
 **Type:** : `array of string`
 
@@ -2682,6 +2683,7 @@ WriteTimeout="5s"
 | - [ForkUpgradeBatchNumber](#SequenceSender_ForkUpgradeBatchNumber )                                     | No      | integer          | No         | -          | Batch number where there is a forkid change (fork upgrade)                                                                                                                                                                                                                                                                                                                                                                    |
 | - [GasOffset](#SequenceSender_GasOffset )                                                               | No      | integer          | No         | -          | GasOffset is the amount of gas to be added to the gas estimation in order<br />to provide an amount that is higher than the estimated one. This is used<br />to avoid the TX getting reverted in case something has changed in the network<br />state after the estimation which can cause the TX to require more gas to be<br />executed.<br /><br />ex:<br />gas estimation: 1000<br />gas offset: 100<br />final gas: 1100 |
 | - [MaxBatchesForL1](#SequenceSender_MaxBatchesForL1 )                                                   | No      | integer          | No         | -          | MaxBatchesForL1 is the maximum amount of batches to be sequenced in a single L1 tx                                                                                                                                                                                                                                                                                                                                            |
+| - [SequenceL1BlockConfirmations](#SequenceSender_SequenceL1BlockConfirmations )                         | No      | integer          | No         | -          | SequenceL1BlockConfirmations is number of blocks to consider a sequence sent to L1 as final                                                                                                                                                                                                                                                                                                                                   |
 
 ### <a name="SequenceSender_WaitPeriodSendSequence"></a>11.1. `SequenceSender.WaitPeriodSendSequence`
 
@@ -2888,6 +2890,20 @@ GasOffset=80000
 ```
 [SequenceSender]
 MaxBatchesForL1=300
+```
+
+### <a name="SequenceSender_SequenceL1BlockConfirmations"></a>11.11. `SequenceSender.SequenceL1BlockConfirmations`
+
+**Type:** : `integer`
+
+**Default:** `32`
+
+**Description:** SequenceL1BlockConfirmations is number of blocks to consider a sequence sent to L1 as final
+
+**Example setting the default value** (32):
+```
+[SequenceSender]
+SequenceL1BlockConfirmations=32
 ```
 
 ## <a name="Aggregator"></a>12. `[Aggregator]`

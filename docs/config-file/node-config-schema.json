@@ -1118,6 +1118,11 @@
 					"type": "integer",
 					"description": "MaxBatchesForL1 is the maximum amount of batches to be sequenced in a single L1 tx",
 					"default": 300
+				},
+				"SequenceL1BlockConfirmations": {
+					"type": "integer",
+					"description": "SequenceL1BlockConfirmations is number of blocks to consider a sequence sent to L1 as final",
+					"default": 32
 				}
 			},
 			"additionalProperties": false,
