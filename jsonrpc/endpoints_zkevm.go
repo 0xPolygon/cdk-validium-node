@@ -208,38 +208,37 @@ func (z *ZKEVMEndpoints) GetForcedBatchDataByNumbers(filter types.BatchFilter) (
 }
 
 func (z *ZKEVMEndpoints) getBatchData(filter types.BatchFilter, f batchDataFunc) (interface{}, types.Error) {
-	return z.txMan.NewDbTxScope(z.state, func(ctx context.Context, dbTx pgx.Tx) (interface{}, types.Error) {
-		batchNumbers := make([]uint64, 0, len(filter.Numbers))
-		for _, bn := range filter.Numbers {
-			n, rpcErr := bn.GetNumericBatchNumber(ctx, z.state, z.etherman, dbTx)
-			if rpcErr != nil {
-				return nil, rpcErr
-			}
-			batchNumbers = append(batchNumbers, n)
+	ctx := context.Background()
+	batchNumbers := make([]uint64, 0, len(filter.Numbers))
+	for _, bn := range filter.Numbers {
+		n, rpcErr := bn.GetNumericBatchNumber(ctx, z.state, z.etherman, nil)
+		if rpcErr != nil {
+			return nil, rpcErr
 		}
+		batchNumbers = append(batchNumbers, n)
+	}
 
-		batchesData, err := f(ctx, batchNumbers, dbTx)
-		if errors.Is(err, state.ErrNotFound) {
-			return nil, nil
-		} else if err != nil {
-			return RPCErrorResponse(types.DefaultErrorCode,
-				fmt.Sprintf("couldn't load batch data from state by numbers %v", filter.Numbers), err, true)
+	batchesData, err := f(ctx, batchNumbers, nil)
+	if errors.Is(err, state.ErrNotFound) {
+		return nil, nil
+	} else if err != nil {
+		return RPCErrorResponse(types.DefaultErrorCode,
+			fmt.Sprintf("couldn't load batch data from state by numbers %v", filter.Numbers), err, true)
+	}
+
+	ret := make([]*types.BatchData, 0, len(batchNumbers))
+	for _, n := range batchNumbers {
+		data := &types.BatchData{Number: types.ArgUint64(n)}
+		if b, ok := batchesData[n]; ok {
+			data.BatchL2Data = b
+			data.Empty = false
+		} else {
+			data.Empty = true
 		}
+		ret = append(ret, data)
+	}
 
-		ret := make([]*types.BatchData, 0, len(batchNumbers))
-		for _, n := range batchNumbers {
-			data := &types.BatchData{Number: types.ArgUint64(n)}
-			if b, ok := batchesData[n]; ok {
-				data.BatchL2Data = b
-				data.Empty = false
-			} else {
-				data.Empty = true
-			}
-			ret = append(ret, data)
-		}
-
-		return types.BatchDataResult{Data: ret}, nil
-	})
+	return types.BatchDataResult{Data: ret}, nil
 }
 
 // GetFullBlockByNumber returns information about a block by block number

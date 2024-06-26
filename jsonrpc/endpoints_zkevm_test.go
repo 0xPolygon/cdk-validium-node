@@ -2195,11 +2195,6 @@ func TestClient_BatchesByNumbers(t *testing.T) {
 	m.State.On("GetBatchL2DataByNumbers", mock.Anything, mock.Anything, mock.Anything).
 		Return(batchesDataMap, nil).Once()
 
-	m.State.On("BeginStateTransaction", context.Background()).
-		Return(m.DbTx, nil).Once()
-
-	m.DbTx.On("Commit", context.Background()).Return(nil).Once()
-
 	zkEVMClient := client.NewClient(s.ServerURL)
 	reqBatchesNum := []*big.Int{big.NewInt(1), big.NewInt(3), big.NewInt(4)}
 	result, err := zkEVMClient.BatchesByNumbers(context.Background(), reqBatchesNum)

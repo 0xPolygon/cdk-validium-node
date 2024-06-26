@@ -521,8 +521,6 @@ services:
       - EXPERIMENTAL_DOCKER_DESKTOP_FORCE_QEMU=1
     volumes:
       - ./config/test.prover.config.json:/usr/src/app/config.json
-    environment:
-      - EXPERIMENTAL_DOCKER_DESKTOP_FORCE_QEMU=1
     command: >
       zkProver -c /usr/src/app/config.json
 
@@ -617,8 +615,6 @@ services:
       - 50078:50071 # Executor
     volumes:
       - ./config/test.permissionless.prover.config.json:/usr/src/app/config.json
-    environment:
-      - EXPERIMENTAL_DOCKER_DESKTOP_FORCE_QEMU=1
     command: >
       zkProver -c /usr/src/app/config.json
 
