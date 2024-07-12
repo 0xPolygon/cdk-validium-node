@@ -210,6 +210,10 @@ The L2GasPricer is responsible for calculating the gas price on L2 based on the 
 
 Before opening a pull request, please read [this guide](./CONTRIBUTING.md).
 
+## Contact
+
+For more discussions, please head to the [R&D Discord](https://discord.gg/0xPolygonRnD)
+
 ## License
 
 The cdk-validium-node project is licensed under the GNU Affero General Public License free software license.
