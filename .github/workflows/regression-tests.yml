@@ -30,3 +30,10 @@ jobs:
         uses: 0xPolygon/kurtosis-cdk@v0.1.9
         with:
           zkevm_node: ${{ steps.build.outputs.GITHUB_SHA_SHORT }}
+          kurtosis_cdk: 'v0.2.3'
+          zkevm_agglayer: '0.1.4'
+          zkevm_bridge_service: '2e28fe4'
+          zkevm_bridge_ui: '0006445'
+          zkevm_dac: '0.0.7'
+          kurtosis_cli: '0.89.3'
+
