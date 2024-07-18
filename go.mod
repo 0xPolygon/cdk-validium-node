@@ -172,6 +172,7 @@ require (
 )
 
 require (
+	github.com/0glabs/0g-da-client/api v0.0.0-20240717085212-bdf8ba94ff03
 	github.com/0xPolygon/agglayer v0.0.1
 	github.com/0xPolygon/cdk-data-availability v0.0.5
 	github.com/fatih/color v1.16.0

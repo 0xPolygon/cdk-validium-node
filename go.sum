@@ -39,6 +39,8 @@ cloud.google.com/go/storage v1.10.0/go.mod h1:FLPqc6j+Ki4BU591ie1oL6qBQGu2Bl/tZ9
 dario.cat/mergo v1.0.0 h1:AGCNq9Evsj31mOgNPcLyXc+4PNABt905YmuqPYYpBWk=
 dario.cat/mergo v1.0.0/go.mod h1:uNxQE+84aUszobStD9th8a29P2fMDhsBdgRYvZOxGmk=
 dmitri.shuralyov.com/gpu/mtl v0.0.0-20190408044501-666a987793e9/go.mod h1:H6x//7gZCb22OMCxBHrMx7a5I7Hp++hsVxbQ4BYO7hU=
+github.com/0glabs/0g-da-client/api v0.0.0-20240717085212-bdf8ba94ff03 h1:zKtZG8sqrpFakSsMk0U7axouHuSwsg1eUbkEJ7M+AFo=
+github.com/0glabs/0g-da-client/api v0.0.0-20240717085212-bdf8ba94ff03/go.mod h1:i1/KfknRQijt9JI2JIQ2YUo+HTRAE4N3FliZ+M9M9LM=
 github.com/0xPolygon/agglayer v0.0.1 h1:J6/DUo9rNUncDifquanouRCo2g7g069yvz0aFtu7R/8=
 github.com/0xPolygon/agglayer v0.0.1/go.mod h1:UYp5O8THULoXVrUfzkRjVBzxHR5DxBdUN/Iq0EgxNxM=
 github.com/0xPolygon/cdk-data-availability v0.0.5 h1://vg1oR/5tw2XfEIorpP+wIxLfNUmoKrdmX8YZvBKX4=

@@ -121,6 +121,9 @@ type Config struct {
 	HashDB db.Config
 	// State service configuration
 	State state.Config
+	// Data availability configuration
+	ZgDaAddress string `mapstructure:"ZgDaAddress"`
+	MaxBlobSize uint64 `mapstructure:"MaxBlobSize"`
 }
 
 // Default parses the default configuration values.

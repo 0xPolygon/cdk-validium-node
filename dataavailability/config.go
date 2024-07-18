@@ -6,4 +6,6 @@ type DABackendType string
 const (
 	// DataAvailabilityCommittee is the DAC protocol backend
 	DataAvailabilityCommittee DABackendType = "DataAvailabilityCommittee"
+	// ZgDA is the DAC protocol backend
+	DataAvailabilityZg DABackendType = "DataAvailabilityZg"
 )
