@@ -11,7 +11,6 @@ import (
 	"github.com/0xPolygonHermez/zkevm-node/pool"
 	"github.com/0xPolygonHermez/zkevm-node/state"
 	stateMetrics "github.com/0xPolygonHermez/zkevm-node/state/metrics"
-	"github.com/0xPolygonHermez/zkevm-node/state/runtime/executor"
 	"github.com/ethereum/go-ethereum/common"
 )
 
@@ -337,7 +336,6 @@ func (f *finalizer) executeL2Block(ctx context.Context, initialStateRoot common.
 		ForkID:                    f.stateIntf.GetForkIDByBatchNumber(l2Block.batch.batchNumber),
 		SkipVerifyL1InfoRoot_V2:   true,
 		L1InfoTreeData_V2:         map[uint32]state.L1DataV2{},
-		ExecutionMode:             executor.ExecutionMode0,
 	}
 	batchRequest.L1InfoTreeData_V2[l2Block.l1InfoTreeExitRoot.L1InfoTreeIndex] = state.L1DataV2{
 		GlobalExitRoot: l2Block.l1InfoTreeExitRoot.GlobalExitRoot.GlobalExitRoot,
@@ -659,7 +657,7 @@ func (f *finalizer) openNewWIPL2Block(ctx context.Context, prevTimestamp uint64,
 
 		f.wipBatch.imHighReservedZKCounters = newHighZKCounters
 	} else {
-		log.Infof("new wip L2 block [%d] reserved resources exceeds the remaining batch resources, overflow resource: %s, closing WIP batch and creating new one. counters: {batch: %s, used: %s, reserved: %s, needed: %s, high: %s}",
+		log.Infof("new wip L2 block [%d] needed resources exceeds the remaining batch resources, overflow resource: %s, closing WIP batch and creating new one. counters: {batch: %s, used: %s, reserved: %s, needed: %s, high: %s}",
 			f.wipL2Block.trackingNum, overflowResource,
 			f.logZKCounters(f.wipBatch.imRemainingResources.ZKCounters), f.logZKCounters(f.wipL2Block.usedZKCountersOnNew), f.logZKCounters(f.wipL2Block.reservedZKCountersOnNew), f.logZKCounters(neededZKCounters), f.logZKCounters(f.wipBatch.imHighReservedZKCounters))
 	}
@@ -698,7 +696,6 @@ func (f *finalizer) executeNewWIPL2Block(ctx context.Context) (*state.ProcessBat
 		SkipFirstChangeL2Block_V2: false,
 		Transactions:              f.stateIntf.BuildChangeL2Block(f.wipL2Block.deltaTimestamp, f.wipL2Block.getL1InfoTreeIndex()),
 		L1InfoTreeData_V2:         map[uint32]state.L1DataV2{},
-		ExecutionMode:             executor.ExecutionMode0,
 	}
 
 	batchRequest.L1InfoTreeData_V2[f.wipL2Block.l1InfoTreeExitRoot.L1InfoTreeIndex] = state.L1DataV2{

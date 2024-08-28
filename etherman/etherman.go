@@ -44,6 +44,11 @@ import (
 	"golang.org/x/crypto/sha3"
 )
 
+const (
+	// ETrogUpgradeVersion is the version of the LxLy upgrade
+	ETrogUpgradeVersion = 2
+)
+
 var (
 	// Events RollupManager
 	setBatchFeeSignatureHash                       = crypto.Keccak256Hash([]byte("SetBatchFee(uint256)"))
@@ -312,7 +317,6 @@ func NewClient(cfg Config, l1Config L1Config, da dataavailability.BatchDataProvi
 
 // VerifyGenBlockNumber verifies if the genesis Block Number is valid
 func (etherMan *Client) VerifyGenBlockNumber(ctx context.Context, genBlockNumber uint64) (bool, error) {
-	// TODO: do not assume that only one rollup will be attached to the rollup manager in the same L1 block
 	start := time.Now()
 	log.Info("Verifying genesis blockNumber: ", genBlockNumber)
 	// Filter query
@@ -363,16 +367,31 @@ func (etherMan *Client) VerifyGenBlockNumber(ctx context.Context, genBlockNumber
 	return true, nil
 }
 
+// GetL1BlockUpgradeLxLy It returns the block genesis for LxLy before genesisBlock or error
+func (etherMan *Client) GetL1BlockUpgradeLxLy(ctx context.Context, genesisBlock uint64) (uint64, error) {
+	it, err := etherMan.RollupManager.FilterInitialized(&bind.FilterOpts{
+		Start:   1,
+		End:     &genesisBlock,
+		Context: ctx,
+	})
+	if err != nil {
+		return uint64(0), err
+	}
+	for it.Next() {
+		log.Debugf("BlockNumber: %d Topics:Initialized(%d)", it.Event.Raw.BlockNumber, it.Event.Version)
+		if it.Event.Version == ETrogUpgradeVersion { // 2 is ETROG (LxLy upgrade)
+			log.Infof("LxLy upgrade found at blockNumber: %d", it.Event.Raw.BlockNumber)
+			return it.Event.Raw.BlockNumber, nil
+		}
+	}
+	return uint64(0), ErrNotFound
+}
+
 // GetForks returns fork information
 func (etherMan *Client) GetForks(ctx context.Context, genBlockNumber uint64, lastL1BlockSynced uint64) ([]state.ForkIDInterval, error) {
 	log.Debug("Getting forkIDs from blockNumber: ", genBlockNumber)
 	start := time.Now()
 	var logs []types.Log
-
-	if lastL1BlockSynced < genBlockNumber {
-		lastL1BlockSynced = genBlockNumber
-	}
-
 	log.Debug("Using ForkIDChunkSize: ", etherMan.cfg.ForkIDChunkSize)
 	for i := genBlockNumber; i <= lastL1BlockSynced; i = i + etherMan.cfg.ForkIDChunkSize + 1 {
 		final := i + etherMan.cfg.ForkIDChunkSize
@@ -488,6 +507,25 @@ func (etherMan *Client) GetRollupInfoByBlockRange(ctx context.Context, fromBlock
 	query := ethereum.FilterQuery{
 		FromBlock: new(big.Int).SetUint64(fromBlock),
 		Addresses: etherMan.SCAddresses,
+	}
+	if toBlock != nil {
+		query.ToBlock = new(big.Int).SetUint64(*toBlock)
+	}
+	blocks, blocksOrder, err := etherMan.readEvents(ctx, query)
+	if err != nil {
+		return nil, nil, err
+	}
+	return blocks, blocksOrder, nil
+}
+
+// GetRollupInfoByBlockRangePreviousRollupGenesis function retrieves the Rollup information that are included in all this ethereum blocks
+// but it only retrieves the information from the previous rollup genesis block to the current block.
+func (etherMan *Client) GetRollupInfoByBlockRangePreviousRollupGenesis(ctx context.Context, fromBlock uint64, toBlock *uint64) ([]Block, map[common.Hash][]Order, error) {
+	// Filter query
+	query := ethereum.FilterQuery{
+		FromBlock: new(big.Int).SetUint64(fromBlock),
+		Addresses: []common.Address{etherMan.l1Cfg.GlobalExitRootManagerAddr},
+		Topics:    [][]common.Hash{{updateL1InfoTreeSignatureHash}},
 	}
 	if toBlock != nil {
 		query.ToBlock = new(big.Int).SetUint64(*toBlock)

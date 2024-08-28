@@ -136,6 +136,12 @@ func (a *Aggregator) Start(ctx context.Context) error {
 		return fmt.Errorf("failed to initialize proofs cache %w", err)
 	}
 
+	for !a.isSynced(ctx, nil) {
+		log.Info("Waiting for synchronizer to sync...")
+		time.Sleep(a.cfg.RetryTime.Duration)
+		continue
+	}
+
 	address := fmt.Sprintf("%s:%d", a.cfg.Host, a.cfg.Port)
 	lis, err := net.Listen("tcp", address)
 	if err != nil {
@@ -227,11 +233,6 @@ func (a *Aggregator) Channel(stream prover.AggregatorService_ChannelServer) erro
 			_, err = a.tryBuildFinalProof(ctx, prover, nil)
 			if err != nil {
 				log.Errorf("Error checking proofs to verify: %v", err)
-
-				if errors.Is(err, context.Canceled) {
-					// the context was canceled, just continue, the loop will stop in the <-ctx.Done() case
-					continue
-				}
 			}
 
 			proofGenerated, err := a.tryAggregateProofs(ctx, prover)
@@ -495,9 +496,10 @@ func (a *Aggregator) tryBuildFinalProof(ctx context.Context, prover proverInterf
 	}
 	log.Debug("Send final proof time reached")
 
-	if err = a.waitForSynchronizerToSyncUp(ctx, nil); err != nil {
-		log.Warn("waiting for the synchronizer to sync up was canceled", err)
-		return false, err
+	for !a.isSynced(ctx, nil) {
+		log.Info("Waiting for synchronizer to sync...")
+		time.Sleep(a.cfg.RetryTime.Duration)
+		continue
 	}
 
 	var lastVerifiedBatchNum uint64
@@ -1073,41 +1075,41 @@ func (a *Aggregator) resetVerifyProofTime() {
 
 // isSynced checks if the state is synchronized with L1. If a batch number is
 // provided, it makes sure that the state is synced with that batch.
-func (a *Aggregator) isSynced(ctx context.Context, batchNum *uint64) (bool, error) {
+func (a *Aggregator) isSynced(ctx context.Context, batchNum *uint64) bool {
 	// get latest verified batch as seen by the synchronizer
 	lastVerifiedBatch, err := a.State.GetLastVerifiedBatch(ctx, nil)
 	if err == state.ErrNotFound {
-		return false, nil
+		return false
 	}
 	if err != nil {
 		log.Warnf("Failed to get last consolidated batch: %v", err)
-		return false, err
+		return false
 	}
 
 	if lastVerifiedBatch == nil {
-		return false, nil
+		return false
 	}
 
 	if batchNum != nil && lastVerifiedBatch.BatchNumber < *batchNum {
 		log.Infof("Waiting for the state to be synced, lastVerifiedBatchNum: %d, waiting for batch: %d", lastVerifiedBatch.BatchNumber, batchNum)
-		return false, nil
+		return false
 	}
 
 	// latest verified batch in L1
 	lastVerifiedEthBatchNum, err := a.Ethman.GetLatestVerifiedBatchNum()
 	if err != nil {
 		log.Warnf("Failed to get last eth batch, err: %v", err)
-		return false, err
+		return false
 	}
 
 	// check if L2 is synced with L1
 	if lastVerifiedBatch.BatchNumber < lastVerifiedEthBatchNum {
 		log.Infof("Waiting for the state to be synced, lastVerifiedBatchNum: %d, lastVerifiedEthBatchNum: %d, waiting for batch",
 			lastVerifiedBatch.BatchNumber, lastVerifiedEthBatchNum)
-		return false, nil
+		return false
 	}
 
-	return true, nil
+	return true
 }
 
 func (a *Aggregator) buildInputProver(ctx context.Context, batchToVerify *state.Batch) (*prover.InputProver, error) {
@@ -1301,9 +1303,9 @@ func (a *Aggregator) handleMonitoredTxResult(result ethtxmanager.MonitoredTxResu
 
 	// wait for the synchronizer to catch up the verified batches
 	log.Debug("A final proof has been sent, waiting for the network to be synced")
-	if err := a.waitForSynchronizerToSyncUp(a.ctx, &proofBatchNumberFinal); err != nil {
-		log.Warn("waiting for the synchronizer to sync up was canceled", err)
-		return
+	for !a.isSynced(a.ctx, &proofBatchNumberFinal) {
+		log.Info("Waiting for synchronizer to sync...")
+		time.Sleep(a.cfg.RetryTime.Duration)
 	}
 
 	// network is synced with the final proof, we can safely delete all recursive
@@ -1311,24 +1313,6 @@ func (a *Aggregator) handleMonitoredTxResult(result ethtxmanager.MonitoredTxResu
 	err = a.State.CleanupGeneratedProofs(a.ctx, proofBatchNumberFinal, nil)
 	if err != nil {
 		log.Errorf("Failed to store proof aggregation result: %v", err)
-	}
-}
-
-func (a *Aggregator) waitForSynchronizerToSyncUp(ctx context.Context, batchNum *uint64) error {
-	for {
-		log.Info("waiting for the synchronizer to sync...")
-		synced, err := a.isSynced(ctx, batchNum)
-		if err != nil && errors.Is(err, context.Canceled) {
-			// if context is canceled, stop the loop, since it will never
-			// be able to execute properly and break in this case, and we will be stuck in it forever
-			return err
-		}
-
-		if synced {
-			return nil
-		}
-
-		time.Sleep(a.cfg.RetryTime.Duration)
 	}
 }
 

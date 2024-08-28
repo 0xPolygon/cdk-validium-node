@@ -57,7 +57,7 @@ func (f *finalizer) processBatchesPendingtoCheck(ctx context.Context) {
 	oldStateRoot := prevBatch.StateRoot
 
 	for _, notCheckedBatch := range notCheckedBatches {
-		_, _ = f.batchSanityCheck(ctx, notCheckedBatch.BatchNumber, oldStateRoot, notCheckedBatch.StateRoot)
+		_, _ = f.batchSanityCheck(ctx, notCheckedBatch.BatchNumber, oldStateRoot, notCheckedBatch.StateRoot, nil)
 		oldStateRoot = notCheckedBatch.StateRoot
 	}
 }
@@ -397,11 +397,11 @@ func (f *finalizer) closeSIPBatch(ctx context.Context, dbTx pgx.Tx) error {
 	// Reprocess full batch as sanity check
 	if f.cfg.SequentialBatchSanityCheck {
 		// Do the full batch reprocess now
-		_, _ = f.batchSanityCheck(ctx, batchNumber, initialStateRoot, finalStateRoot)
+		_, _ = f.batchSanityCheck(ctx, batchNumber, initialStateRoot, finalStateRoot, dbTx)
 	} else {
 		// Do the full batch reprocess in parallel
 		go func() {
-			_, _ = f.batchSanityCheck(ctx, batchNumber, initialStateRoot, finalStateRoot)
+			_, _ = f.batchSanityCheck(ctx, batchNumber, initialStateRoot, finalStateRoot, nil)
 		}()
 	}
 
@@ -416,7 +416,7 @@ func (f *finalizer) closeSIPBatch(ctx context.Context, dbTx pgx.Tx) error {
 }
 
 // batchSanityCheck reprocesses a batch used as sanity check
-func (f *finalizer) batchSanityCheck(ctx context.Context, batchNum uint64, initialStateRoot common.Hash, expectedNewStateRoot common.Hash) (*state.ProcessBatchResponse, error) {
+func (f *finalizer) batchSanityCheck(ctx context.Context, batchNum uint64, initialStateRoot common.Hash, expectedNewStateRoot common.Hash, dbTx pgx.Tx) (*state.ProcessBatchResponse, error) {
 	reprocessError := func(batch *state.Batch) {
 		rawL2Blocks, err := state.DecodeBatchV2(batch.BatchL2Data)
 		if err != nil {
@@ -442,7 +442,7 @@ func (f *finalizer) batchSanityCheck(ctx context.Context, batchNum uint64, initi
 
 	log.Debugf("batch %d sanity check: initialStateRoot: %s, expectedNewStateRoot: %s", batchNum, initialStateRoot, expectedNewStateRoot)
 
-	batch, err := f.stateIntf.GetBatchByNumber(ctx, batchNum, nil)
+	batch, err := f.stateIntf.GetBatchByNumber(ctx, batchNum, dbTx)
 	if err != nil {
 		log.Errorf("failed to get batch %d, error: %v", batchNum, err)
 		return nil, ErrGetBatchByNumber
@@ -459,7 +459,7 @@ func (f *finalizer) batchSanityCheck(ctx context.Context, batchNum uint64, initi
 		SkipVerifyL1InfoRoot_V2: true,
 		Caller:                  stateMetrics.DiscardCallerLabel,
 	}
-	batchRequest.L1InfoTreeData_V2, _, _, err = f.stateIntf.GetL1InfoTreeDataFromBatchL2Data(ctx, batch.BatchL2Data, nil)
+	batchRequest.L1InfoTreeData_V2, _, _, err = f.stateIntf.GetL1InfoTreeDataFromBatchL2Data(ctx, batch.BatchL2Data, dbTx)
 	if err != nil {
 		log.Errorf("failed to get L1InfoTreeData for batch %d, error: %v", batch.BatchNumber, err)
 		reprocessError(nil)
@@ -502,7 +502,7 @@ func (f *finalizer) batchSanityCheck(ctx context.Context, batchNum uint64, initi
 		return nil, ErrStateRootNoMatch
 	}
 
-	err = f.stateIntf.UpdateBatchAsChecked(ctx, batch.BatchNumber, nil)
+	err = f.stateIntf.UpdateBatchAsChecked(ctx, batch.BatchNumber, dbTx)
 	if err != nil {
 		log.Errorf("failed to update batch %d as checked, error: %v", batch.BatchNumber, err)
 		reprocessError(batch)

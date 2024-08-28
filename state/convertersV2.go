@@ -88,11 +88,11 @@ func (s *State) convertToProcessBlockResponseV2(responses []*executor.ProcessBlo
 		result.GasLimit = response.GasLimit
 		result.BlockNumber = response.BlockNumber
 		result.Timestamp = response.Timestamp
-		result.GlobalExitRoot = common.Hash(response.Ger)
-		result.BlockHashL1 = common.Hash(response.BlockHashL1)
+		result.GlobalExitRoot = common.BytesToHash(response.Ger)
+		result.BlockHashL1 = common.BytesToHash(response.BlockHashL1)
 		result.GasUsed = response.GasUsed
-		result.BlockInfoRoot = common.Hash(response.BlockInfoRoot)
-		result.BlockHash = common.Hash(response.BlockHash)
+		result.BlockInfoRoot = common.BytesToHash(response.BlockInfoRoot)
+		result.BlockHash = common.BytesToHash(response.BlockHash)
 		result.TransactionResponses = transactionResponses
 		result.Logs = convertToLogV2(response.Logs)
 		result.RomError_V2 = executor.RomErr(response.Error)
