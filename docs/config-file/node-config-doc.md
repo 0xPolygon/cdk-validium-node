@@ -1347,7 +1347,7 @@ MaxSHA256Hashes=0
 ## <a name="Synchronizer"></a>9. `[Synchronizer]`
 
 **Type:** : `object`
-**Description:** Configuration of service `Syncrhonizer`. For this service is also really important the value of `IsTrustedSequencer`
+**Description:** Configuration of service `Synchronizer`. For this service is also really important the value of `IsTrustedSequencer`
 because depending of this values is going to ask to a trusted node for trusted transactions or not
 
 | Property                                                                              | Pattern | Type             | Deprecated | Definition | Title/Description                                                                                                                                                                                                                                       |
