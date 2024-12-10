@@ -87,7 +87,7 @@ Then check the logs:
 docker logs <problematic container, example: cdk-validium-sync>
 ```
 
-Aditionaly, it can be worth checking the DBs:
+Additionally, it can be worth checking the DBs:
 
 - StateDB: `psql -h localhost -p 5432 -U state_user state_db`, password: `state_password`
 - PoolDB: `psql -h localhost -p 5433 -U pool_user pool_db`, password: `pool_password`
