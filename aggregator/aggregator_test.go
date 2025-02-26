@@ -1450,79 +1450,8 @@ func TestIsSynced(t *testing.T) {
 				tc.setup(m, &a)
 			}
 
-			synced, _ := a.isSynced(a.ctx, tc.batchNum)
+			synced := a.isSynced(a.ctx, tc.batchNum)
 			assert.Equal(tc.synced, synced)
-		})
-	}
-}
-
-func TestWaitForSynchronizerToSyncUp(t *testing.T) {
-	t.Parallel()
-
-	cfg := Config{}
-	batchNum := uint64(42)
-	testCases := []struct {
-		name     string
-		setup    func(mox, *Aggregator)
-		batchNum *uint64
-		synced   bool
-	}{
-		{
-			name:     "state context canceled",
-			synced:   false,
-			batchNum: &batchNum,
-			setup: func(m mox, a *Aggregator) {
-				m.stateMock.On("GetLastVerifiedBatch", mock.Anything, nil).Return(nil, context.Canceled).Once()
-			},
-		},
-		{
-			name:     "ok after multiple iterations",
-			synced:   true,
-			batchNum: &batchNum,
-			setup: func(m mox, a *Aggregator) {
-				latestVerifiedBatch := state.VerifiedBatch{BatchNumber: batchNum}
-				m.stateMock.On("GetLastVerifiedBatch", mock.Anything, nil).Return(nil, nil).Once()
-				m.stateMock.On("GetLastVerifiedBatch", mock.Anything, nil).Return(&latestVerifiedBatch, nil).Once()
-				m.etherman.On("GetLatestVerifiedBatchNum").Return(batchNum, nil).Once()
-			},
-		},
-		{
-			name:     "ok with batch number",
-			synced:   true,
-			batchNum: &batchNum,
-			setup: func(m mox, a *Aggregator) {
-				latestVerifiedBatch := state.VerifiedBatch{BatchNumber: batchNum}
-				m.stateMock.On("GetLastVerifiedBatch", mock.Anything, nil).Return(&latestVerifiedBatch, nil).Once()
-				m.etherman.On("GetLatestVerifiedBatchNum").Return(batchNum, nil).Once()
-			},
-		},
-	}
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			stateMock := mocks.NewStateMock(t)
-			ethTxManager := mocks.NewEthTxManager(t)
-			etherman := mocks.NewEtherman(t)
-			proverMock := mocks.NewProverMock(t)
-			a, err := New(cfg, stateMock, ethTxManager, etherman, nil, nil)
-			require.NoError(t, err)
-			aggregatorCtx := context.WithValue(context.Background(), "owner", "aggregator") //nolint:staticcheck
-			a.ctx, a.exit = context.WithCancel(aggregatorCtx)
-			m := mox{
-				stateMock:    stateMock,
-				ethTxManager: ethTxManager,
-				etherman:     etherman,
-				proverMock:   proverMock,
-			}
-			if tc.setup != nil {
-				tc.setup(m, &a)
-			}
-
-			err = a.waitForSynchronizerToSyncUp(a.ctx, tc.batchNum)
-			if tc.synced {
-				assert.NoError(t, err)
-			} else {
-				assert.Error(t, err)
-			}
 		})
 	}
 }

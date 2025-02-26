@@ -237,14 +237,11 @@
     },
     {
         "inputs": [],
-        "name": "SequenceWithDataAvailabilityNotAllowed",
         "type": "error"
     },
     {
         "inputs": [],
         "name": "SequenceZeroBatches",
-        "type": "error"
-    },
     {
         "inputs": [],
         "name": "SequencedTimestampBelowForcedTimestamp",

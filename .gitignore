@@ -31,3 +31,4 @@ coverage.out
 db/db-packr.go
 db/packrd/
 packrd/
+nohup.out

@@ -753,7 +753,8 @@ func forkIDIntervals(ctx context.Context, st *state.State, etherman *etherman.Cl
 		if err != nil && !errors.Is(err, state.ErrStateNotSynchronized) {
 			return []state.ForkIDInterval{}, fmt.Errorf("error checking lastL1BlockSynced. Error: %v", err)
 		}
-		if lastBlock != nil {
+		// If lastBlock is below genesisBlock means state.ErrStateNotSynchronized (haven't started yet the sync process, is doing pregenesis sync)
+		if lastBlock != nil && lastBlock.BlockNumber >= genesisBlockNumber {
 			log.Info("Getting forkIDs intervals. Please wait...")
 			// Read Fork ID FROM POE SC
 			forkIntervals, err := etherman.GetForks(ctx, genesisBlockNumber, lastBlock.BlockNumber)
@@ -793,32 +794,14 @@ func forkIDIntervals(ctx context.Context, st *state.State, etherman *etherman.Cl
 			}
 			forkIDIntervals = forkIntervals
 		} else {
-			log.Debug("Getting all forkIDs")
-
-			// Get last L1 block number
-			bn, err := etherman.GetLatestBlockNumber(ctx)
-			if err != nil {
-				return []state.ForkIDInterval{}, fmt.Errorf("error getting latest block number. Error: %v", err)
-			}
-
-			// Get all forkIDs since genesis
-			forkIntervals, err := etherman.GetForks(ctx, genesisBlockNumber, bn)
+			log.Debug("Getting initial forkID")
+			forkIntervals, err := etherman.GetForks(ctx, genesisBlockNumber, genesisBlockNumber)
 			if err != nil {
 				return []state.ForkIDInterval{}, fmt.Errorf("error getting forks. Please check the configuration. Error: %v", err)
 			} else if len(forkIntervals) == 0 {
 				return []state.ForkIDInterval{}, fmt.Errorf("error: no forkID received. It should receive at least one, please check the configuration...")
 			}
 			forkIDIntervals = forkIntervals
-
-			log.Debugf("Retrieved %d forkIDs", len(forkIDIntervals))
-
-			log.Debug("Adding forkIDs to db and memory")
-			for _, forkID := range forkIDIntervals {
-				err = st.AddForkIDInterval(ctx, forkID, nil)
-				if err != nil {
-					log.Fatal("error adding forkID to db. Error: ", err)
-				}
-			}
 		}
 	}
 	return forkIDIntervals, nil

@@ -123,7 +123,7 @@ func (s *SequenceSender) tryToSendSequence(ctx context.Context) {
 					} else {
 						lastL1BlockNumber := lastL1BlockHeader.Number.Uint64()
 
-						if lastL1BlockNumber >= txL1BlockNumber+s.cfg.SequenceL1BlockConfirmations {
+						if lastL1BlockNumber >= result.BlockNumber.Uint64()+s.cfg.SequenceL1BlockConfirmations {
 							log.Infof("continuing, last L1 block: %d", lastL1BlockNumber)
 							break
 						}

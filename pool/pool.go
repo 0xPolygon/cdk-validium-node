@@ -203,7 +203,16 @@ func (p *Pool) StoreTx(ctx context.Context, tx types.Transaction, ip string, isW
 		return err
 	}
 
+	var oocError error
 	if preExecutionResponse.OOCError != nil {
+		oocError = preExecutionResponse.OOCError
+	} else {
+		if err = p.batchConstraintsCfg.CheckNodeLevelOOC(preExecutionResponse.reservedZKCounters); err != nil {
+			oocError = err
+		}
+	}
+
+	if oocError != nil {
 		event := &event.Event{
 			ReceivedAt:  time.Now(),
 			IPAddress:   ip,
@@ -219,7 +228,7 @@ func (p *Pool) StoreTx(ctx context.Context, tx types.Transaction, ip string, isW
 			log.Errorf("error adding event: %v", err)
 		}
 		// Do not add tx to the pool
-		return fmt.Errorf("failed to add tx to the pool: %w", preExecutionResponse.OOCError)
+		return fmt.Errorf("failed to add tx to the pool: %w", oocError)
 	} else if preExecutionResponse.OOGError != nil {
 		event := &event.Event{
 			ReceivedAt:  time.Now(),
@@ -338,12 +347,6 @@ func (p *Pool) preExecuteTx(ctx context.Context, tx types.Transaction) (preExecu
 			}
 			if errors.Is(errorToCheck, runtime.ErrOutOfGas) {
 				response.OOGError = err
-			}
-		} else {
-			if !p.batchConstraintsCfg.IsWithinConstraints(processBatchResponse.UsedZkCounters) {
-				err := fmt.Errorf("OutOfCounters Error (Node level) for tx: %s", tx.Hash().String())
-				response.OOCError = err
-				log.Error(err.Error())
 			}
 		}
 
