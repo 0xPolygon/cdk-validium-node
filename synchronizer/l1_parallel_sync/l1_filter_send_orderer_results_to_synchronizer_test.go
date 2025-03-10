@@ -6,6 +6,7 @@ import (
 
 	"github.com/0xPolygonHermez/zkevm-node/etherman"
 	types "github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/trie"
 	"github.com/stretchr/testify/require"
 )
 
@@ -287,7 +288,7 @@ func newDataPackage(fromBlock, toBlock uint64) *L1SyncMessage {
 				fromBlock: fromBlock,
 				toBlock:   toBlock,
 			},
-			lastBlockOfRange: types.NewBlock(&types.Header{Number: big.NewInt(int64(toBlock))}, nil, nil, nil, nil),
+			lastBlockOfRange: types.NewBlock(&types.Header{Number: big.NewInt(int64(toBlock))}, nil, nil, trie.NewStackTrie(nil)),
 		},
 		dataIsValid: true,
 		ctrlIsValid: false,

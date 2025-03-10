@@ -775,7 +775,7 @@ func (s *State) EstimateGas(transaction *types.Transaction, senderAddress common
 	}
 
 	// set start values for lowEnd and highEnd:
-	lowEnd, err := core.IntrinsicGas(transaction.Data(), transaction.AccessList(), s.isContractCreation(transaction), true, false, false)
+	lowEnd, err := core.IntrinsicGas(transaction.Data(), transaction.AccessList(), transaction.SetCodeAuthorizations(), s.isContractCreation(transaction), true, false, false)
 	if err != nil {
 		return 0, nil, err
 	}
