@@ -111,7 +111,7 @@ func (_c *L1BlockCheckerIntegrator_OnResetState_Call) Return() *L1BlockCheckerIn
 }
 
 func (_c *L1BlockCheckerIntegrator_OnResetState_Call) RunAndReturn(run func(context.Context)) *L1BlockCheckerIntegrator_OnResetState_Call {
-	_c.Call.Return(run)
+	_c.Run(run)
 	return _c
 }
 

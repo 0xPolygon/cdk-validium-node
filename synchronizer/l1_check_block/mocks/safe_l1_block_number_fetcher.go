@@ -22,7 +22,7 @@ func (_m *SafeL1BlockNumberFetcher) EXPECT() *SafeL1BlockNumberFetcher_Expecter 
 	return &SafeL1BlockNumberFetcher_Expecter{mock: &_m.Mock}
 }
 
-// Description provides a mock function with given fields:
+// Description provides a mock function with no fields
 func (_m *SafeL1BlockNumberFetcher) Description() string {
 	ret := _m.Called()
 

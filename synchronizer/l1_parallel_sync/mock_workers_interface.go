@@ -22,7 +22,7 @@ func (_m *workersInterfaceMock) EXPECT() *workersInterfaceMock_Expecter {
 	return &workersInterfaceMock_Expecter{mock: &_m.Mock}
 }
 
-// String provides a mock function with given fields:
+// String provides a mock function with no fields
 func (_m *workersInterfaceMock) String() string {
 	ret := _m.Called()
 
@@ -67,7 +67,7 @@ func (_c *workersInterfaceMock_String_Call) RunAndReturn(run func() string) *wor
 	return _c
 }
 
-// ToStringBrief provides a mock function with given fields:
+// ToStringBrief provides a mock function with no fields
 func (_m *workersInterfaceMock) ToStringBrief() string {
 	ret := _m.Called()
 
@@ -171,7 +171,7 @@ func (_c *workersInterfaceMock_asyncRequestRollupInfoByBlockRange_Call) RunAndRe
 	return _c
 }
 
-// getResponseChannelForRollupInfo provides a mock function with given fields:
+// getResponseChannelForRollupInfo provides a mock function with no fields
 func (_m *workersInterfaceMock) getResponseChannelForRollupInfo() chan responseRollupInfoByBlockRange {
 	ret := _m.Called()
 
@@ -218,7 +218,7 @@ func (_c *workersInterfaceMock_getResponseChannelForRollupInfo_Call) RunAndRetur
 	return _c
 }
 
-// howManyRunningWorkers provides a mock function with given fields:
+// howManyRunningWorkers provides a mock function with no fields
 func (_m *workersInterfaceMock) howManyRunningWorkers() int {
 	ret := _m.Called()
 
@@ -263,7 +263,7 @@ func (_c *workersInterfaceMock_howManyRunningWorkers_Call) RunAndReturn(run func
 	return _c
 }
 
-// initialize provides a mock function with given fields:
+// initialize provides a mock function with no fields
 func (_m *workersInterfaceMock) initialize() error {
 	ret := _m.Called()
 
@@ -356,7 +356,7 @@ func (_c *workersInterfaceMock_requestLastBlockWithRetries_Call) RunAndReturn(ru
 	return _c
 }
 
-// stop provides a mock function with given fields:
+// stop provides a mock function with no fields
 func (_m *workersInterfaceMock) stop() {
 	_m.Called()
 }
@@ -384,11 +384,11 @@ func (_c *workersInterfaceMock_stop_Call) Return() *workersInterfaceMock_stop_Ca
 }
 
 func (_c *workersInterfaceMock_stop_Call) RunAndReturn(run func()) *workersInterfaceMock_stop_Call {
-	_c.Call.Return(run)
+	_c.Run(run)
 	return _c
 }
 
-// waitFinishAllWorkers provides a mock function with given fields:
+// waitFinishAllWorkers provides a mock function with no fields
 func (_m *workersInterfaceMock) waitFinishAllWorkers() {
 	_m.Called()
 }
@@ -416,7 +416,7 @@ func (_c *workersInterfaceMock_waitFinishAllWorkers_Call) Return() *workersInter
 }
 
 func (_c *workersInterfaceMock_waitFinishAllWorkers_Call) RunAndReturn(run func()) *workersInterfaceMock_waitFinishAllWorkers_Call {
-	_c.Call.Return(run)
+	_c.Run(run)
 	return _c
 }
 

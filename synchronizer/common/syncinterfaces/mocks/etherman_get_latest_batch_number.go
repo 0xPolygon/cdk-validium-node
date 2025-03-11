@@ -17,7 +17,7 @@ func (_m *EthermanGetLatestBatchNumber) EXPECT() *EthermanGetLatestBatchNumber_E
 	return &EthermanGetLatestBatchNumber_Expecter{mock: &_m.Mock}
 }
 
-// GetLatestBatchNumber provides a mock function with given fields:
+// GetLatestBatchNumber provides a mock function with no fields
 func (_m *EthermanGetLatestBatchNumber) GetLatestBatchNumber() (uint64, error) {
 	ret := _m.Called()
 

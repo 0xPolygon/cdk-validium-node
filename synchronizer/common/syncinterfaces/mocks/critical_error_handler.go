@@ -51,7 +51,7 @@ func (_c *CriticalErrorHandler_CriticalError_Call) Return() *CriticalErrorHandle
 }
 
 func (_c *CriticalErrorHandler_CriticalError_Call) RunAndReturn(run func(context.Context, error)) *CriticalErrorHandler_CriticalError_Call {
-	_c.Call.Return(run)
+	_c.Run(run)
 	return _c
 }
 
