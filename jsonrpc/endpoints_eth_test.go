@@ -1047,8 +1047,9 @@ func TestGetL2BlockByHash(t *testing.T) {
 			Hash: common.HexToHash("0x345"),
 			ExpectedResult: ethTypes.NewBlock(
 				&ethTypes.Header{Number: big.NewInt(1), UncleHash: ethTypes.EmptyUncleHash, Root: ethTypes.EmptyRootHash},
-				[]*ethTypes.Transaction{ethTypes.NewTransaction(1, common.Address{}, big.NewInt(1), 1, big.NewInt(1), []byte{})},
-				nil,
+				&ethTypes.Body{
+					Transactions: []*ethTypes.Transaction{ethTypes.NewTransaction(1, common.Address{}, big.NewInt(1), 1, big.NewInt(1), []byte{})},
+				},
 				[]*ethTypes.Receipt{ethTypes.NewReceipt([]byte{}, false, uint64(0))},
 				st,
 			),
@@ -1162,6 +1163,10 @@ func TestGetL2BlockByNumber(t *testing.T) {
 		})
 	}
 
+	for _, receipt := range receipts {
+		receipt.Bloom = ethTypes.CreateBloom(receipt)
+	}
+
 	header := &ethTypes.Header{
 		ParentHash:  common.HexToHash("0x1"),
 		UncleHash:   common.HexToHash("0x2"),
@@ -1177,7 +1182,7 @@ func TestGetL2BlockByNumber(t *testing.T) {
 		Extra:       types.ArgBytes{13},
 		MixDigest:   common.HexToHash("0x14"),
 		Nonce:       ethTypes.EncodeNonce(15),
-		Bloom:       ethTypes.CreateBloom(receipts),
+		Bloom:       ethTypes.MergeBloom(receipts),
 	}
 
 	l2Header := state.NewL2Header(header)
@@ -1189,6 +1194,8 @@ func TestGetL2BlockByNumber(t *testing.T) {
 	for _, receipt := range receipts {
 		receipt.BlockHash = l2Block.Hash()
 		receipt.BlockNumber = l2Block.Number()
+
+		receipt.Bloom = ethTypes.CreateBloom(receipt)
 	}
 
 	rpcTransactions := []types.TransactionOrHash{}
@@ -1240,7 +1247,7 @@ func TestGetL2BlockByNumber(t *testing.T) {
 		StateRoot:       l2Block.Root(),
 		TxRoot:          l2Block.TxHash(),
 		ReceiptsRoot:    l2Block.ReceiptHash(),
-		LogsBloom:       ethTypes.CreateBloom(receipts),
+		LogsBloom:       ethTypes.MergeBloom(receipts),
 		Difficulty:      difficulty,
 		TotalDifficulty: totalDifficulty,
 		Size:            types.ArgUint64(l2Block.Size()),
@@ -3309,7 +3316,7 @@ func TestGetTransactionReceipt(t *testing.T) {
 		BlockHash:         common.HexToHash("0x1"),
 	}
 
-	receipt.Bloom = ethTypes.CreateBloom(ethTypes.Receipts{receipt})
+	receipt.Bloom = ethTypes.CreateBloom(receipt)
 
 	rpcReceipt := types.Receipt{
 		Root:              &stateRoot,

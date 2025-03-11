@@ -13,6 +13,7 @@ import (
 	"github.com/0xPolygonHermez/zkevm-node/log"
 	"github.com/ethereum/go-ethereum/common"
 	ethTypes "github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/trie"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
@@ -300,7 +301,7 @@ func TestGetRealHighestBlockNumberInResponseWithLastBlockOfRange(t *testing.T) {
 				BlockNumber: 150,
 			},
 		},
-		lastBlockOfRange: ethTypes.NewBlock(&ethTypes.Header{Number: big.NewInt(200)}, nil, nil, nil, nil),
+		lastBlockOfRange: ethTypes.NewBlock(&ethTypes.Header{Number: big.NewInt(200)}, nil, nil, trie.NewStackTrie(nil)),
 	}
 	res := rollupInfoByBlockRangeResult.getHighestBlockNumberInResponse()
 	require.Equal(t, uint64(200), res)
