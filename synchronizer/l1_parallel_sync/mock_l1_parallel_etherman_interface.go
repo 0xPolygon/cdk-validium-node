@@ -87,7 +87,7 @@ func (_c *L1ParallelEthermanInterfaceMock_EthBlockByNumber_Call) RunAndReturn(ru
 	return _c
 }
 
-// GetLatestBatchNumber provides a mock function with given fields:
+// GetLatestBatchNumber provides a mock function with no fields
 func (_m *L1ParallelEthermanInterfaceMock) GetLatestBatchNumber() (uint64, error) {
 	ret := _m.Called()
 
@@ -142,7 +142,7 @@ func (_c *L1ParallelEthermanInterfaceMock_GetLatestBatchNumber_Call) RunAndRetur
 	return _c
 }
 
-// GetLatestVerifiedBatchNum provides a mock function with given fields:
+// GetLatestVerifiedBatchNum provides a mock function with no fields
 func (_m *L1ParallelEthermanInterfaceMock) GetLatestVerifiedBatchNum() (uint64, error) {
 	ret := _m.Called()
 
@@ -266,7 +266,7 @@ func (_c *L1ParallelEthermanInterfaceMock_GetRollupInfoByBlockRange_Call) RunAnd
 	return _c
 }
 
-// GetTrustedSequencerURL provides a mock function with given fields:
+// GetTrustedSequencerURL provides a mock function with no fields
 func (_m *L1ParallelEthermanInterfaceMock) GetTrustedSequencerURL() (string, error) {
 	ret := _m.Called()
 

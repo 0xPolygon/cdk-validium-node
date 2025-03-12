@@ -22,7 +22,7 @@ func (_m *workerMock) EXPECT() *workerMock_Expecter {
 	return &workerMock_Expecter{mock: &_m.Mock}
 }
 
-// String provides a mock function with given fields:
+// String provides a mock function with no fields
 func (_m *workerMock) String() string {
 	ret := _m.Called()
 
@@ -116,7 +116,7 @@ func (_c *workerMock_asyncRequestRollupInfoByBlockRange_Call) RunAndReturn(run f
 	return _c
 }
 
-// isIdle provides a mock function with given fields:
+// isIdle provides a mock function with no fields
 func (_m *workerMock) isIdle() bool {
 	ret := _m.Called()
 
