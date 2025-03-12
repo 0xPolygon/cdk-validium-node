@@ -8351,7 +8351,7 @@ func (_c *StorageMock_UpdateForkIDIntervalsInMemory_Call) Return() *StorageMock_
 }
 
 func (_c *StorageMock_UpdateForkIDIntervalsInMemory_Call) RunAndReturn(run func([]state.ForkIDInterval)) *StorageMock_UpdateForkIDIntervalsInMemory_Call {
-	_c.Call.Return(run)
+	_c.Run(run)
 	return _c
 }
 

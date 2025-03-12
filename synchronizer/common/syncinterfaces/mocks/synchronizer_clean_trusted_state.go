@@ -17,7 +17,7 @@ func (_m *SynchronizerCleanTrustedState) EXPECT() *SynchronizerCleanTrustedState
 	return &SynchronizerCleanTrustedState_Expecter{mock: &_m.Mock}
 }
 
-// CleanTrustedState provides a mock function with given fields:
+// CleanTrustedState provides a mock function with no fields
 func (_m *SynchronizerCleanTrustedState) CleanTrustedState() {
 	_m.Called()
 }
@@ -45,7 +45,7 @@ func (_c *SynchronizerCleanTrustedState_CleanTrustedState_Call) Return() *Synchr
 }
 
 func (_c *SynchronizerCleanTrustedState_CleanTrustedState_Call) RunAndReturn(run func()) *SynchronizerCleanTrustedState_CleanTrustedState_Call {
-	_c.Call.Return(run)
+	_c.Run(run)
 	return _c
 }
 
