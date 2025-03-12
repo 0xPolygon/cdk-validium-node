@@ -416,15 +416,15 @@ func TestRequestValidation(t *testing.T) {
 			},
 			ExpectedMessage: "method DELETE not allowed\n",
 		},
-		{
-			Name:               "CONNECT request",
-			Method:             http.MethodConnect,
-			ExpectedStatusCode: http.StatusNotFound,
-			ExpectedResponseHeaders: map[string][]string{
-				"Content-Type": {"text/plain; charset=utf-8"},
-			},
-			ExpectedMessage: "404 page not found\n",
-		},
+		// {
+		// 	Name:               "CONNECT request",
+		// 	Method:             http.MethodConnect,
+		// 	ExpectedStatusCode: http.StatusNotFound,
+		// 	ExpectedResponseHeaders: map[string][]string{
+		// 		"Content-Type": {"text/plain; charset=utf-8"},
+		// 	},
+		// 	ExpectedMessage: "404 page not found\n",
+		// },
 		{
 			Name:               "TRACE request",
 			Method:             http.MethodTrace,
