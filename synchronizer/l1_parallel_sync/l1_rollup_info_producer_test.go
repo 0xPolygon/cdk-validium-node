@@ -28,22 +28,6 @@ func TestExploratoryL1Get(t *testing.T) {
 	require.NoError(t, err)
 }
 
-// func TestGivenNeedSyncWhenStartThenAskForRollupInfo(t *testing.T) {
-// 	sut, ethermans, _ := setup(t)
-// 	expectedForGettingL1LastBlock(t, ethermans[0], 150)
-// 	expectedRollupInfo(ethermans[1])
-
-// 	err := sut.initialize(context.Background())
-// 	require.NoError(t, err)
-// 	_, err = sut.launchWork()
-// 	require.NoError(t, err)
-// 	var waitDuration = time.Duration(0)
-
-// 	sut.step(&waitDuration)
-// 	sut.step(&waitDuration)
-// 	sut.workers.waitFinishAllWorkers()
-// }
-
 func TestGivenNoNeedSyncWhenStartsSendAndEventOfSynchronized(t *testing.T) {
 	sut, ethermans, ch := setup(t)
 	etherman := ethermans[0]
@@ -138,14 +122,3 @@ func expectedRollupInfoCalls(etherman *L1ParallelEthermanInterfaceMock, calls in
 		Return(nil, nil).
 		Maybe()
 }
-
-// func expectedRollupInfo(etherman *L1ParallelEthermanInterfaceMock) {
-// 	etherman.
-// 		On("GetRollupInfoByBlockRange", mock.Anything, mock.Anything, mock.Anything).
-// 		Return(nil, nil, nil)
-
-// 	etherman.
-// 		On("EthBlockByNumber", mock.Anything, mock.Anything).
-// 		Return(nil, nil).
-// 		Maybe()
-// }
