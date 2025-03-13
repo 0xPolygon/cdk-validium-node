@@ -21,7 +21,7 @@ func (_m *l1RollupProducerInterfaceMock) EXPECT() *l1RollupProducerInterfaceMock
 	return &l1RollupProducerInterfaceMock_Expecter{mock: &_m.Mock}
 }
 
-// Abort provides a mock function with given fields:
+// Abort provides a mock function with no fields
 func (_m *l1RollupProducerInterfaceMock) Abort() {
 	_m.Called()
 }
@@ -49,7 +49,7 @@ func (_c *l1RollupProducerInterfaceMock_Abort_Call) Return() *l1RollupProducerIn
 }
 
 func (_c *l1RollupProducerInterfaceMock_Abort_Call) RunAndReturn(run func()) *l1RollupProducerInterfaceMock_Abort_Call {
-	_c.Call.Return(run)
+	_c.Run(run)
 	return _c
 }
 
@@ -82,7 +82,7 @@ func (_c *l1RollupProducerInterfaceMock_Reset_Call) Return() *l1RollupProducerIn
 }
 
 func (_c *l1RollupProducerInterfaceMock_Reset_Call) RunAndReturn(run func(uint64)) *l1RollupProducerInterfaceMock_Reset_Call {
-	_c.Call.Return(run)
+	_c.Run(run)
 	return _c
 }
 
@@ -132,7 +132,7 @@ func (_c *l1RollupProducerInterfaceMock_Start_Call) RunAndReturn(run func(contex
 	return _c
 }
 
-// Stop provides a mock function with given fields:
+// Stop provides a mock function with no fields
 func (_m *l1RollupProducerInterfaceMock) Stop() {
 	_m.Called()
 }
@@ -160,7 +160,7 @@ func (_c *l1RollupProducerInterfaceMock_Stop_Call) Return() *l1RollupProducerInt
 }
 
 func (_c *l1RollupProducerInterfaceMock_Stop_Call) RunAndReturn(run func()) *l1RollupProducerInterfaceMock_Stop_Call {
-	_c.Call.Return(run)
+	_c.Run(run)
 	return _c
 }
 

@@ -10,6 +10,7 @@ import (
 	mock_syncinterfaces "github.com/0xPolygonHermez/zkevm-node/synchronizer/common/syncinterfaces/mocks"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/trie"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -111,7 +112,7 @@ func TestCheckL2BlockHashMatch(t *testing.T) {
 
 	rpcL2Block := types.NewBlock(&types.Header{
 		Number: big.NewInt(int64(lastL2Block)),
-	}, nil, nil, nil, nil)
+	}, nil, nil, trie.NewStackTrie(nil))
 
 	data.zKEVMClient.EXPECT().BlockByNumber(mock.Anything, lastL2BlockBigInt).Return(rpcL2Block, nil)
 	err := data.sut.CheckL2Block(context.Background(), nil)
@@ -134,7 +135,7 @@ func TestCheckL2BlockHashMismatch(t *testing.T) {
 	rpcL2Block := types.NewBlock(&types.Header{
 		Number:     big.NewInt(int64(lastL2Block)),
 		ParentHash: common.HexToHash("0x1234"),
-	}, nil, nil, nil, nil)
+	}, nil, nil, trie.NewStackTrie(nil))
 
 	data.zKEVMClient.EXPECT().BlockByNumber(mock.Anything, lastL2BlockBigInt).Return(rpcL2Block, nil)
 	err := data.sut.CheckL2Block(context.Background(), nil)

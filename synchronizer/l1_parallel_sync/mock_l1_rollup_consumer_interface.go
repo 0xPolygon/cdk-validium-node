@@ -22,7 +22,7 @@ func (_m *l1RollupConsumerInterfaceMock) EXPECT() *l1RollupConsumerInterfaceMock
 	return &l1RollupConsumerInterfaceMock_Expecter{mock: &_m.Mock}
 }
 
-// GetLastEthBlockSynced provides a mock function with given fields:
+// GetLastEthBlockSynced provides a mock function with no fields
 func (_m *l1RollupConsumerInterfaceMock) GetLastEthBlockSynced() (state.Block, bool) {
 	ret := _m.Called()
 
@@ -106,7 +106,7 @@ func (_c *l1RollupConsumerInterfaceMock_Reset_Call) Return() *l1RollupConsumerIn
 }
 
 func (_c *l1RollupConsumerInterfaceMock_Reset_Call) RunAndReturn(run func(uint64)) *l1RollupConsumerInterfaceMock_Reset_Call {
-	_c.Call.Return(run)
+	_c.Run(run)
 	return _c
 }
 
@@ -157,7 +157,7 @@ func (_c *l1RollupConsumerInterfaceMock_Start_Call) RunAndReturn(run func(contex
 	return _c
 }
 
-// StopAfterProcessChannelQueue provides a mock function with given fields:
+// StopAfterProcessChannelQueue provides a mock function with no fields
 func (_m *l1RollupConsumerInterfaceMock) StopAfterProcessChannelQueue() {
 	_m.Called()
 }
@@ -185,7 +185,7 @@ func (_c *l1RollupConsumerInterfaceMock_StopAfterProcessChannelQueue_Call) Retur
 }
 
 func (_c *l1RollupConsumerInterfaceMock_StopAfterProcessChannelQueue_Call) RunAndReturn(run func()) *l1RollupConsumerInterfaceMock_StopAfterProcessChannelQueue_Call {
-	_c.Call.Return(run)
+	_c.Run(run)
 	return _c
 }
 

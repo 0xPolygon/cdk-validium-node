@@ -22,7 +22,7 @@ func (_m *AsyncL1BlockChecker) EXPECT() *AsyncL1BlockChecker_Expecter {
 	return &AsyncL1BlockChecker_Expecter{mock: &_m.Mock}
 }
 
-// GetResult provides a mock function with given fields:
+// GetResult provides a mock function with no fields
 func (_m *AsyncL1BlockChecker) GetResult() *syncinterfaces.IterationResult {
 	ret := _m.Called()
 
@@ -99,7 +99,7 @@ func (_c *AsyncL1BlockChecker_Run_Call) Return() *AsyncL1BlockChecker_Run_Call {
 }
 
 func (_c *AsyncL1BlockChecker_Run_Call) RunAndReturn(run func(context.Context, func())) *AsyncL1BlockChecker_Run_Call {
-	_c.Call.Return(run)
+	_c.Run(run)
 	return _c
 }
 
@@ -149,7 +149,7 @@ func (_c *AsyncL1BlockChecker_RunSynchronous_Call) RunAndReturn(run func(context
 	return _c
 }
 
-// Stop provides a mock function with given fields:
+// Stop provides a mock function with no fields
 func (_m *AsyncL1BlockChecker) Stop() {
 	_m.Called()
 }
@@ -177,7 +177,7 @@ func (_c *AsyncL1BlockChecker_Stop_Call) Return() *AsyncL1BlockChecker_Stop_Call
 }
 
 func (_c *AsyncL1BlockChecker_Stop_Call) RunAndReturn(run func()) *AsyncL1BlockChecker_Stop_Call {
-	_c.Call.Return(run)
+	_c.Run(run)
 	return _c
 }
 

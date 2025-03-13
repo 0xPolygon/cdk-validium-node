@@ -22,7 +22,7 @@ func (_m *SyncTrustedStateExecutor) EXPECT() *SyncTrustedStateExecutor_Expecter 
 	return &SyncTrustedStateExecutor_Expecter{mock: &_m.Mock}
 }
 
-// CleanTrustedState provides a mock function with given fields:
+// CleanTrustedState provides a mock function with no fields
 func (_m *SyncTrustedStateExecutor) CleanTrustedState() {
 	_m.Called()
 }
@@ -50,7 +50,7 @@ func (_c *SyncTrustedStateExecutor_CleanTrustedState_Call) Return() *SyncTrusted
 }
 
 func (_c *SyncTrustedStateExecutor_CleanTrustedState_Call) RunAndReturn(run func()) *SyncTrustedStateExecutor_CleanTrustedState_Call {
-	_c.Call.Return(run)
+	_c.Run(run)
 	return _c
 }
 

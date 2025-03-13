@@ -64,7 +64,7 @@ func (_c *SyncCheckReorger_ExecuteReorgFromMismatchBlock_Call) RunAndReturn(run 
 	return _c
 }
 
-// OnDetectedMismatchL1BlockReorg provides a mock function with given fields:
+// OnDetectedMismatchL1BlockReorg provides a mock function with no fields
 func (_m *SyncCheckReorger) OnDetectedMismatchL1BlockReorg() {
 	_m.Called()
 }
@@ -92,7 +92,7 @@ func (_c *SyncCheckReorger_OnDetectedMismatchL1BlockReorg_Call) Return() *SyncCh
 }
 
 func (_c *SyncCheckReorger_OnDetectedMismatchL1BlockReorg_Call) RunAndReturn(run func()) *SyncCheckReorger_OnDetectedMismatchL1BlockReorg_Call {
-	_c.Call.Return(run)
+	_c.Run(run)
 	return _c
 }
 

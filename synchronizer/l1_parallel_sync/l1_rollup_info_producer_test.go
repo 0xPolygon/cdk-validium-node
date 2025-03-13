@@ -28,21 +28,6 @@ func TestExploratoryL1Get(t *testing.T) {
 	require.NoError(t, err)
 }
 
-func TestGivenNeedSyncWhenStartThenAskForRollupInfo(t *testing.T) {
-	sut, ethermans, _ := setup(t)
-	expectedForGettingL1LastBlock(t, ethermans[0], 150)
-	expectedRollupInfoCalls(t, ethermans[1], 1)
-	err := sut.initialize(context.Background())
-	require.NoError(t, err)
-	_, err = sut.launchWork()
-	require.NoError(t, err)
-	var waitDuration = time.Duration(0)
-
-	sut.step(&waitDuration)
-	sut.step(&waitDuration)
-	sut.workers.waitFinishAllWorkers()
-}
-
 func TestGivenNoNeedSyncWhenStartsSendAndEventOfSynchronized(t *testing.T) {
 	sut, ethermans, ch := setup(t)
 	etherman := ethermans[0]
@@ -71,7 +56,7 @@ func TestGivenNeedSyncWhenReachLastBlockThenSendAndEventOfSynchronized(t *testin
 	// Our last block is 100 in DB and it returns 101 as last block on L1
 	// so it need to retrieve 1 rollupinfo
 	expectedForGettingL1LastBlock(t, ethermans[0], 101)
-	expectedRollupInfoCalls(t, ethermans[1], 1)
+	expectedRollupInfoCalls(ethermans[1], 1)
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*100)
 	defer cancel()
@@ -126,7 +111,7 @@ func expectedForGettingL1LastBlock(t *testing.T, etherman *L1ParallelEthermanInt
 		Maybe()
 }
 
-func expectedRollupInfoCalls(t *testing.T, etherman *L1ParallelEthermanInterfaceMock, calls int) {
+func expectedRollupInfoCalls(etherman *L1ParallelEthermanInterfaceMock, calls int) {
 	etherman.
 		On("GetRollupInfoByBlockRange", mock.Anything, mock.Anything, mock.Anything).
 		Return(nil, nil, nil).

@@ -96,7 +96,7 @@ func (_c *SynchronizerFlushIDManager_PendingFlushID_Call) Return() *Synchronizer
 }
 
 func (_c *SynchronizerFlushIDManager_PendingFlushID_Call) RunAndReturn(run func(uint64, string)) *SynchronizerFlushIDManager_PendingFlushID_Call {
-	_c.Call.Return(run)
+	_c.Run(run)
 	return _c
 }
 
