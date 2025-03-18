@@ -13,7 +13,7 @@ permissions:
 env:
   REGISTRY: ghcr.io
   REGISTRY_IMAGE: ghcr.io/0xpolygon/cdk-validium-node
-  IMAGE_TAG: v0.6.4+cdk.9
+  IMAGE_TAG: 0.6.4-cdk.9
 
 jobs:
   build:
