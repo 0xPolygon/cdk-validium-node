@@ -28,12 +28,10 @@ jobs:
         platform:
           - linux/amd64
           - linux/arm64
-
     outputs:
       IMAGE_NAME: ${{ steps.image_builder.outputs.IMAGE }}
       TAGS: ${{ steps.meta.outputs.tags }}
       VERSION: ${{ steps.meta.outputs.version }}
-
     steps:
       - name: Prepare
         run: |
@@ -43,26 +41,21 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Normalize Tag Name
-        id: normalize_tag
-        run: |
-          TAG="${GITHUB_REF_NAME//+/-}"
-          echo "NORMALIZED_TAG=$TAG"
-          echo "NORMALIZED_TAG=$TAG" >> $GITHUB_ENV
-          echo "tags=$TAG" >> $GITHUB_OUTPUT
-
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY_IMAGE }}
           tags: |
-            type=raw,value=${{ env.NORMALIZED_TAG }}
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
 
       - name: Image name builder
         id: image_builder
         run: |
-          IMAGE=$(jq -ecr '.tags | map(select(match("${{ env.REGISTRY_IMAGE }}:[0-9]+\\.[0-9]+\\.[0-9]+(-[a-zA-Z0-9._]+)?", "i"))) | first' <<< "$DOCKER_METADATA_OUTPUT_JSON")
+          IMAGE=$(jq -ecr '.tags | map(select(match("${{ env.REGEX_IMAGE }}", "i"))) | first| sub(":.*$";"") | sub("+";"-")' <<< "$DOCKER_METADATA_OUTPUT_JSON")
           echo "IMAGE=$IMAGE" >> $GITHUB_OUTPUT
 
       - name: Set up QEMU
