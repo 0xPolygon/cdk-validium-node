@@ -40,6 +40,14 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v4
+      
+      - name: Normalize Tag Name
+        id: normalize_tag
+        run: |
+          TAG="${GITHUB_REF_NAME//+/-}"
+          echo "NORMALIZED_TAG=$TAG"
+          echo "NORMALIZED_TAG=$TAG" >> $GITHUB_ENV
+          echo "tags=$TAG" >> $GITHUB_OUTPUT
 
       - name: Docker meta
         id: meta
@@ -47,10 +55,7 @@ jobs:
         with:
           images: ${{ env.REGISTRY_IMAGE }}
           tags: |
-            type=ref,event=branch
-            type=ref,event=pr
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
+            type=raw,value=${{ env.NORMALIZED_TAG }}
 
       - name: Image name builder
         id: image_builder
