@@ -144,7 +144,7 @@ func (_c *EthermanFullInterface_GetL1BlockUpgradeLxLy_Call) RunAndReturn(run fun
 	return _c
 }
 
-// GetLatestBatchNumber provides a mock function with given fields:
+// GetLatestBatchNumber provides a mock function with no fields
 func (_m *EthermanFullInterface) GetLatestBatchNumber() (uint64, error) {
 	ret := _m.Called()
 
@@ -199,7 +199,7 @@ func (_c *EthermanFullInterface_GetLatestBatchNumber_Call) RunAndReturn(run func
 	return _c
 }
 
-// GetLatestVerifiedBatchNum provides a mock function with given fields:
+// GetLatestVerifiedBatchNum provides a mock function with no fields
 func (_m *EthermanFullInterface) GetLatestVerifiedBatchNum() (uint64, error) {
 	ret := _m.Called()
 
@@ -392,7 +392,7 @@ func (_c *EthermanFullInterface_GetRollupInfoByBlockRangePreviousRollupGenesis_C
 	return _c
 }
 
-// GetTrustedSequencerURL provides a mock function with given fields:
+// GetTrustedSequencerURL provides a mock function with no fields
 func (_m *EthermanFullInterface) GetTrustedSequencerURL() (string, error) {
 	ret := _m.Called()
 

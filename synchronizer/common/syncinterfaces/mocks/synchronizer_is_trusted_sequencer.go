@@ -17,7 +17,7 @@ func (_m *SynchronizerIsTrustedSequencer) EXPECT() *SynchronizerIsTrustedSequenc
 	return &SynchronizerIsTrustedSequencer_Expecter{mock: &_m.Mock}
 }
 
-// IsTrustedSequencer provides a mock function with given fields:
+// IsTrustedSequencer provides a mock function with no fields
 func (_m *SynchronizerIsTrustedSequencer) IsTrustedSequencer() bool {
 	ret := _m.Called()
 

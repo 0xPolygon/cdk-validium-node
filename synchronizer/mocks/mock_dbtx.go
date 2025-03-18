@@ -175,7 +175,7 @@ func (_c *DbTxMock_Commit_Call) RunAndReturn(run func(context.Context) error) *D
 	return _c
 }
 
-// Conn provides a mock function with given fields:
+// Conn provides a mock function with no fields
 func (_m *DbTxMock) Conn() *pgx.Conn {
 	ret := _m.Called()
 
@@ -351,7 +351,7 @@ func (_c *DbTxMock_Exec_Call) RunAndReturn(run func(context.Context, string, ...
 	return _c
 }
 
-// LargeObjects provides a mock function with given fields:
+// LargeObjects provides a mock function with no fields
 func (_m *DbTxMock) LargeObjects() pgx.LargeObjects {
 	ret := _m.Called()
 

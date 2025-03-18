@@ -306,7 +306,7 @@ func (p *PostgresStorage) GetTransactionReceipt(ctx context.Context, transaction
 		receipt.EffectiveGasPrice = big.NewInt(0).SetUint64(*effective_gas_price)
 	}
 	receipt.Logs = logs
-	receipt.Bloom = types.CreateBloom(types.Receipts{&receipt})
+	receipt.Bloom = types.CreateBloom(&receipt)
 
 	return &receipt, nil
 }
