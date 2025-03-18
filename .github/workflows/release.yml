@@ -55,7 +55,7 @@ jobs:
       - name: Image name builder
         id: image_builder
         run: |
-          IMAGE=$(jq -ecr '.tags | map(select(match("${{ env.REGEX_IMAGE }}", "i"))) | first| sub(":.*$";"") | sub("+";"-")' <<< "$DOCKER_METADATA_OUTPUT_JSON")
+          IMAGE=$(jq -ecr '.tags | map(select(match("${{ env.REGEX_IMAGE }}", "i"))) | first| sub(":.*$";"")' <<< "$DOCKER_METADATA_OUTPUT_JSON")
           echo "IMAGE=$IMAGE" >> $GITHUB_OUTPUT
 
       - name: Set up QEMU
