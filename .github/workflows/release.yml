@@ -33,6 +33,7 @@ jobs:
       IMAGE_NAME: ${{ steps.image_builder.outputs.IMAGE }}
       TAGS: ${{ steps.meta.outputs.tags }}
       VERSION: ${{ steps.meta.outputs.version }}
+
     steps:
       - name: Prepare
         run: |
@@ -57,8 +58,6 @@ jobs:
           images: ${{ env.REGISTRY_IMAGE }}
           tags: |
             type=raw,value=${{ env.NORMALIZED_TAG }}
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
 
       - name: Image name builder
         id: image_builder
