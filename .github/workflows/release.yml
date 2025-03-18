@@ -52,6 +52,16 @@ jobs:
             type=ref,event=pr
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
+          flavor: |
+            latest=false
+        env:
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+
+      - name: Normalize Tag Name
+        id: normalize_tag
+        run: |
+          NORMALIZED_TAG="${GITHUB_REF_NAME//+/-}"
+          echo "NORMALIZED_TAG=$NORMALIZED_TAG" >> $GITHUB_ENV
 
       - name: Image name builder
         id: image_builder
