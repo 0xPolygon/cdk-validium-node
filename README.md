@@ -69,7 +69,7 @@ make run
 
 - L2 RPC endpoint: `http://localhost:8123`
 - L2 Chain ID: 1001
-- L1 RPC endpoint: `http:localhost:8545`
+- L1 RPC endpoint: `http://localhost:8545`
 - L1 Chain ID: 1337
 - Pre funded account private key: `0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80`
 
