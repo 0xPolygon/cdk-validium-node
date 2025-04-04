@@ -84,7 +84,7 @@ type L1ParallelSynchronizationConfig struct {
 	RequestLastBlockTimeout types.Duration
 	// RequestLastBlockMaxRetries Max number of retries to request LastBlock On L1
 	RequestLastBlockMaxRetries int
-	// StatisticsPeriod how ofter show a log with statistics (0 is disabled)
+	// StatisticsPeriod how often show a log with statistics (0 is disabled)
 	StatisticsPeriod types.Duration
 	// TimeOutMainLoop is the timeout for the main loop of the L1 synchronizer when is not updated
 	TimeOutMainLoop types.Duration
@@ -99,7 +99,7 @@ type L1PerformanceCheckConfig struct {
 	// AceptableInacctivityTime is the expected maximum time that the consumer
 	// could wait until new data is produced. If the time is greater it emmit a log to warn about
 	// that. The idea is keep working the consumer as much as possible, so if the producer is not
-	// fast enought then you could increse the number of parallel clients to sync with L1
+	// fast enought then you could increase the number of parallel clients to sync with L1
 	AceptableInacctivityTime types.Duration
 	// ApplyAfterNumRollupReceived is the number of iterations to
 	// start checking the time waiting for new rollup info data

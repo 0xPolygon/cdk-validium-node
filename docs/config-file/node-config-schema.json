@@ -624,7 +624,7 @@
 								"AceptableInacctivityTime": {
 									"type": "string",
 									"title": "Duration",
-									"description": "AceptableInacctivityTime is the expected maximum time that the consumer\ncould wait until new data is produced. If the time is greater it emmit a log to warn about\nthat. The idea is keep working the consumer as much as possible, so if the producer is not\nfast enought then you could increse the number of parallel clients to sync with L1",
+									"description": "AceptableInacctivityTime is the expected maximum time that the consumer\ncould wait until new data is produced. If the time is greater it emmit a log to warn about\nthat. The idea is keep working the consumer as much as possible, so if the producer is not\nfast enought then you could increase the number of parallel clients to sync with L1",
 									"default": "5s",
 									"examples": [
 										"1m",
@@ -659,7 +659,7 @@
 						"StatisticsPeriod": {
 							"type": "string",
 							"title": "Duration",
-							"description": "StatisticsPeriod how ofter show a log with statistics (0 is disabled)",
+							"description": "StatisticsPeriod how often show a log with statistics (0 is disabled)",
 							"default": "5m0s",
 							"examples": [
 								"1m",
@@ -1400,7 +1400,7 @@
 				},
 				"DefaultGasPriceWei": {
 					"type": "integer",
-					"description": "DefaultGasPriceWei is used to set the gas price to be used by the default gas pricer or as minimim gas price by the follower gas pricer.",
+					"description": "DefaultGasPriceWei is used to set the gas price to be used by the default gas pricer or as minimum gas price by the follower gas pricer.",
 					"default": 2000000000
 				},
 				"MaxGasPriceWei": {
