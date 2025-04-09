@@ -149,7 +149,7 @@
 				},
 				"MaxGasPriceLimit": {
 					"type": "integer",
-					"description": "MaxGasPriceLimit helps avoiding transactions to be sent over an specified\ngas price amount, default value is 0, which means no limit.\nIf the gas price provided by the network and adjusted by the GasPriceMarginFactor\nis greater than this configuration, transaction will have its gas price set to\nthe value configured in this config as the limit.\n\nex:\n\nsuggested gas price: 100\ngas price margin factor: 20%\nmax gas price limit: 150\ntx gas price = 120\n\nsuggested gas price: 100\ngas price margin factor: 20%\nmax gas price limit: 110\ntx gas price = 110",
+					"description": "MaxGasPriceLimit helps avoiding transactions to be sent over a specified\ngas price amount, default value is 0, which means no limit.\nIf the gas price provided by the network and adjusted by the GasPriceMarginFactor\nis greater than this configuration, transaction will have its gas price set to\nthe value configured in this config as the limit.\n\nex:\n\nsuggested gas price: 100\ngas price margin factor: 20%\nmax gas price limit: 150\ntx gas price = 120\n\nsuggested gas price: 100\ngas price margin factor: 20%\nmax gas price limit: 110\ntx gas price = 110",
 					"default": 0
 				}
 			},
@@ -498,7 +498,7 @@
 			},
 			"additionalProperties": false,
 			"type": "object",
-			"description": "Configuration for RPC service. THis one offers a extended Ethereum JSON-RPC API interface to interact with the node"
+			"description": "Configuration for RPC service. THis one offers an extended Ethereum JSON-RPC API interface to interact with the node"
 		},
 		"Synchronizer": {
 			"properties": {
@@ -1154,7 +1154,7 @@
 				"VerifyProofInterval": {
 					"type": "string",
 					"title": "Duration",
-					"description": "VerifyProofInterval is the interval of time to verify/send an proof in L1",
+					"description": "VerifyProofInterval is the interval of time to verify/send a proof in L1",
 					"default": "1m30s",
 					"examples": [
 						"1m",
