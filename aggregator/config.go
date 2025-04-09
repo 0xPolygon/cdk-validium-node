@@ -50,7 +50,7 @@ type Config struct {
 	// or batches to generate proofs. It is also used in the isSynced loop
 	RetryTime types.Duration `mapstructure:"RetryTime"`
 
-	// VerifyProofInterval is the interval of time to verify/send an proof in L1
+	// VerifyProofInterval is the interval of time to verify/send a proof in L1
 	VerifyProofInterval types.Duration `mapstructure:"VerifyProofInterval"`
 
 	// ProofStatePollingInterval is the interval time to polling the prover about the generation state of a proof
