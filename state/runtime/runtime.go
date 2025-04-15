@@ -146,7 +146,7 @@ var (
 	ErrExecutorSMMainHashPDigestAddressNotFound = errors.New("address has not been found while calculating a Poseidon hash digest")
 	// ErrExecutorSMMainHashPDigestNotCompleted indicates that the hash has not been completed while calling a Poseidon hash digest
 	ErrExecutorSMMainHashPDigestNotCompleted = errors.New("hash has not been completed while calling a Poseidon hash digest")
-	// ErrExecutorSMMainMemAlignOffsetOutOfRange indicates that the an offset register value is out of range while doing a mem align operation
+	// ErrExecutorSMMainMemAlignOffsetOutOfRange indicates that an offset register value is out of range while doing a mem align operation
 	ErrExecutorSMMainMemAlignOffsetOutOfRange = errors.New("offset register value is out of range while doing a mem align operation")
 	// ErrExecutorSMMainMultipleFreeIn indicates that we got more than one free inputs in one ROM instruction
 	ErrExecutorSMMainMultipleFreeIn = errors.New("more than one free inputs in one ROM instruction")
