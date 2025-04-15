@@ -267,7 +267,7 @@ const (
 	ExecutorError_EXECUTOR_ERROR_SM_MAIN_HASHPDIGEST_ADDRESS_NOT_FOUND ExecutorError = 30
 	// EXECUTOR_ERROR_SM_MAIN_HASHPDIGEST_NOT_COMPLETED indicates that the hash has not been completed while calling a Poseidon hash digest
 	ExecutorError_EXECUTOR_ERROR_SM_MAIN_HASHPDIGEST_NOT_COMPLETED ExecutorError = 31
-	// EXECUTOR_ERROR_SM_MAIN_MEMALIGN_OFFSET_OUT_OF_RANGE indicates that the an offset register value is out of range while doing a mem align operation
+	// EXECUTOR_ERROR_SM_MAIN_MEMALIGN_OFFSET_OUT_OF_RANGE indicates that an offset register value is out of range while doing a mem align operation
 	ExecutorError_EXECUTOR_ERROR_SM_MAIN_MEMALIGN_OFFSET_OUT_OF_RANGE ExecutorError = 32
 	// EXECUTOR_ERROR_SM_MAIN_MULTIPLE_FREEIN indicates that we got more than one free inputs in one ROM instruction
 	ExecutorError_EXECUTOR_ERROR_SM_MAIN_MULTIPLE_FREEIN ExecutorError = 33
