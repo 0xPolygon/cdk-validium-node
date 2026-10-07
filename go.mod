@@ -1,3 +1,4 @@
+// Deprecated: the zkEVM / CDK node stack is retired. Use github.com/0xPolygon/cdk-op-reth and github.com/agglayer.
 module github.com/0xPolygonHermez/zkevm-node
 
 go 1.21
