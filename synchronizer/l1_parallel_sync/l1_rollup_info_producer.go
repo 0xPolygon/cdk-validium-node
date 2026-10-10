@@ -121,7 +121,7 @@ type ConfigProducer struct {
 
 	//TimeOutMainLoop timeout for main loop if no is synchronized yet, this time is a safeguard because is not needed
 	TimeOutMainLoop time.Duration
-	//TimeForShowUpStatisticsLog how ofter we show a log with statistics, 0 means disabled
+	//TimeForShowUpStatisticsLog how often we show a log with statistics, 0 means disabled
 	TimeForShowUpStatisticsLog time.Duration
 	// MinTimeBetweenRetriesForRollupInfo is the minimum time between retries for rollup info
 	MinTimeBetweenRetriesForRollupInfo time.Duration

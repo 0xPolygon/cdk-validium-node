@@ -1704,7 +1704,7 @@ RequestLastBlockPeriod="5s"
 **Description:** AceptableInacctivityTime is the expected maximum time that the consumer
 could wait until new data is produced. If the time is greater it emmit a log to warn about
 that. The idea is keep working the consumer as much as possible, so if the producer is not
-fast enought then you could increse the number of parallel clients to sync with L1
+fast enought then you could increase the number of parallel clients to sync with L1
 
 **Examples:** 
 
@@ -1785,7 +1785,7 @@ RequestLastBlockMaxRetries=3
 
 **Default:** `"5m0s"`
 
-**Description:** StatisticsPeriod how ofter show a log with statistics (0 is disabled)
+**Description:** StatisticsPeriod how often show a log with statistics (0 is disabled)
 
 **Examples:** 
 
@@ -3486,7 +3486,7 @@ RollupManagerBlockNumber=0
 | Property                                                                       | Pattern | Type    | Deprecated | Definition | Title/Description                                                                                                                        |
 | ------------------------------------------------------------------------------ | ------- | ------- | ---------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
 | - [Type](#L2GasPriceSuggester_Type )                                           | No      | string  | No         | -          | -                                                                                                                                        |
-| - [DefaultGasPriceWei](#L2GasPriceSuggester_DefaultGasPriceWei )               | No      | integer | No         | -          | DefaultGasPriceWei is used to set the gas price to be used by the default gas pricer or as minimim gas price by the follower gas pricer. |
+| - [DefaultGasPriceWei](#L2GasPriceSuggester_DefaultGasPriceWei )               | No      | integer | No         | -          | DefaultGasPriceWei is used to set the gas price to be used by the default gas pricer or as minimum gas price by the follower gas pricer. |
 | - [MaxGasPriceWei](#L2GasPriceSuggester_MaxGasPriceWei )                       | No      | integer | No         | -          | MaxGasPriceWei is used to limit the gas price returned by the follower gas pricer to a maximum value. It is ignored if 0.                |
 | - [MaxPrice](#L2GasPriceSuggester_MaxPrice )                                   | No      | object  | No         | -          | -                                                                                                                                        |
 | - [IgnorePrice](#L2GasPriceSuggester_IgnorePrice )                             | No      | object  | No         | -          | -                                                                                                                                        |
@@ -3515,7 +3515,7 @@ Type="follower"
 
 **Default:** `2000000000`
 
-**Description:** DefaultGasPriceWei is used to set the gas price to be used by the default gas pricer or as minimim gas price by the follower gas pricer.
+**Description:** DefaultGasPriceWei is used to set the gas price to be used by the default gas pricer or as minimum gas price by the follower gas pricer.
 
 **Example setting the default value** (2000000000):
 ```
