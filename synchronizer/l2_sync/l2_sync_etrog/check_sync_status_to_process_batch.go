@@ -36,7 +36,7 @@ func NewCheckSyncStatusToProcessBatch(zkevmRPCClient syncinterfaces.ZKEVMClientG
 // CheckL1SyncGlobalExitRootEnoughToProcessBatch returns nil if the are sync and could process the batch
 // if not:
 //   - returns syncinterfaces.ErrMissingSyncFromL1 if we are behind the block number that contains the GlobalExitRoot
-//   - returns l2_shared.NewDeSyncPermissionlessAndTrustedNodeError  if trusted and and permissionless are not in same page! pass also the discrepance point
+//   - returns l2_shared.NewDeSyncPermissionlessAndTrustedNodeError  if trusted and permissionless are not in same page! pass also the discrepancy point
 func (c *CheckSyncStatusToProcessBatch) CheckL1SyncGlobalExitRootEnoughToProcessBatch(ctx context.Context, batchNumber uint64, globalExitRoot common.Hash, dbTx pgx.Tx) error {
 	// Find out if this node have GlobalExitRoot
 	// If not: ask to zkevm-RPC the block number of this GlobalExitRoot

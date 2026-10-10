@@ -35,7 +35,7 @@ func (l *l1RollupInfoConsumerStatistics) onReset() {
 
 func (l *l1RollupInfoConsumerStatistics) onStartProcessIncommingRollupInfoData(rollupInfo rollupInfoByBlockRangeResult) string {
 	now := time.Now()
-	// Time have have been blocked in the select statement
+	// Time have been blocked in the select statement
 	waitingTimeForData := now.Sub(l.startStepTime)
 	blocksPerSecond := float64(l.numProcessedBlocks) / time.Since(l.startTime).Seconds()
 	generatedWarning := false

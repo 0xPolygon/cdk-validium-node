@@ -164,7 +164,7 @@ func TestGetModeForProcessBatchReprocessMode(t *testing.T) {
 	testData.stateCurrentBatch.StateRoot = state.ZeroHash
 	processData, err := testData.sut.GetModeForProcessBatch(testData.trustedNodeBatch, testData.stateCurrentBatch, testData.statePreviousBatch, "test")
 	require.NoError(t, err)
-	require.Equal(t, l2_shared.ReprocessProcessMode, processData.Mode, "local batch doesnt have stateRoot but exists, so  so it needs to be reprocess")
+	require.Equal(t, l2_shared.ReprocessProcessMode, processData.Mode, "local batch doesnt have stateRoot but exists, so it needs to be reprocess")
 	require.Equal(t, true, processData.BatchMustBeClosed, "the trustedNode batch is closed")
 	require.Equal(t, testData.statePreviousBatch.StateRoot, processData.OldStateRoot, "the old state root is the previous batch SR")
 }
