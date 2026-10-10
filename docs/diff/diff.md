@@ -81,7 +81,7 @@ The main changes on Validium vs Rollup consensus smart contracts are:
 - `newEtherman` now depends on the state, needed to instantiate the DA
 - `LoadAuthFromKeyStore` returns the raw private key, used to authenticate messages for DAC
 - policy CLI added to interact with allow list storage
-- needed to change the order of how things are instantiated by adding a `tmpEthMan` as etherman is used to get the L2 chain ID, which is needed for the state, and at the same time the state is needed for for the Etherman. Note that the `tmpEthMan` is used exclusively to get the L2 chain ID
+- needed to change the order of how things are instantiated by adding a `tmpEthMan` as etherman is used to get the L2 chain ID, which is needed for the state, and at the same time the state is needed for the Etherman. Note that the `tmpEthMan` is used exclusively to get the L2 chain ID
 - `newEtherman` calls `newDataAvailability` as DA is a dependency of Etherman (etherman now pulls data from the DA)
 - `newDataAvailability` used to instantiate the DA, in a modular way (switch/case of the supported backends)
 - `createSequenceSender` instantiates DA as it's needed to post sequences to the DA layer

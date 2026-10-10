@@ -30,7 +30,7 @@ type Config struct {
 	// gas price = 110
 	GasPriceMarginFactor float64 `mapstructure:"GasPriceMarginFactor"`
 
-	// MaxGasPriceLimit helps avoiding transactions to be sent over an specified
+	// MaxGasPriceLimit helps avoiding transactions to be sent over a specified
 	// gas price amount, default value is 0, which means no limit.
 	// If the gas price provided by the network and adjusted by the GasPriceMarginFactor
 	// is greater than this configuration, transaction will have its gas price set to

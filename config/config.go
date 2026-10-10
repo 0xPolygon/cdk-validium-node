@@ -94,7 +94,7 @@ type Config struct {
 	EthTxManager ethtxmanager.Config
 	// Pool service configuration
 	Pool pool.Config
-	// Configuration for RPC service. THis one offers a extended Ethereum JSON-RPC API interface to interact with the node
+	// Configuration for RPC service. THis one offers an extended Ethereum JSON-RPC API interface to interact with the node
 	RPC jsonrpc.Config
 	// Configuration of service `Synchronizer`. For this service is also really important the value of `IsTrustedSequencer`
 	// because depending of this values is going to ask to a trusted node for trusted transactions or not
